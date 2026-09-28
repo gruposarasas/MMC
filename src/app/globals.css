@@ -163,3 +163,8 @@ a.btn{text-align:center;text-decoration:none}
 @media (prefers-reduced-motion:reduce){.pin.mal span{animation:none}*{scroll-behavior:auto!important}}
 .cartel .c-qr svg{width:100%;height:100%;display:block}
 @media print{body.imprimiendo .imprimible:not(.objetivo),body.imprimiendo .imprimible:not(.objetivo) *{visibility:hidden!important}body.imprimiendo{background:#fff}}
+.instalar{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;margin-top:16px;background:var(--plum3);border:1px solid var(--linea);border-radius:14px;padding:12px 14px}
+.instalar img{border-radius:10px}
+.instalar b{color:var(--arena2);font-size:14px}
+.instalar p{margin:2px 0 0;font-size:13px;color:rgba(243,233,220,.8)}
+.instalar-b{display:flex;gap:16px;align-items:center;margin-top:10px}

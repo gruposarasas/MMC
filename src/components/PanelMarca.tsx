@@ -47,31 +47,46 @@ export function SalirMarca() {
   );
 }
 
-export function FormCupon({ inicial, codigo }: { inicial: ValorCupon; codigo: string }) {
+type ValorForm = ValorCupon & { beneficio: string; condiciones: string };
+
+export function FormCupon({ inicial, codigo, creditos }: { inicial: ValorForm; codigo: string; creditos: number }) {
   const router = useRouter();
-  const [v, setV] = useState<ValorCupon>(inicial);
+  const [v, setV] = useState<ValorForm>(inicial);
   const [enviando, setEnviando] = useState(false);
   async function enviar(ev: React.FormEvent) {
     ev.preventDefault();
+    if (!v.beneficio.trim()) return toast('Escribí el beneficio que vas a dar.');
     const vence = v.vence || EVENTO_FIN;
     if (vence < EVENTO_FIN) return toast('El vencimiento no puede ser antes del 4 de octubre.');
     if (!confirm('¿Enviar tu cupón? Después no lo vas a poder cambiar ni eliminar: solo la organización puede hacerlo.')) return;
     setEnviando(true);
     const logo = v.logo === inicial.logo ? 'mantener' : v.logo || 'quitar';
-    const r = await fetch('/api/marca/enviar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ vence, sucursales: v.sucursales, logo }) }).catch(() => null);
+    const r = await fetch('/api/marca/enviar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ beneficio: v.beneficio, condiciones: v.condiciones, vence, sucursales: v.sucursales, logo }) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) : {};
     setEnviando(false);
     if (!r || !r.ok) return toast(j.error || 'No se pudo enviar. Probá de nuevo.');
-    toast(j.visible ? 'Cupón enviado. Los visitantes ya lo ven en su billetera.' : 'Cupón enviado. La organización lo va a publicar.');
+    toast('Cupón enviado. Los visitantes ya lo ven en su billetera.');
     router.refresh();
   }
   return (
     <form className="form" onSubmit={enviar}>
       <h2 style={{ margin: 0, fontSize: 18, color: 'var(--arena)' }}>Tu cupón</h2>
       <p className="ayuda">
-        El beneficio y la cantidad de usos los define la organización. Completá tu logo, hasta cuándo vale y dónde se puede usar después, y envialo.{' '}
+        Elegí el beneficio que vas a dar, completá tu logo, hasta cuándo vale y dónde se puede usar después, y envialo.{' '}
         <b>Una vez enviado no lo vas a poder cambiar ni eliminar.</b>
       </p>
+      <div className="grid2">
+        <div className="campo">
+          <label htmlFor="pmBen">Beneficio</label>
+          <input id="pmBen" value={v.beneficio} onChange={(e) => setV((y) => ({ ...y, beneficio: e.target.value }))} placeholder="2x1 en café" maxLength={34} />
+          <div className="ayuda">Corto: es lo que se ve grande en el cupón. Por ejemplo, &quot;20% off&quot; o &quot;Medialuna de regalo&quot;.</div>
+        </div>
+        <div className="campo">
+          <label htmlFor="pmCond">Condiciones</label>
+          <input id="pmCond" value={v.condiciones} onChange={(e) => setV((y) => ({ ...y, condiciones: e.target.value }))} placeholder="En cualquier café de la carta" maxLength={240} />
+          <div className="ayuda">Cada visitante lo puede usar {creditos === 1 ? '1 vez' : `${creditos} veces`}: eso lo define la organización.</div>
+        </div>
+      </div>
       <CamposCupon v={v} set={(x) => setV((y) => ({ ...y, ...x }))} />
       <div className="campo">
         <label>Código de caja</label>

@@ -6,6 +6,7 @@ import recursos from '@/lib/recursos.json';
 import { Emb } from '@/components/Emb';
 import { Salir } from '@/components/Salir';
 import { AvisoInicial } from '@/components/Toast';
+import { Instalar } from '@/components/Instalar';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +47,7 @@ export default async function Billetera({ searchParams }: { searchParams: Promis
         <p className="guardado">
           Tus cupones están guardados con {v.mail ? <>tu mail <b>{v.mail}</b></> : <>tu WhatsApp <b>{formatoTel(v.whatsapp || '')}</b></>}. Con él los recuperás desde cualquier celular.
         </p>
+        <Instalar />
         <p className="resumen-b">
           {disp
             ? `Tenés ${disp} beneficio${disp > 1 ? 's' : ''} para usar en ${lugares === 1 ? '1 cafetería' : `${lugares} cafeterías`}.`

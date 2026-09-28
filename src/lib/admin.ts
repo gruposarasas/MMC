@@ -59,7 +59,7 @@ export function validarMarca(j: Record<string, unknown>): { ok: CamposMarca } | 
   const s = (k: string, max: number) => String(j[k] ?? '').trim().replace(/\s+/g, ' ').slice(0, max);
   const nombre = s('nombre', 80);
   const beneficio = s('beneficio', 34);
-  if (!nombre || !beneficio) return { error: 'Completá la cafetería y el beneficio.' };
+  if (!nombre) return { error: 'Completá el nombre de la marca.' };
   const codigo = s('codigo', 4);
   if (!/^\d{4}$/.test(codigo)) return { error: 'El código de caja tiene que ser de 4 números.' };
   const vence = s('vence', 10) || EVENTO_FIN;

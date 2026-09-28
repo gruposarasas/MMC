@@ -11,12 +11,16 @@ export async function POST(req: Request) {
   if (m.enviado_at) return NextResponse.json({ error: 'El cupón ya fue enviado. Pedile cambios a la organización.' }, { status: 409 });
   if (!permitir(`menviar:${m.id}`, 10, 300)) return NextResponse.json({ error: 'Esperá un momento y probá de nuevo.' }, { status: 429 });
 
-  let j: { vence?: unknown; sucursales?: unknown; logo?: unknown };
+  let j: { beneficio?: unknown; condiciones?: unknown; vence?: unknown; sucursales?: unknown; logo?: unknown };
   try {
     j = await req.json();
   } catch {
     return NextResponse.json({ error: 'Datos inválidos.' }, { status: 400 });
   }
+  const beneficio = String(j.beneficio ?? '').trim().replace(/\s+/g, ' ');
+  if (!beneficio) return NextResponse.json({ error: 'Escribí el beneficio que vas a dar.' }, { status: 400 });
+  if (beneficio.length > 34) return NextResponse.json({ error: 'El beneficio tiene que ser corto: hasta 34 caracteres.' }, { status: 400 });
+  const condiciones = String(j.condiciones ?? '').trim().slice(0, 240);
   const vence = String(j.vence || EVENTO_FIN);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(vence) || isNaN(Date.parse(vence)) || vence < EVENTO_FIN)
     return NextResponse.json({ error: 'El vencimiento no puede ser antes del 4 de octubre.' }, { status: 400 });
@@ -33,12 +37,13 @@ export async function POST(req: Request) {
 
   const { data, error } = await db()
     .from('marcas')
-    .update({ vence, sucursales, logo_path, enviado_at: new Date().toISOString() })
+    // Al enviarlo, el cupón se publica. Administración lo puede ocultar después.
+    .update({ beneficio, condiciones, vence, sucursales, logo_path, activa: true, enviado_at: new Date().toISOString() })
     .eq('id', m.id)
     .is('enviado_at', null)
-    .select('activa, beneficio')
+    .select('id')
     .maybeSingle();
   if (error) return NextResponse.json({ error: 'No se pudo enviar. Probá de nuevo.' }, { status: 500 });
   if (!data) return NextResponse.json({ error: 'El cupón ya fue enviado.' }, { status: 409 });
-  return NextResponse.json({ ok: true, visible: data.activa && !!data.beneficio });
+  return NextResponse.json({ ok: true });
 }

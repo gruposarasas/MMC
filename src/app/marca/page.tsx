@@ -41,7 +41,7 @@ export default async function PanelDeMarca() {
             <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 14 }}>
               <Emb logoUrl={logo} emblema={m.emblema} nombre={m.nombre} t={64} />
               <div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--arena)' }}>{m.beneficio || 'Beneficio a definir por la organización'}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--arena)' }}>{m.beneficio}</div>
                 <p style={{ margin: '2px 0 0', fontSize: 14 }}>{m.condiciones}</p>
               </div>
             </div>
@@ -55,7 +55,7 @@ export default async function PanelDeMarca() {
             </p>
           </div>
         ) : (
-          <FormCupon inicial={{ logo, vence: m.vence, sucursales: m.sucursales }} codigo={m.codigo} />
+          <FormCupon inicial={{ beneficio: m.beneficio, condiciones: m.condiciones, logo, vence: m.vence, sucursales: m.sucursales }} codigo={m.codigo} creditos={m.creditos} />
         )}
         <div className="tarj tabla" style={{ marginTop: 14 }}>
           <h2 style={{ margin: '0 0 8px', fontSize: 17, color: 'var(--arena)' }}>Tus canjes</h2>

@@ -3,6 +3,8 @@
 > **Aclaraciones vigentes (pisan lo que dice el brief):**
 > - El dominio de producción es **https://mmc.saraimagineers.com** (no `mundial.brunobrown.cafe`). Es el que va en el QR de los carteles y en el link del panel de marca.
 > - El repositorio y el proyecto de Supabase se llaman **MMC** (no `mundial-cafe`). El proyecto de Easypanel se llama **`mmc`**.
+> - **El beneficio y las condiciones los elige cada marca** desde su panel (`/marca`). Al tocar "Enviar cupón" se publica y queda de solo lectura; solo administración lo puede editar, ocultar, eliminar o reabrir. Los créditos por visitante y el código de caja los sigue definiendo administración.
+> - La app se puede agregar a la pantalla de inicio (manifiesto e íconos). La billetera invita a hacerlo.
 > - Estado y detalles técnicos: ver `README.md`.
 
 App web para el **Mundial de Café by Bruno Brown**. El evento es en Bodega Arizu, Mendoza, el **sábado 3 y el domingo 4 de octubre de 2026**, con entrada libre.

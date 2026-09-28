@@ -67,7 +67,7 @@ export function AdminMarcas({ marcas }: { marcas: MarcaAdmin[] }) {
   async function guardar(ev: React.FormEvent) {
     ev.preventDefault();
     if (!f) return;
-    if (!f.nombre.trim() || !f.beneficio.trim()) return toast('Completá la cafetería y el beneficio.');
+    if (!f.nombre.trim()) return toast('Completá el nombre de la marca.');
     if (!/^\d{4}$/.test(f.codigo)) return toast('El código de caja tiene que ser de 4 números.');
     if (marcas.some((m) => m.codigo === f.codigo && m.id !== editar)) return toast('Ese código ya lo usa otra cafetería. Elegí otro.');
     if ((f.vence || EVENTO_FIN) < EVENTO_FIN) return toast('El vencimiento no puede ser antes del final del Mundial (4 de octubre).');
@@ -118,7 +118,7 @@ export function AdminMarcas({ marcas }: { marcas: MarcaAdmin[] }) {
           <div className="grid2">
             <div className="campo"><label htmlFor="mNom">Marca</label><input id="mNom" value={f.nombre} onChange={(e) => set({ nombre: e.target.value })} required maxLength={80} /></div>
             <div className="campo"><label htmlFor="mStand">Stand</label><input id="mStand" value={f.stand} onChange={(e) => set({ stand: e.target.value })} placeholder="Stand 12" maxLength={40} /></div>
-            <div className="campo"><label htmlFor="mBen">Beneficio</label><input id="mBen" value={f.beneficio} onChange={(e) => set({ beneficio: e.target.value })} placeholder="2x1 en café" maxLength={34} /><div className="ayuda">Corto: es lo que se ve grande en el cupón.</div></div>
+            <div className="campo"><label htmlFor="mBen">Beneficio</label><input id="mBen" value={f.beneficio} onChange={(e) => set({ beneficio: e.target.value })} placeholder="2x1 en café" maxLength={34} /><div className="ayuda">Corto: es lo que se ve grande en el cupón. Si lo dejás vacío, lo carga la marca desde su panel.</div></div>
             <div className="campo"><label htmlFor="mCond">Condiciones</label><input id="mCond" value={f.condiciones} onChange={(e) => set({ condiciones: e.target.value })} placeholder="En cualquier café de la carta" maxLength={240} /></div>
             <div className="campo"><label htmlFor="mCred">Veces que lo puede usar cada visitante</label><input id="mCred" type="number" min={1} max={10} value={f.creditos} onChange={(e) => set({ creditos: Number(e.target.value) })} /></div>
             <div className="campo">
