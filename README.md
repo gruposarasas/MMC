@@ -35,9 +35,9 @@ Las variables se leen **al arrancar**, no en el build: cambiar una en Easypanel 
 ## Deploy en Easypanel
 
 1. En el proyecto `mmc`, crear un servicio **App**.
-2. **Source:** GitHub → `gruposarasas/MMC`, rama `main`, build con **Dockerfile** (ruta `Dockerfile`).
+2. **Source:** GitHub → `gruposarasas/MMC`, rama `claude/amazing-pascal-b2epvu` (hasta que exista `main`), build con **Dockerfile** (ruta `Dockerfile`).
 3. **Environment:** las cinco variables de arriba.
-4. **Domains:** `mmc.saraimagineers.com` → puerto **3000**, HTTPS activado (Let's Encrypt). El DNS de `mmc.saraimagineers.com` tiene que apuntar al servidor de Easypanel.
+4. **Domains:** `mmc.saraimagineers.com` → `http://mmc_mmc:80/`, HTTPS activado (Let's Encrypt). Easypanel le pasa `PORT=80` al contenedor y eso pisa el 3000 del Dockerfile, así que el destino es el **80**. El DNS (registro A `mmc` en GoDaddy) apunta al servidor de Easypanel.
 5. Deploy. Al arrancar, la app sube sola a Storage los 29 logos iniciales (`semilla/logos`) si faltan; en los logs se ve `[logos] 29 logos iniciales subidos a Storage`.
 
 La app corre en **un solo contenedor**: los límites de uso se guardan en memoria. No escalar a varias réplicas sin moverlos a la base.
