@@ -21,5 +21,6 @@ COPY --from=build --chown=app:app /app/public ./public
 COPY --from=build --chown=app:app /app/semilla ./semilla
 USER app
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD wget -qO- http://127.0.0.1:3000/api/salud || exit 1
-CMD ["node", "server.js"]
+# HOSTNAME se fija al arrancar: Docker lo pisa con el nombre del contenedor y
+# Next.js terminaría escuchando solo en la IP interna.
+CMD ["sh", "-c", "HOSTNAME=0.0.0.0 exec node server.js"]
