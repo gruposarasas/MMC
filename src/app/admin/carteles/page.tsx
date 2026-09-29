@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import { esAdmin, todasLasMarcas } from '@/lib/datos';
-import { URL_PUBLICA, SORTEO_TEXTO, SORTEO_DNI } from '@/lib/config';
+import { URL_PUBLICA, SORTEO_TEXTO, SORTEO_PRESENTE, SORTEO_DNI } from '@/lib/config';
 import recursos from '@/lib/recursos.json';
 import { EntrarAdmin } from '@/components/admin/Comun';
 import { Imprimir } from '@/components/admin/Imprimir';
@@ -49,6 +49,7 @@ export default async function Carteles() {
             <p className="cc-bajada">Registrate y participá del sorteo</p>
             <div className="cc-qr"><div dangerouslySetInnerHTML={{ __html: qr }} /></div>
             <p className="cc-letra">{SORTEO_TEXTO}</p>
+            <p className="cc-letra">{SORTEO_PRESENTE}</p>
             <p className="cc-dni">{SORTEO_DNI}</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="cc-logo" src={recursos.logoOsc} alt="Mundial de Café by Bruno Brown" />

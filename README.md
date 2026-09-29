@@ -18,7 +18,7 @@ Los visitantes escanean un QR, se registran y reciben una billetera con cupones 
 | `/marca` | Marca | Ingreso con su clave, sus canjes y el envío del cupón. |
 | `/admin` | Organización | Back office (Resumen, Beneficios, Visitantes, Canjes). |
 | `/admin/carteles` | Organización | Cartel con QR y tarjetas de caja para imprimir. |
-| `/admin/sorteo` | Organización | Pantalla para proyectar el sorteo de la camiseta: presentes en vivo, SORTEAR y ganador. |
+| `/sorteo` | Organización | Pantalla para proyectar el sorteo de la camiseta (pide la contraseña de admin): presentes en vivo, SORTEAR con ruleta y ganador. `/admin/sorteo` redirige acá. |
 | `/api/salud` | — | Healthcheck. |
 
 ## Variables de entorno

@@ -48,7 +48,7 @@ export function SorteoVisitante({ inicial }: { inicial: Estado }) {
         ) : e.ventana === 'cerrada' ? (
           <p className="sorteo-nota">La inscripción al sorteo ya cerró.</p>
         ) : (
-          <p className="sorteo-nota">Ya estás inscripto. El domingo, entre las 18 y las 20, tocá acá &quot;Estoy presente&quot; para entrar al sorteo.</p>
+          <p className="sorteo-nota">Ya estás inscripto. El domingo, a partir de las 18 hs, tocá acá &quot;Estoy presente&quot; para entrar al sorteo.</p>
         )}
         <p className="sorteo-dni">{SORTEO_DNI}</p>
       </div>
@@ -64,7 +64,7 @@ export function SorteoAviso() {
       <div>
         <h2>¡Quiero la camiseta de Enzo!</h2>
         <p className="sorteo-cuando">{SORTEO_TEXTO}</p>
-        <p>Registrate y participá del sorteo entre todos los inscriptos presentes.</p>
+        <p>Registrate y, el domingo a partir de las 18 hs, tocá &quot;Estoy presente&quot; en tu billetera para participar.</p>
         <p className="sorteo-dni">{SORTEO_DNI}</p>
       </div>
     </section>

@@ -28,7 +28,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           <Link key={k} href={`/admin?tab=${k}`} className={tab === k ? 'on' : ''} aria-current={tab === k ? 'page' : undefined}>{n}</Link>
         ))}
         <Link href="/admin/carteles">Carteles</Link>
-        <Link href="/admin/sorteo">Sorteo</Link>
+        <Link href="/sorteo">Sorteo</Link>
         <SalirAdmin />
       </nav>
       <section>{await Seccion({ tab })}</section>

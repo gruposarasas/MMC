@@ -2,18 +2,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import recursos from '@/lib/recursos.json';
-import { SORTEO_DNI, type Ventana } from '@/lib/config';
+import { SORTEO_DNI, SORTEO_PRESENTE, type Ventana } from '@/lib/config';
 import { Camiseta } from '../Camiseta';
 import { toast } from '../Toast';
 
 type Presente = { id: string; n: string };
-type Ganador = { id: number; nombre: string; cuando: string };
+type Ganador = { id: number; vid: string; nombre: string; cuando: string };
 type Estado = { ventana: Ventana; prueba: boolean; habilitada: boolean; presentes: Presente[]; ganadores: Ganador[] };
 type Fase = 'espera' | 'ruleta' | 'ganador';
 
 const MAX_VISIBLES = 160;
 const DURACION = 10000; // la ruleta gira 10 segundos
-const EN_RUEDA = 24; // nombres alrededor de la ruleta
+const EN_RUEDA = 50; // casilleros de la ruleta (el ganador sale entre TODOS los presentes)
 
 export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: string; url: string }) {
   const [e, setE] = useState<Estado>(inicial);
@@ -86,7 +86,7 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
           <footer className="sx-pie">
             <div className="sx-qr" dangerouslySetInnerHTML={{ __html: qr }} />
             <div>
-              <b>{e.habilitada ? '¿Estás acá? ¡Participá!' : e.ventana === 'antes' ? 'Inscripción: domingo 4 de 18 a 20 hs' : 'La inscripción cerró'}</b>
+              <b>{e.habilitada ? '¿Estás acá? ¡Participá!' : e.ventana === 'antes' ? SORTEO_PRESENTE : 'La inscripción cerró'}</b>
               <p>Entrá a <strong>{url.replace('https://', '')}</strong> y tocá <strong>&quot;Estoy presente&quot;</strong> en tu billetera.{e.prueba && ' (modo prueba)'}</p>
               <p className="sx-dni">{SORTEO_DNI}</p>
             </div>
@@ -95,7 +95,14 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
         </>
       )}
 
-      {fase === 'ruleta' && ganador && <Ruleta presentes={disponibles} ganadorId={ganador.id} onFin={() => setFase('ganador')} />}
+      {fase === 'ruleta' && ganador && (
+        <Ruleta
+          presentes={disponibles.filter((p) => p.id === ganador.id || !e.ganadores.some((g) => g.vid === p.id))}
+          ganadorId={ganador.id}
+          entre={ganador.entre}
+          onFin={() => setFase('ganador')}
+        />
+      )}
 
       {fase === 'ganador' && ganador && (
         <div className="sx-ganador" role="dialog" aria-label="Ganador">
@@ -114,7 +121,7 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
           <>
             <button className="sx-sortear" onClick={sortear} disabled={!disponibles.length}>SORTEAR</button>
             <button
-              title="Habilita &quot;Estoy presente&quot; fuera del horario del domingo, para ensayar"
+              title="Uso interno: &quot;Estoy presente&quot; se habilita solo el domingo 4 de 18 a 20 hs. El modo prueba lo habilita fuera de ese horario, para ensayar."
               onClick={async () => { const j = await accion(e.prueba ? 'cerrar' : 'abrir'); if (j) setE(j); }}
             >
               {e.prueba ? 'Quitar modo prueba' : 'Modo prueba'}
@@ -157,30 +164,39 @@ const mezclar = <T,>(a: T[]) => {
 };
 
 /**
- * Ruleta: los nombres forman una rueda y una pelotita los va tocando, cada vez más
- * lento, mientras el nombre tocado pasa grande por el centro. Frena en el ganador,
- * que ya eligió el servidor.
+ * Ruleta de casino: hasta 50 casilleros con nombres alrededor de una rueda y una
+ * bolilla que los recorre, rapidísimo al principio y cada vez más lento, mientras
+ * el nombre que toca pasa grande por el centro. Frena en el ganador, que ya eligió
+ * el servidor entre TODOS los presentes (la rueda muestra hasta 50 de ellos).
  */
-function Ruleta({ presentes, ganadorId, onFin }: { presentes: Presente[]; ganadorId: string; onFin: () => void }) {
+function Ruleta({ presentes, ganadorId, entre, onFin }: { presentes: Presente[]; ganadorId: string; entre: number; onFin: () => void }) {
   const slots = useMemo(() => {
     const g = presentes.find((p) => p.id === ganadorId) ?? { id: ganadorId, n: '…' };
     return mezclar([g, ...mezclar(presentes.filter((p) => p.id !== ganadorId)).slice(0, EN_RUEDA - 1)]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const n = slots.length;
   const gi = slots.findIndex((s) => s.id === ganadorId);
   const [act, setAct] = useState(0);
   const [paso, setPaso] = useState(0);
-  const [ms, setMs] = useState(60); // lo que dura el paso actual: la bolilla se mueve a ese ritmo
+  const [ms, setMs] = useState(40);
   const [resta, setResta] = useState(DURACION / 1000);
   const [fin, setFin] = useState(false);
+  const [R, setR] = useState(0); // radio de la rueda en px
   const alFin = useRef(onFin);
   alFin.current = onFin;
 
   useEffect(() => {
-    const n = slots.length;
-    const vueltas = n === 1 ? 10 : n < 6 ? 6 : n < 12 ? 4 : 3;
+    const medir = () => setR(Math.round(Math.min(window.innerHeight * 0.39, window.innerWidth * 0.3)));
+    medir();
+    window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, []);
+
+  useEffect(() => {
+    const vueltas = n === 1 ? 10 : n < 8 ? 6 : n < 20 ? 4 : 3;
     const pasos = vueltas * n + gi;
     // Cada paso tarda más que el anterior: arranca rapidísimo y frena como la bolilla.
-    const pesos = Array.from({ length: pasos }, (_, k) => 1 + 16 * Math.pow(k / pasos, 3));
+    const pesos = Array.from({ length: pasos }, (_, k) => 1 + 18 * Math.pow(k / pasos, 3));
     const escala = (DURACION - 400) / pesos.reduce((a, b) => a + b, 0);
     const inicio = performance.now();
     let k = 0;
@@ -192,7 +208,7 @@ function Ruleta({ presentes, ganadorId, onFin }: { presentes: Presente[]; ganado
       if (k >= pasos) {
         setFin(true);
         setResta(0);
-        t = setTimeout(() => alFin.current(), 2200);
+        t = setTimeout(() => alFin.current(), 2400);
         return;
       }
       setMs(Math.round(pesos[k] * escala));
@@ -201,23 +217,51 @@ function Ruleta({ presentes, ganadorId, onFin }: { presentes: Presente[]; ganado
     t = setTimeout(tick, pesos[0] * escala);
     const reloj = setInterval(() => setResta(Math.max(0, Math.ceil((DURACION - (performance.now() - inicio)) / 1000))), 100);
     return () => { clearTimeout(t); clearInterval(reloj); };
-  }, [slots, gi]);
+  }, [n, gi]);
 
-  const pos = (i: number, f = 1) => {
-    const a = (i / slots.length) * Math.PI * 2 - Math.PI / 2;
-    return { left: `calc(50% + ${Math.cos(a) * 40 * f}vw)`, top: `calc(55% + ${Math.sin(a) * 33 * f}vh)` };
-  };
+  const paso360 = 360 / n;
+  // Casilleros alternados rojo y ciruela, como la ruleta del casino.
+  const fondo = useMemo(
+    () => `conic-gradient(from ${-paso360 / 2}deg, ${slots.map((_, i) => `${i % 2 ? '#281722' : '#D71920'} ${i * paso360}deg ${(i + 1) * paso360}deg`).join(', ')})`,
+    [slots, paso360],
+  );
+  if (!R) return null;
+  const hub = Math.round(R * 0.5); // radio del centro
+  const largo = R - hub - 26; // largo del texto de cada casillero
+  const fuente = Math.max(10, Math.min(24, (2 * Math.PI * (hub + largo * 0.6)) / n * 0.55));
+  const bolaR = R - 13;
+  const angBola = paso * paso360; // siempre crece: la bolilla gira hacia adelante
 
   return (
-    <div className={`sx-ruleta ${fin ? 'fin' : ''}`} aria-live="off">
-      <div className="sx-rueda" aria-hidden="true" />
-      {slots.map((s, i) => (
-        <span key={s.id} className={`sx-casilla ${i === act ? 'toca' : ''} ${fin && i === act ? 'gana' : ''} c${i % 3}`} style={pos(i)}>{s.n}</span>
-      ))}
-      <span className="sx-bolilla" style={{ ...pos(act, 0.8), transitionDuration: `${Math.min(ms, 400)}ms` }} aria-hidden="true" />
-      <div className="sx-centro">
-        <div className="sx-resta">{fin ? '¡Ganador!' : resta}</div>
-        <div className="sx-nombre-centro" key={paso}>{slots[act]?.n}</div>
+    <div className={`sx-ruleta ${fin ? 'fin' : ''}`}>
+      <div className="sx-rueda" style={{ width: R * 2, height: R * 2, background: fondo }} aria-hidden="true">
+        {slots.map((s, i) => {
+          const a = i * paso360;
+          const der = a <= 180; // mitad derecha: se lee hacia afuera; izquierda: hacia adentro
+          return (
+            <span
+              key={s.id}
+              className={`sx-casillero ${i === act ? 'toca' : ''} ${fin && i === act ? 'gana' : ''}`}
+              style={{
+                width: largo,
+                fontSize: fuente,
+                transform: der ? `rotate(${a - 90}deg) translate(${hub + 8}px, -50%)` : `rotate(${a + 90}deg) translate(${-(hub + 8 + largo)}px, -50%)`,
+                textAlign: der ? 'right' : 'left',
+              }}
+            >
+              {s.n}
+            </span>
+          );
+        })}
+        <span
+          className="sx-bolilla"
+          style={{ transform: `rotate(${angBola}deg) translateY(${-bolaR}px)`, transitionDuration: `${Math.min(ms, 450)}ms` }}
+        />
+        <div className="sx-hub" style={{ width: hub * 2, height: hub * 2 }}>
+          <div className="sx-resta">{fin ? '¡Ganador!' : resta}</div>
+          <div className="sx-nombre-centro" key={paso} style={{ fontSize: Math.round(hub * 0.26) }}>{slots[act]?.n}</div>
+          <div className="sx-entre">Entre {entre} presentes</div>
+        </div>
       </div>
     </div>
   );

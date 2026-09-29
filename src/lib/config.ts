@@ -16,9 +16,11 @@ export const urlLogo = (path: string | null | undefined) =>
   path ? `${envRuntime('NEXT_PUBLIC_SUPABASE_URL')}/storage/v1/object/public/logos/${path}` : '';
 
 // Sorteo de la camiseta: "Estoy presente" solo se puede tocar en esta ventana (hora de Mendoza).
+// El cierre de las 20 hs es interno: al público solo se le dice "a partir de las 18 hs".
 export const SORTEO_DESDE = '2026-10-04T18:00:00-03:00';
 export const SORTEO_HASTA = '2026-10-04T20:00:00-03:00';
-export const SORTEO_TEXTO = 'Sorteo para presentes: domingo 4 de octubre, 18 hs';
+export const SORTEO_TEXTO = 'Sorteo: domingo 4 de octubre, 18 hs';
+export const SORTEO_PRESENTE = 'Poné "Estoy presente" a partir de las 18 hs';
 
 export type Ventana = 'antes' | 'abierta' | 'cerrada';
 export const ventanaSorteo = (ahora = Date.now()): Ventana =>

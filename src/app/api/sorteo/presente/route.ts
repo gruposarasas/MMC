@@ -12,7 +12,7 @@ export async function POST() {
   const ins = await inscripcion();
   if (!ins.habilitada)
     return NextResponse.json(
-      { error: ins.ventana === 'antes' ? 'Todavía no: se confirma el domingo 4 de octubre entre las 18 y las 20.' : 'La inscripción al sorteo ya cerró.' },
+      { error: ins.ventana === 'antes' ? 'Todavía no: podés poner presente el domingo 4 de octubre a partir de las 18 hs.' : 'La inscripción al sorteo ya cerró.' },
       { status: 409 },
     );
   const { error } = await db().from('visitantes').update({ presente_at: new Date().toISOString() }).eq('id', vid).is('presente_at', null);
