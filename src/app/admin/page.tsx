@@ -29,6 +29,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         ))}
         <Link href="/admin/carteles">Carteles</Link>
         <Link href="/sorteo">Sorteo</Link>
+        <Link href="/admin/baristas">Baristas</Link>
         <SalirAdmin />
       </nav>
       <section>{await Seccion({ tab })}</section>

@@ -257,3 +257,57 @@ a.btn{text-align:center;text-decoration:none}
 .sx-gdni{margin:1.2vh 0 0;font-size:clamp(14px,1.6vw,30px);font-weight:700;color:var(--plum)}
 .cartel-cam .cc-letra,.cartel-cam .cc-bajada{text-wrap:balance}
 .sx-nombre-centro.completo{overflow-wrap:normal;text-wrap:balance;line-height:1.15}
+/* ---------- torneo de baristas (proyección) ---------- */
+.tb{position:fixed;inset:0;z-index:50;background:radial-gradient(ellipse at 50% -10%,#3A2330 0,#281722 60%);color:var(--crema);overflow:hidden;font-family:var(--f);padding:2.4vh 3vw}
+.tb-cab{display:grid;grid-template-columns:auto 1fr auto;gap:2.5vw;align-items:center;height:11vh}
+.tb-logo{height:9vh}
+.tb-tit h1{margin:0;font-size:clamp(28px,5.4vh,72px);line-height:1;font-weight:800;color:var(--arena);text-transform:uppercase;letter-spacing:.01em}
+.tb-tit p{margin:.6vh 0 0;font-size:clamp(14px,2.4vh,30px);font-weight:600;color:var(--arena2);letter-spacing:.12em;text-transform:uppercase}
+.tb-cuenta{text-align:right;line-height:1}
+.tb-cuenta b{font-size:clamp(28px,6vh,80px);color:var(--arena);font-weight:800}
+.tb-cuenta span{display:block;font-size:clamp(12px,1.9vh,24px);color:rgba(243,233,220,.7)}
+.tb-vacio{margin-top:25vh;text-align:center;font-size:4vh;color:var(--arena2)}
+/* torre estilo F1 */
+.tb-tabla{position:relative;margin-top:2.5vh}
+.tb-zona{position:absolute;left:-.8vw;width:calc(49.5% + 1.6vw);top:-.6vh;border:.35vh solid rgba(194,162,123,.55);border-radius:1.2vh;box-sizing:content-box;padding-bottom:.6vh}
+.tb-zona span{position:absolute;top:-1.4vh;right:1.2vw;background:#281722;padding:0 .8vw;font-size:1.6vh;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--arena)}
+.tb-fila{position:absolute;width:49.5%;display:grid;grid-template-columns:3.2em 1fr auto;align-items:center;gap:.8em;background:rgba(255,255,255,.06);border-radius:.8vh;padding:0 1vw 0 0;transition:top 1s cubic-bezier(.3,1.2,.4,1),left 1s cubic-bezier(.3,1.2,.4,1),background .4s;overflow:hidden}
+.tb-pos{align-self:stretch;display:grid;place-items:center;background:var(--vino);color:#fff;font-weight:800}
+.tb-nom{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-nom small{margin-left:.7em;font-weight:500;font-size:.7em;color:rgba(243,233,220,.6)}
+.tb-pts{font-weight:800;font-size:1.25em;color:var(--arena);font-variant-numeric:tabular-nums}
+.tb-fila.clasif{background:rgba(194,162,123,.14)}
+.tb-fila.podio .tb-pos{background:var(--arena);color:var(--plum)}
+.tb-fila.p1 .tb-pos{background:#E9C46A}
+.tb-fila.pend{opacity:.45}
+.tb-fila.pend .tb-pos{background:rgba(255,255,255,.12)}
+.tb-fila.recien{background:var(--vino);animation:tbRecien 1s ease-in-out 3 alternate}
+.tb-fila.recien .tb-pts{color:#fff}
+@keyframes tbRecien{from{box-shadow:0 0 0 0 rgba(194,162,123,.9)}to{box-shadow:0 0 0 .6vh rgba(194,162,123,.9)}}
+.tb-ultimo{position:absolute;left:3vw;right:3vw;bottom:2.2vh;text-align:center;font-size:clamp(14px,2.4vh,30px);color:var(--arena2);animation:sxPop .6s ease-out}
+.tb-ultimo b{color:var(--crema)}
+/* llaves */
+.tb-llaves{display:grid;grid-template-columns:1.25fr 1.15fr 1.1fr 1.3fr 1.1fr 1.15fr 1.25fr;gap:1.1vw;height:82vh;margin-top:2vh}
+.tb-col{display:flex;flex-direction:column;min-width:0}
+.tb-col h3{margin:0 0 1vh;text-align:center;font-size:clamp(12px,1.9vh,24px);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--arena)}
+.tb-col-in{flex:1;display:flex;flex-direction:column;justify-content:space-around}
+.tb-partido{background:rgba(255,255,255,.07);border:1px solid rgba(194,162,123,.35);border-radius:1vh;overflow:hidden}
+.tb-lado{display:grid;grid-template-columns:auto 1fr auto;gap:.5vw;align-items:center;padding:.7vh .7vw;font-size:clamp(11px,1.85vh,24px);font-weight:600;min-height:4.6vh}
+.tb-lado+.tb-lado{border-top:1px solid rgba(194,162,123,.25)}
+.tb-sem{display:grid;place-items:center;min-width:1.7em;height:1.7em;border-radius:.4em;background:rgba(255,255,255,.12);font-size:.75em;font-weight:800;color:var(--arena2)}
+.tb-lnom{line-height:1.12;overflow-wrap:anywhere}
+.tb-lpts{font-weight:800;color:var(--arena);font-variant-numeric:tabular-nums}
+.tb-lado.gano{background:var(--arena);color:var(--plum)}
+.tb-lado.gano .tb-lpts{color:var(--plum)}
+.tb-lado.gano .tb-sem{background:rgba(40,23,34,.15);color:var(--plum)}
+.tb-lado.perdio{opacity:.4;text-decoration:line-through;text-decoration-thickness:1px}
+.tb-centro{justify-content:center;gap:1.2vh}
+.tb-campeon{text-align:center}
+.tb-campeon img{width:9vh;height:9vh;opacity:.6}
+.tb-campeon span{display:block;font-size:clamp(14px,2.6vh,34px);font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--arena)}
+.tb-campeon b{display:block;margin-top:.4vh;font-size:clamp(20px,4.4vh,60px);line-height:1.05;color:#fff;animation:sxEntra .9s cubic-bezier(.2,1.5,.4,1)}
+.tb-campeon.si img{opacity:1;animation:gira 6s linear infinite}
+.tb-centro .tb-partido{border-width:2px;border-color:var(--arena)}
+.tb-h3-t{margin:1.5vh 0 0!important}
+.tb-tercero{margin:0;text-align:center;font-weight:700;color:var(--arena2);font-size:clamp(12px,2vh,26px)}
+@media (prefers-reduced-motion:reduce){.tb-fila{transition:none}.tb-fila.recien,.tb-campeon b,.tb-campeon.si img{animation:none}}
