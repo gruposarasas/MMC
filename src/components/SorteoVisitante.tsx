@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { SORTEO_TEXTO, type Ventana } from '@/lib/config';
+import { SORTEO_TEXTO, SORTEO_DNI, type Ventana } from '@/lib/config';
 import { Camiseta } from './Camiseta';
 import { toast } from './Toast';
 
@@ -50,6 +50,7 @@ export function SorteoVisitante({ inicial }: { inicial: Estado }) {
         ) : (
           <p className="sorteo-nota">Ya estás inscripto. El domingo, entre las 18 y las 20, tocá acá &quot;Estoy presente&quot; para entrar al sorteo.</p>
         )}
+        <p className="sorteo-dni">{SORTEO_DNI}</p>
       </div>
     </section>
   );
@@ -64,6 +65,7 @@ export function SorteoAviso() {
         <h2>¡Quiero la camiseta de Enzo!</h2>
         <p className="sorteo-cuando">{SORTEO_TEXTO}</p>
         <p>Registrate y participá del sorteo entre todos los inscriptos presentes.</p>
+        <p className="sorteo-dni">{SORTEO_DNI}</p>
       </div>
     </section>
   );

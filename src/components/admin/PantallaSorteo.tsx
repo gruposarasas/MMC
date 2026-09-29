@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import recursos from '@/lib/recursos.json';
-import type { Ventana } from '@/lib/config';
+import { SORTEO_DNI, type Ventana } from '@/lib/config';
 import { Camiseta } from '../Camiseta';
 import { toast } from '../Toast';
 
@@ -88,6 +88,7 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
             <div>
               <b>{e.habilitada ? '¿Estás acá? ¡Participá!' : e.ventana === 'antes' ? 'Inscripción: domingo 4 de 18 a 20 hs' : 'La inscripción cerró'}</b>
               <p>Entrá a <strong>{url.replace('https://', '')}</strong> y tocá <strong>&quot;Estoy presente&quot;</strong> en tu billetera.{e.prueba && ' (modo prueba)'}</p>
+              <p className="sx-dni">{SORTEO_DNI}</p>
             </div>
             <Camiseta ancho={130} className="sx-cam" />
           </footer>
@@ -103,6 +104,7 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
           <p className="sx-glabel">¡La camiseta de Enzo es para…!</p>
           <p className="sx-gnombre">{ganador.nombre}</p>
           <p className="sx-gentre">Sorteado entre {ganador.entre} presentes</p>
+          <p className="sx-gdni">{SORTEO_DNI}</p>
         </div>
       )}
 

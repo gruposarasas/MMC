@@ -252,3 +252,8 @@ a.btn{text-align:center;text-decoration:none}
 .cartel-cam .cc-letra{margin:10px 0 0;font-size:12px;font-weight:600;background:#fff;padding:2px 8px;border-radius:4px}
 .cartel-cam .cc-logo{width:120px;margin-top:12px;background:#fff;padding:4px 8px;border-radius:4px}
 .sorteo-card p.sorteo-cuando{font-weight:700;color:var(--plum);font-size:13px}
+.sorteo-card p.sorteo-dni{margin-top:8px;font-size:11.5px;font-weight:600;color:rgba(40,23,34,.7)}
+.cartel-cam .cc-dni{margin:4px 0 0;font-size:11px;font-weight:600;background:#fff;padding:1px 8px;border-radius:4px}
+.sx-pie p.sx-dni{margin-top:.8vh;font-size:clamp(12px,1.2vw,22px);color:var(--arena2)}
+.sx-gdni{margin:1.2vh 0 0;font-size:clamp(14px,1.6vw,30px);font-weight:700;color:var(--plum)}
+.cartel-cam .cc-letra,.cartel-cam .cc-bajada{text-wrap:balance}

@@ -23,3 +23,4 @@ export const SORTEO_TEXTO = 'Sorteo para presentes: domingo 4 de octubre, 18 hs'
 export type Ventana = 'antes' | 'abierta' | 'cerrada';
 export const ventanaSorteo = (ahora = Date.now()): Ventana =>
   ahora < Date.parse(SORTEO_DESDE) ? 'antes' : ahora < Date.parse(SORTEO_HASTA) ? 'abierta' : 'cerrada';
+export const SORTEO_DNI = '* Para ganar el premio hay que presentar el DNI.';
