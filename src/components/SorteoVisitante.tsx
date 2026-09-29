@@ -1,27 +1,26 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { SORTEO_TEXTO, type Ventana } from '@/lib/config';
 import { Camiseta } from './Camiseta';
 import { toast } from './Toast';
 
+type Estado = { ventana: Ventana; habilitada: boolean; presente: boolean };
+
 /** Tarjeta del sorteo en la billetera, con el botón "Estoy presente". */
-export function SorteoVisitante({ abiertoIni, presenteIni }: { abiertoIni: boolean; presenteIni: boolean }) {
-  const [abierto, setAbierto] = useState(abiertoIni);
-  const [presente, setPresente] = useState(presenteIni);
+export function SorteoVisitante({ inicial }: { inicial: Estado }) {
+  const [e, setE] = useState<Estado>(inicial);
   const [enviando, setEnviando] = useState(false);
 
-  // Se actualiza sola: cuando la organización abre el sorteo, aparece el botón.
+  // Se actualiza sola: el domingo a las 18 aparece el botón sin recargar.
   useEffect(() => {
-    if (presente) return;
+    if (e.presente || (e.ventana === 'cerrada' && !e.habilitada)) return;
     const t = setInterval(async () => {
       if (document.hidden) return;
       const r = await fetch('/api/sorteo/estado', { cache: 'no-store' }).catch(() => null);
-      if (!r?.ok) return;
-      const j = await r.json();
-      setAbierto(j.abierto);
-      setPresente(j.presente);
+      if (r?.ok) setE(await r.json());
     }, 15000);
     return () => clearInterval(t);
-  }, [presente]);
+  }, [e.presente, e.ventana, e.habilitada]);
 
   async function confirmar() {
     setEnviando(true);
@@ -29,7 +28,7 @@ export function SorteoVisitante({ abiertoIni, presenteIni }: { abiertoIni: boole
     const j = r ? await r.json().catch(() => ({})) : {};
     setEnviando(false);
     if (!r || !r.ok) return toast(j.error || 'No se pudo confirmar. Probá de nuevo.');
-    setPresente(true);
+    setE((x) => ({ ...x, presente: true }));
     toast('¡Listo! Ya estás participando. Mirá la pantalla gigante.');
   }
 
@@ -38,13 +37,18 @@ export function SorteoVisitante({ abiertoIni, presenteIni }: { abiertoIni: boole
       <Camiseta ancho={84} className="sorteo-cam" />
       <div>
         <h2 id="sorteoTit">¡Quiero la camiseta de Enzo!</h2>
-        <p>Sorteamos una camiseta entre todos los inscriptos al final del evento.</p>
-        {presente ? (
+        <p className="sorteo-cuando">{SORTEO_TEXTO}</p>
+        {e.presente ? (
           <p className="sorteo-ok" role="status">✓ Estás participando. ¡Suerte!</p>
-        ) : abierto ? (
-          <button className="sorteo-btn" onClick={confirmar} disabled={enviando}>{enviando ? 'Un momento…' : 'Estoy presente'}</button>
+        ) : e.habilitada ? (
+          <>
+            <p>¿Estás en el Mundial? Confirmalo para entrar al sorteo.</p>
+            <button className="sorteo-btn" onClick={confirmar} disabled={enviando}>{enviando ? 'Un momento…' : 'Estoy presente'}</button>
+          </>
+        ) : e.ventana === 'cerrada' ? (
+          <p className="sorteo-nota">La inscripción al sorteo ya cerró.</p>
         ) : (
-          <p className="sorteo-nota">Ya estás inscripto. Al final del evento, tocá acá &quot;Estoy presente&quot; para entrar al sorteo.</p>
+          <p className="sorteo-nota">Ya estás inscripto. El domingo, entre las 18 y las 20, tocá acá &quot;Estoy presente&quot; para entrar al sorteo.</p>
         )}
       </div>
     </section>
@@ -58,7 +62,8 @@ export function SorteoAviso() {
       <Camiseta ancho={70} className="sorteo-cam" />
       <div>
         <h2>¡Quiero la camiseta de Enzo!</h2>
-        <p>Registrate y participá del sorteo de una camiseta entre todos los inscriptos, al final del evento.</p>
+        <p className="sorteo-cuando">{SORTEO_TEXTO}</p>
+        <p>Registrate y participá del sorteo entre todos los inscriptos presentes.</p>
       </div>
     </section>
   );

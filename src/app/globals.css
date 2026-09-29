@@ -183,7 +183,7 @@ a.btn{text-align:center;text-decoration:none}
 .sx{position:fixed;inset:0;z-index:50;background:#fff;color:var(--plum);overflow:hidden;font-family:var(--f)}
 .sx-banda{position:absolute;inset:-20% -10%;background:linear-gradient(125deg,transparent 0 44%,#D71920 44% 58%,transparent 58%);opacity:.95;pointer-events:none}
 .sx.fase-espera .sx-banda{opacity:.12}
-.sx.fase-cuenta .sx-banda{opacity:.18}
+.sx.fase-ruleta .sx-banda{opacity:.14}
 .sx-cab{position:relative;z-index:2;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:3vw;padding:2.2vh 3vw}
 .sx-logo{height:8vh}
 .sx-cab h1{margin:0;text-align:center;font-size:clamp(28px,4.6vw,86px);line-height:1;font-weight:800;color:var(--plum);text-transform:uppercase;letter-spacing:-.01em}
@@ -204,16 +204,6 @@ a.btn{text-align:center;text-decoration:none}
 .sx-pie p{margin:.6vh 0 0;font-size:clamp(14px,1.6vw,30px)}
 .sx-pie strong{color:#fff}
 .sx-cam{height:15vh;width:auto}
-.sx-show{position:absolute;inset:0;z-index:3}
-.sx-vuela{position:absolute;left:0;top:0;white-space:nowrap;font-weight:800;padding:.6vh 1.2vw;border-radius:999px;will-change:transform}
-.sx-vuela.t0{font-size:clamp(18px,2.2vw,42px);background:#D71920;color:#fff}
-.sx-vuela.t1{font-size:clamp(16px,1.8vw,34px);background:#fff;color:var(--plum);border:3px solid var(--plum)}
-.sx-vuela.t2{font-size:clamp(20px,2.6vw,50px);background:var(--plum);color:#fff}
-.sx-vuela.t3{font-size:clamp(16px,2vw,38px);background:#fff;color:#D71920;border:3px solid #D71920}
-.sx-cuenta{position:absolute;z-index:4;left:50%;top:52%;transform:translate(-50%,-50%);font-size:min(46vh,40vw);line-height:1;font-weight:800;color:#D71920;text-shadow:0 .08em 0 var(--plum),0 0 .3em rgba(255,255,255,.9);-webkit-text-stroke:.02em #fff;animation:sxLatido 1s ease-out}
-.sx-cuenta.cero{animation:sxBoom .7s ease-in forwards}
-@keyframes sxLatido{0%{transform:translate(-50%,-50%) scale(1.6);opacity:0}25%{opacity:1}100%{transform:translate(-50%,-50%) scale(1)}}
-@keyframes sxBoom{to{transform:translate(-50%,-50%) scale(4);opacity:0}}
 .sx-ganador{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4vh 4vw;background:radial-gradient(circle at 50% 45%,#fff 0 38%,rgba(255,255,255,.85) 60%,rgba(255,255,255,0) 80%)}
 .sx-gcam{height:24vh;width:auto;animation:sxGira 1.2s cubic-bezier(.2,1.4,.4,1)}
 .sx-glabel{margin:2vh 0 0;font-size:clamp(20px,2.8vw,54px);font-weight:700;color:var(--plum)}
@@ -230,8 +220,24 @@ a.btn{text-align:center;text-decoration:none}
 .sx-ctrl .sx-sortear{opacity:1;background:#D71920;border-color:#D71920;color:#fff;font-size:20px;padding:10px 34px;letter-spacing:.06em}
 .sx-ctrl .sx-sortear:disabled{opacity:.4}
 .sx-hist{font-size:13px;color:rgba(40,23,34,.7)}
-.fase-cuenta .sx-ctrl{display:none}
-@media (prefers-reduced-motion:reduce){.sx-chip.nuevo,.sx-cuenta,.sx-gnombre,.sx-gcam{animation:none}.sx-papelitos{display:none}}
+.fase-ruleta .sx-ctrl{display:none}
+/* ruleta */
+.sx-ruleta{position:absolute;inset:0;z-index:3}
+.sx-rueda{position:absolute;left:50%;top:55%;width:80vw;height:66vh;transform:translate(-50%,-50%);border-radius:50%;border:1.2vh solid #D71920;box-shadow:inset 0 0 0 .6vh #fff,inset 0 0 0 1.1vh var(--plum),0 0 0 .6vh #fff,0 0 0 1vh var(--plum)}
+.sx-casilla{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-weight:800;font-size:clamp(13px,1.35vw,26px);padding:.5vh 1vw;border-radius:999px;background:#fff;color:var(--plum);border:3px solid var(--plum);transition:transform .08s,background .08s,color .08s}
+.sx-casilla.c1{border-color:#D71920;color:#D71920}
+.sx-casilla.c2{background:var(--plum);color:#fff}
+.sx-casilla.toca{background:#D71920;border-color:#D71920;color:#fff;transform:translate(-50%,-50%) scale(1.35);z-index:2;box-shadow:0 0 0 .5vh #fff,0 0 3vh rgba(215,25,32,.7)}
+.sx-casilla.gana{animation:sxGana .5s ease-in-out infinite alternate}
+@keyframes sxGana{to{transform:translate(-50%,-50%) scale(1.6)}}
+.sx-bolilla{position:absolute;width:3.4vh;height:3.4vh;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0 30%,#e9e9e9 60%,#bdbdbd);box-shadow:0 .5vh 1vh rgba(40,23,34,.45);transform:translate(-50%,-50%);transition-property:left,top;transition-timing-function:ease-out;z-index:3}
+.sx-centro{position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);text-align:center;width:52vw}
+.sx-resta{font-size:clamp(28px,5vh,70px);font-weight:800;color:var(--plum);line-height:1}
+.fin .sx-resta{color:#D71920}
+.sx-nombre-centro{margin-top:1.5vh;font-size:clamp(40px,7vw,150px);line-height:1;font-weight:800;color:#D71920;text-shadow:0 .05em 0 var(--plum);animation:sxPasa .12s ease-out;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fin .sx-nombre-centro{animation:sxEntra .8s cubic-bezier(.2,1.5,.4,1)}
+@keyframes sxPasa{from{transform:translateY(40%);opacity:.2}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sx-chip.nuevo,.sx-gnombre,.sx-gcam,.sx-nombre-centro,.sx-casilla.gana{animation:none}.sx-papelitos{display:none}.sx-bolilla{transition:none}}
 /* cartel de la camiseta */
 .cartel-cam{width:360px;background:#fff;color:var(--plum);border-radius:8px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:22px 24px 20px;text-align:center;box-shadow:0 0 0 1px var(--linea);-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .cartel-cam>*{position:relative}
@@ -245,3 +251,4 @@ a.btn{text-align:center;text-decoration:none}
 .cartel-cam .cc-qr svg{width:100%;height:100%;display:block}
 .cartel-cam .cc-letra{margin:10px 0 0;font-size:12px;font-weight:600;background:#fff;padding:2px 8px;border-radius:4px}
 .cartel-cam .cc-logo{width:120px;margin-top:12px;background:#fff;padding:4px 8px;border-radius:4px}
+.sorteo-card p.sorteo-cuando{font-weight:700;color:var(--plum);font-size:13px}

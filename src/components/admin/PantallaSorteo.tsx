@@ -2,22 +2,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import recursos from '@/lib/recursos.json';
+import type { Ventana } from '@/lib/config';
 import { Camiseta } from '../Camiseta';
 import { toast } from '../Toast';
 
 type Presente = { id: string; n: string };
 type Ganador = { id: number; nombre: string; cuando: string };
-type Estado = { abierto: boolean; presentes: Presente[]; ganadores: Ganador[] };
-type Fase = 'espera' | 'cuenta' | 'ganador';
+type Estado = { ventana: Ventana; prueba: boolean; habilitada: boolean; presentes: Presente[]; ganadores: Ganador[] };
+type Fase = 'espera' | 'ruleta' | 'ganador';
 
 const MAX_VISIBLES = 160;
-const SEGUNDOS = 10;
+const DURACION = 10000; // la ruleta gira 10 segundos
+const EN_RUEDA = 24; // nombres alrededor de la ruleta
 
 export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: string; url: string }) {
   const [e, setE] = useState<Estado>(inicial);
   const [fase, setFase] = useState<Fase>('espera');
-  const [cuenta, setCuenta] = useState(SEGUNDOS);
-  const [ganador, setGanador] = useState<{ nombre: string; entre: number } | null>(null);
+  const [ganador, setGanador] = useState<{ id: string; nombre: string; entre: number } | null>(null);
   const [nuevos, setNuevos] = useState<Set<string>>(new Set());
   const conocidos = useRef(new Set(inicial.presentes.map((p) => p.id)));
 
@@ -51,21 +52,9 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
     if (!disponibles.length) return toast('No hay presentes para sortear.');
     const j = await accion('sortear');
     if (!j?.ganador) return;
-    setGanador({ nombre: j.ganador.nombre, entre: j.ganador.entre });
-    setCuenta(SEGUNDOS);
-    setFase('cuenta');
+    setGanador({ id: j.ganador.id, nombre: j.ganador.nombre, entre: j.ganador.entre });
+    setFase('ruleta');
   }
-
-  // Cuenta regresiva.
-  useEffect(() => {
-    if (fase !== 'cuenta') return;
-    if (cuenta <= 0) {
-      const t = setTimeout(() => setFase('ganador'), 700);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setCuenta((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [fase, cuenta]);
 
   const disponibles = e.presentes;
   const visibles = disponibles.slice(-MAX_VISIBLES);
@@ -97,15 +86,15 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
           <footer className="sx-pie">
             <div className="sx-qr" dangerouslySetInnerHTML={{ __html: qr }} />
             <div>
-              <b>{e.abierto ? '¿Estás acá? ¡Participá!' : 'El sorteo todavía no está abierto'}</b>
-              <p>Entrá a <strong>{url.replace('https://', '')}</strong> y tocá <strong>&quot;Estoy presente&quot;</strong> en tu billetera.</p>
+              <b>{e.habilitada ? '¿Estás acá? ¡Participá!' : e.ventana === 'antes' ? 'Inscripción: domingo 4 de 18 a 20 hs' : 'La inscripción cerró'}</b>
+              <p>Entrá a <strong>{url.replace('https://', '')}</strong> y tocá <strong>&quot;Estoy presente&quot;</strong> en tu billetera.{e.prueba && ' (modo prueba)'}</p>
             </div>
             <Camiseta ancho={130} className="sx-cam" />
           </footer>
         </>
       )}
 
-      {fase === 'cuenta' && ganador && <Show nombres={disponibles.map((p) => p.n)} cuenta={cuenta} />}
+      {fase === 'ruleta' && ganador && <Ruleta presentes={disponibles} ganadorId={ganador.id} onFin={() => setFase('ganador')} />}
 
       {fase === 'ganador' && ganador && (
         <div className="sx-ganador" role="dialog" aria-label="Ganador">
@@ -122,8 +111,11 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
         {fase === 'espera' && (
           <>
             <button className="sx-sortear" onClick={sortear} disabled={!disponibles.length}>SORTEAR</button>
-            <button onClick={async () => { const j = await accion(e.abierto ? 'cerrar' : 'abrir'); if (j) setE(j); }}>
-              {e.abierto ? 'Cerrar inscripción' : 'Abrir inscripción'}
+            <button
+              title="Habilita &quot;Estoy presente&quot; fuera del horario del domingo, para ensayar"
+              onClick={async () => { const j = await accion(e.prueba ? 'cerrar' : 'abrir'); if (j) setE(j); }}
+            >
+              {e.prueba ? 'Quitar modo prueba' : 'Modo prueba'}
             </button>
           </>
         )}
@@ -156,51 +148,75 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
   );
 }
 
-/** Los nombres rebotan por la pantalla mientras corre la cuenta regresiva. */
-function Show({ nombres, cuenta }: { nombres: string[]; cuenta: number }) {
-  const elegidos = useMemo(() => {
-    const a = [...nombres];
-    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-    return a.slice(0, 48);
-  }, [nombres]);
-  const refs = useRef<(HTMLSpanElement | null)[]>([]);
-  const cuentaRef = useRef(cuenta);
-  cuentaRef.current = cuenta;
+const mezclar = <T,>(a: T[]) => {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; }
+  return b;
+};
+
+/**
+ * Ruleta: los nombres forman una rueda y una pelotita los va tocando, cada vez más
+ * lento, mientras el nombre tocado pasa grande por el centro. Frena en el ganador,
+ * que ya eligió el servidor.
+ */
+function Ruleta({ presentes, ganadorId, onFin }: { presentes: Presente[]; ganadorId: string; onFin: () => void }) {
+  const slots = useMemo(() => {
+    const g = presentes.find((p) => p.id === ganadorId) ?? { id: ganadorId, n: '…' };
+    return mezclar([g, ...mezclar(presentes.filter((p) => p.id !== ganadorId)).slice(0, EN_RUEDA - 1)]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const gi = slots.findIndex((s) => s.id === ganadorId);
+  const [act, setAct] = useState(0);
+  const [paso, setPaso] = useState(0);
+  const [ms, setMs] = useState(60); // lo que dura el paso actual: la bolilla se mueve a ese ritmo
+  const [resta, setResta] = useState(DURACION / 1000);
+  const [fin, setFin] = useState(false);
+  const alFin = useRef(onFin);
+  alFin.current = onFin;
 
   useEffect(() => {
-    const reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const W = window.innerWidth, H = window.innerHeight;
-    const cuerpos = elegidos.map(() => ({
-      x: Math.random() * (W - 200), y: 120 + Math.random() * (H - 260),
-      vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
-      r: (Math.random() - 0.5) * 30, vr: (Math.random() - 0.5) * 4,
-    }));
-    let raf = 0;
-    const paso = () => {
-      const turbo = 1 + (SEGUNDOS - cuentaRef.current) * 0.35; // cada vez más rápido
-      cuerpos.forEach((c, i) => {
-        const el = refs.current[i];
-        if (!el) return;
-        if (!reducido) {
-          c.x += c.vx * turbo; c.y += c.vy * turbo; c.r += c.vr * turbo;
-          const w = el.offsetWidth, h = el.offsetHeight;
-          if (c.x < 0 || c.x > W - w) { c.vx *= -1; c.x = Math.max(0, Math.min(W - w, c.x)); }
-          if (c.y < 90 || c.y > H - h - 20) { c.vy *= -1; c.y = Math.max(90, Math.min(H - h - 20, c.y)); }
-        }
-        el.style.transform = `translate(${c.x}px, ${c.y}px) rotate(${c.r}deg)`;
-      });
-      raf = requestAnimationFrame(paso);
+    const n = slots.length;
+    const vueltas = n === 1 ? 10 : n < 6 ? 6 : n < 12 ? 4 : 3;
+    const pasos = vueltas * n + gi;
+    // Cada paso tarda más que el anterior: arranca rapidísimo y frena como la bolilla.
+    const pesos = Array.from({ length: pasos }, (_, k) => 1 + 16 * Math.pow(k / pasos, 3));
+    const escala = (DURACION - 400) / pesos.reduce((a, b) => a + b, 0);
+    const inicio = performance.now();
+    let k = 0;
+    let t: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      k++;
+      setAct(k % n);
+      setPaso(k);
+      if (k >= pasos) {
+        setFin(true);
+        setResta(0);
+        t = setTimeout(() => alFin.current(), 2200);
+        return;
+      }
+      setMs(Math.round(pesos[k] * escala));
+      t = setTimeout(tick, pesos[k] * escala);
     };
-    raf = requestAnimationFrame(paso);
-    return () => cancelAnimationFrame(raf);
-  }, [elegidos]);
+    t = setTimeout(tick, pesos[0] * escala);
+    const reloj = setInterval(() => setResta(Math.max(0, Math.ceil((DURACION - (performance.now() - inicio)) / 1000))), 100);
+    return () => { clearTimeout(t); clearInterval(reloj); };
+  }, [slots, gi]);
+
+  const pos = (i: number, f = 1) => {
+    const a = (i / slots.length) * Math.PI * 2 - Math.PI / 2;
+    return { left: `calc(50% + ${Math.cos(a) * 40 * f}vw)`, top: `calc(55% + ${Math.sin(a) * 33 * f}vh)` };
+  };
 
   return (
-    <div className="sx-show" aria-live="assertive">
-      {elegidos.map((n, i) => (
-        <span key={i} ref={(el) => { refs.current[i] = el; }} className={`sx-vuela t${i % 4}`}>{n}</span>
+    <div className={`sx-ruleta ${fin ? 'fin' : ''}`} aria-live="off">
+      <div className="sx-rueda" aria-hidden="true" />
+      {slots.map((s, i) => (
+        <span key={s.id} className={`sx-casilla ${i === act ? 'toca' : ''} ${fin && i === act ? 'gana' : ''} c${i % 3}`} style={pos(i)}>{s.n}</span>
       ))}
-      <div className={`sx-cuenta ${cuenta === 0 ? 'cero' : ''}`} key={cuenta}>{cuenta}</div>
+      <span className="sx-bolilla" style={{ ...pos(act, 0.8), transitionDuration: `${Math.min(ms, 400)}ms` }} aria-hidden="true" />
+      <div className="sx-centro">
+        <div className="sx-resta">{fin ? '¡Ganador!' : resta}</div>
+        <div className="sx-nombre-centro" key={paso}>{slots[act]?.n}</div>
+      </div>
     </div>
   );
 }

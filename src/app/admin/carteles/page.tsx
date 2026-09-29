@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import { esAdmin, todasLasMarcas } from '@/lib/datos';
-import { URL_PUBLICA } from '@/lib/config';
+import { URL_PUBLICA, SORTEO_TEXTO } from '@/lib/config';
 import recursos from '@/lib/recursos.json';
 import { EntrarAdmin } from '@/components/admin/Comun';
 import { Imprimir } from '@/components/admin/Imprimir';
@@ -48,7 +48,7 @@ export default async function Carteles() {
             <h3>Quiero la camiseta de <span>Enzo</span></h3>
             <p className="cc-bajada">Registrate y participá del sorteo</p>
             <div className="cc-qr"><div dangerouslySetInnerHTML={{ __html: qr }} /></div>
-            <p className="cc-letra">Sorteo al final del evento entre los inscriptos presentes</p>
+            <p className="cc-letra">{SORTEO_TEXTO}</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="cc-logo" src={recursos.logoOsc} alt="Mundial de Café by Bruno Brown" />
           </div>
