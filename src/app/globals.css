@@ -256,3 +256,4 @@ a.btn{text-align:center;text-decoration:none}
 .sx-pie p.sx-dni{margin-top:.8vh;font-size:clamp(12px,1.2vw,22px);color:var(--arena2)}
 .sx-gdni{margin:1.2vh 0 0;font-size:clamp(14px,1.6vw,30px);font-weight:700;color:var(--plum)}
 .cartel-cam .cc-letra,.cartel-cam .cc-bajada{text-wrap:balance}
+.sx-nombre-centro.completo{overflow-wrap:normal;text-wrap:balance;line-height:1.15}

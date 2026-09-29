@@ -99,6 +99,7 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
         <Ruleta
           presentes={disponibles.filter((p) => p.id === ganador.id || !e.ganadores.some((g) => g.vid === p.id))}
           ganadorId={ganador.id}
+          ganadorNombre={ganador.nombre}
           entre={ganador.entre}
           onFin={() => setFase('ganador')}
         />
@@ -110,7 +111,7 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
           <Camiseta ancho={200} className="sx-gcam" />
           <p className="sx-glabel">¡La camiseta de Enzo es para…!</p>
           <p className="sx-gnombre">{ganador.nombre}</p>
-          <p className="sx-gentre">Sorteado entre {ganador.entre} presentes</p>
+          <p className="sx-gentre">Sorteado entre {ganador.entre} {ganador.entre === 1 ? 'presente' : 'presentes'}</p>
           <p className="sx-gdni">{SORTEO_DNI}</p>
         </div>
       )}
@@ -169,7 +170,7 @@ const mezclar = <T,>(a: T[]) => {
  * el nombre que toca pasa grande por el centro. Frena en el ganador, que ya eligió
  * el servidor entre TODOS los presentes (la rueda muestra hasta 50 de ellos).
  */
-function Ruleta({ presentes, ganadorId, entre, onFin }: { presentes: Presente[]; ganadorId: string; entre: number; onFin: () => void }) {
+function Ruleta({ presentes, ganadorId, ganadorNombre, entre, onFin }: { presentes: Presente[]; ganadorId: string; ganadorNombre: string; entre: number; onFin: () => void }) {
   const slots = useMemo(() => {
     const g = presentes.find((p) => p.id === ganadorId) ?? { id: ganadorId, n: '…' };
     return mezclar([g, ...mezclar(presentes.filter((p) => p.id !== ganadorId)).slice(0, EN_RUEDA - 1)]);
@@ -259,8 +260,13 @@ function Ruleta({ presentes, ganadorId, entre, onFin }: { presentes: Presente[];
         />
         <div className="sx-hub" style={{ width: hub * 2, height: hub * 2 }}>
           <div className="sx-resta">{fin ? '¡Ganador!' : resta}</div>
-          <div className="sx-nombre-centro" key={paso} style={{ fontSize: Math.round(hub * 0.26) }}>{slots[act]?.n}</div>
-          <div className="sx-entre">Entre {entre} presentes</div>
+          {fin ? (
+            // Al frenar: nombre y apellido completos, con la letra ajustada al largo.
+            <div className="sx-nombre-centro completo" style={{ fontSize: Math.round(Math.max(hub * 0.15, Math.min(hub * 0.26, (hub * 4.4) / ganadorNombre.length))) }}>{ganadorNombre}</div>
+          ) : (
+            <div className="sx-nombre-centro" key={paso} style={{ fontSize: Math.round(hub * 0.26) }}>{slots[act]?.n}</div>
+          )}
+          <div className="sx-entre">Entre {entre} {entre === 1 ? 'presente' : 'presentes'}</div>
         </div>
       </div>
     </div>
