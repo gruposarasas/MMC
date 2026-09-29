@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import recursos from '@/lib/recursos.json';
 import { MESES } from '@/lib/config';
+import { SorteoAviso } from './SorteoVisitante';
 import { validarRegistro, type DatosRegistro, type Errores, type Via } from '@/lib/validar';
 
 export function Registro() {
@@ -57,6 +58,7 @@ export function Registro() {
         <img className="logo" src={recursos.logo} alt="Mundial de Café by Bruno Brown" />
         <h1 className="h1">TUS CUPONES DE DESCUENTO MUNDIAL</h1>
         <p className="lead">Registrate una vez y recibí tus cupones de descuento para usar en cada stand en el evento y en las sucursales también.</p>
+        <SorteoAviso />
         <form ref={form} onSubmit={enviar} noValidate>
           <div className={`campo ${e.nombre ? 'error' : ''}`}>
             <label htmlFor="rNom">Nombre y apellido</label>

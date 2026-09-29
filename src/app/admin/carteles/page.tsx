@@ -5,6 +5,7 @@ import { URL_PUBLICA } from '@/lib/config';
 import recursos from '@/lib/recursos.json';
 import { EntrarAdmin } from '@/components/admin/Comun';
 import { Imprimir } from '@/components/admin/Imprimir';
+import { Camiseta } from '@/components/Camiseta';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Carteles · Mundial de Café' };
@@ -26,7 +27,10 @@ export default async function Carteles() {
             <h1>Carteles para imprimir</h1>
             <p className="sub" style={{ marginBottom: 0 }}>El QR de mesas y paredes lleva siempre a la misma página de registro: {URL_PUBLICA.replace('https://', '')}</p>
           </div>
-          <Imprimir id="cartelMesa" texto="Imprimir cartel" className="btn chico" />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Imprimir id="cartelMesa" texto="Imprimir cartel" className="btn chico" />
+            <Imprimir id="cartelCamiseta" texto="Imprimir cartel de la camiseta" className="btn chico" />
+          </div>
         </div>
         <div className="carteles">
           <div className="cartel imprimible" id="cartelMesa">
@@ -37,6 +41,16 @@ export default async function Carteles() {
             <div className="c-paso">Registrate una vez y usalo en cada stand</div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="c-pie" src={recursos.guarda} alt="" />
+          </div>
+          <div className="cartel-cam imprimible" id="cartelCamiseta">
+            <div className="cc-banda" aria-hidden="true" />
+            <Camiseta ancho={150} className="cc-cam" />
+            <h3>Quiero la camiseta de <span>Enzo</span></h3>
+            <p className="cc-bajada">Registrate y participá del sorteo</p>
+            <div className="cc-qr"><div dangerouslySetInnerHTML={{ __html: qr }} /></div>
+            <p className="cc-letra">Sorteo al final del evento entre los inscriptos presentes</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="cc-logo" src={recursos.logoOsc} alt="Mundial de Café by Bruno Brown" />
           </div>
           <div style={{ maxWidth: 380 }}>
             <h2 style={{ fontSize: 17, color: 'var(--arena)', margin: 0 }}>Tarjetas de caja</h2>

@@ -168,3 +168,80 @@ a.btn{text-align:center;text-decoration:none}
 .instalar b{color:var(--arena2);font-size:14px}
 .instalar p{margin:2px 0 0;font-size:13px;color:rgba(243,233,220,.8)}
 .instalar-b{display:flex;gap:16px;align-items:center;margin-top:10px}
+/* ---------- sorteo de la camiseta ---------- */
+.sorteo-card{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;margin-top:16px;background:#fff;color:var(--plum);border-radius:16px;padding:14px 16px;border:2px solid #D71920}
+.sorteo-card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent 0 58%,#D71920 58% 70%,transparent 70%);opacity:.14;pointer-events:none}
+.sorteo-card>*{position:relative}
+.sorteo-card h2{margin:0;font-size:18px;line-height:1.15;font-weight:800;color:#D71920}
+.sorteo-card p{margin:4px 0 0;font-size:13.5px;color:rgba(40,23,34,.8)}
+.sorteo-btn{margin-top:10px;border:0;border-radius:10px;padding:10px 18px;background:#D71920;color:#fff;font-weight:700;font-size:15px}
+.sorteo-btn:disabled{opacity:.6}
+.sorteo-ok{font-weight:700;color:#1d7a3a!important}
+.sorteo-nota{font-size:12.5px!important}
+.sorteo-aviso{margin:18px 0 4px}
+/* ---------- pantalla del sorteo (proyección) ---------- */
+.sx{position:fixed;inset:0;z-index:50;background:#fff;color:var(--plum);overflow:hidden;font-family:var(--f)}
+.sx-banda{position:absolute;inset:-20% -10%;background:linear-gradient(125deg,transparent 0 44%,#D71920 44% 58%,transparent 58%);opacity:.95;pointer-events:none}
+.sx.fase-espera .sx-banda{opacity:.12}
+.sx.fase-cuenta .sx-banda{opacity:.18}
+.sx-cab{position:relative;z-index:2;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:3vw;padding:2.2vh 3vw}
+.sx-logo{height:8vh}
+.sx-cab h1{margin:0;text-align:center;font-size:clamp(28px,4.6vw,86px);line-height:1;font-weight:800;color:var(--plum);text-transform:uppercase;letter-spacing:-.01em}
+.sx-cab h1 span{color:#D71920}
+.sx-contador{text-align:right;line-height:1}
+.sx-contador b{display:block;font-size:clamp(34px,5vw,96px);color:#D71920;font-weight:800}
+.sx-contador span{font-size:clamp(14px,1.3vw,24px);font-weight:600;color:rgba(40,23,34,.7)}
+.sx-nombres{position:relative;z-index:2;display:flex;flex-wrap:wrap;align-content:flex-start;justify-content:center;gap:1vh .8vw;padding:1vh 4vw;height:62vh;overflow:hidden}
+.sx-vacio{font-size:clamp(20px,2.4vw,42px);color:rgba(40,23,34,.5);margin-top:18vh}
+.sx-chip{background:#fff;border:2px solid var(--plum);border-radius:999px;padding:.5vh 1.2vw;font-size:clamp(14px,1.55vw,30px);font-weight:700;color:var(--plum);box-shadow:0 3px 0 rgba(40,23,34,.12)}
+.sx-chip.nuevo{background:#D71920;border-color:#D71920;color:#fff;animation:sxPop .6s cubic-bezier(.2,1.6,.4,1)}
+.sx-chip.mas{background:var(--plum);color:#fff}
+@keyframes sxPop{0%{transform:scale(.2);opacity:0}100%{transform:scale(1);opacity:1}}
+.sx-pie{position:absolute;z-index:2;left:3vw;right:3vw;bottom:9vh;display:grid;grid-template-columns:auto 1fr auto;gap:2.5vw;align-items:center;background:var(--plum);color:#fff;border-radius:2vh;padding:1.6vh 2vw}
+.sx-qr{background:#fff;border-radius:1.2vh;padding:1vh;width:15vh;height:15vh}
+.sx-qr svg{width:100%;height:100%;display:block}
+.sx-pie b{font-size:clamp(20px,2.4vw,44px);color:var(--arena)}
+.sx-pie p{margin:.6vh 0 0;font-size:clamp(14px,1.6vw,30px)}
+.sx-pie strong{color:#fff}
+.sx-cam{height:15vh;width:auto}
+.sx-show{position:absolute;inset:0;z-index:3}
+.sx-vuela{position:absolute;left:0;top:0;white-space:nowrap;font-weight:800;padding:.6vh 1.2vw;border-radius:999px;will-change:transform}
+.sx-vuela.t0{font-size:clamp(18px,2.2vw,42px);background:#D71920;color:#fff}
+.sx-vuela.t1{font-size:clamp(16px,1.8vw,34px);background:#fff;color:var(--plum);border:3px solid var(--plum)}
+.sx-vuela.t2{font-size:clamp(20px,2.6vw,50px);background:var(--plum);color:#fff}
+.sx-vuela.t3{font-size:clamp(16px,2vw,38px);background:#fff;color:#D71920;border:3px solid #D71920}
+.sx-cuenta{position:absolute;z-index:4;left:50%;top:52%;transform:translate(-50%,-50%);font-size:min(46vh,40vw);line-height:1;font-weight:800;color:#D71920;text-shadow:0 .08em 0 var(--plum),0 0 .3em rgba(255,255,255,.9);-webkit-text-stroke:.02em #fff;animation:sxLatido 1s ease-out}
+.sx-cuenta.cero{animation:sxBoom .7s ease-in forwards}
+@keyframes sxLatido{0%{transform:translate(-50%,-50%) scale(1.6);opacity:0}25%{opacity:1}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes sxBoom{to{transform:translate(-50%,-50%) scale(4);opacity:0}}
+.sx-ganador{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4vh 4vw;background:radial-gradient(circle at 50% 45%,#fff 0 38%,rgba(255,255,255,.85) 60%,rgba(255,255,255,0) 80%)}
+.sx-gcam{height:24vh;width:auto;animation:sxGira 1.2s cubic-bezier(.2,1.4,.4,1)}
+.sx-glabel{margin:2vh 0 0;font-size:clamp(20px,2.8vw,54px);font-weight:700;color:var(--plum)}
+.sx-gnombre{margin:1vh 0 0;font-size:clamp(44px,9vw,190px);line-height:1;font-weight:800;color:#D71920;text-shadow:0 .05em 0 var(--plum);animation:sxEntra 1s cubic-bezier(.2,1.5,.4,1)}
+.sx-gentre{margin:2vh 0 0;font-size:clamp(14px,1.6vw,30px);color:rgba(40,23,34,.7)}
+@keyframes sxEntra{0%{transform:scale(.1);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes sxGira{0%{transform:rotate(-540deg) scale(0)}100%{transform:rotate(0) scale(1)}}
+.sx-papelitos{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.sx-papelitos i{position:absolute;top:-4vh;display:block;border-radius:2px;animation-name:sxCae;animation-timing-function:linear;animation-iteration-count:infinite;box-shadow:0 0 0 1px rgba(40,23,34,.08)}
+@keyframes sxCae{to{transform:translateY(110vh) rotate(720deg)}}
+.sx-ctrl{position:absolute;z-index:6;left:3vw;right:3vw;bottom:1.6vh;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sx-ctrl button,.sx-ctrl a{border:2px solid var(--plum);background:#fff;color:var(--plum);border-radius:10px;padding:8px 14px;font-weight:700;font-size:14px;text-decoration:none;opacity:.55}
+.sx-ctrl button:hover,.sx-ctrl a:hover,.sx-ctrl button:focus-visible{opacity:1}
+.sx-ctrl .sx-sortear{opacity:1;background:#D71920;border-color:#D71920;color:#fff;font-size:20px;padding:10px 34px;letter-spacing:.06em}
+.sx-ctrl .sx-sortear:disabled{opacity:.4}
+.sx-hist{font-size:13px;color:rgba(40,23,34,.7)}
+.fase-cuenta .sx-ctrl{display:none}
+@media (prefers-reduced-motion:reduce){.sx-chip.nuevo,.sx-cuenta,.sx-gnombre,.sx-gcam{animation:none}.sx-papelitos{display:none}}
+/* cartel de la camiseta */
+.cartel-cam{width:360px;background:#fff;color:var(--plum);border-radius:8px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:22px 24px 20px;text-align:center;box-shadow:0 0 0 1px var(--linea);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cartel-cam>*{position:relative}
+.cartel-cam .cc-banda{position:absolute;inset:-10%;background:linear-gradient(125deg,transparent 0 40%,#D71920 40% 56%,transparent 56%)}
+.cartel-cam .cc-cam{filter:drop-shadow(0 4px 6px rgba(40,23,34,.25))}
+.cartel-cam h3{margin:6px 0 0;font-size:30px;line-height:1;font-weight:800;text-transform:uppercase;color:var(--plum);background:#fff;padding:6px 10px;border-radius:6px}
+.cartel-cam h3 span{color:#D71920}
+.cartel-cam .cc-bajada{margin:8px 0 0;font-size:14px;font-weight:700;background:#fff;padding:2px 8px;border-radius:4px}
+.cartel-cam .cc-qr{background:#fff;border-radius:16px;border:4px solid #D71920;padding:12px;margin-top:12px}
+.cartel-cam .cc-qr div{width:160px;height:160px}
+.cartel-cam .cc-qr svg{width:100%;height:100%;display:block}
+.cartel-cam .cc-letra{margin:10px 0 0;font-size:12px;font-weight:600;background:#fff;padding:2px 8px;border-radius:4px}
+.cartel-cam .cc-logo{width:120px;margin-top:12px;background:#fff;padding:4px 8px;border-radius:4px}

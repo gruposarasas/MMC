@@ -51,7 +51,7 @@ export type Canje = {
 };
 
 /** Trae todas las filas, de a 1000 (el límite de la API de Supabase). */
-async function todo<T>(consulta: (desde: number, hasta: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
+export async function todo<T>(consulta: (desde: number, hasta: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
   const filas: T[] = [];
   for (let desde = 0; ; desde += 1000) {
     const { data, error } = await consulta(desde, desde + 999);

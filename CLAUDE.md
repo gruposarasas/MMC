@@ -5,6 +5,7 @@
 > - El repositorio y el proyecto de Supabase se llaman **MMC** (no `mundial-cafe`). El proyecto de Easypanel se llama **`mmc`**.
 > - **El beneficio y las condiciones los elige cada marca** desde su panel (`/marca`). Al tocar "Enviar cupón" se publica y queda de solo lectura; solo administración lo puede editar, ocultar, eliminar o reabrir. Los créditos por visitante y el código de caja los sigue definiendo administración.
 > - La app se puede agregar a la pantalla de inicio (manifiesto e íconos). La billetera invita a hacerlo.
+> - **Sorteo de la camiseta de Enzo:** aviso en el registro y tarjeta en la billetera con el botón "Estoy presente" (solo se habilita cuando administración abre el sorteo). `/admin/sorteo` es la pantalla para proyectar: nombres en vivo, botón SORTEAR con cuenta regresiva de 10 a 0 y el ganador en grande. El ganador lo elige el servidor (`sortear()`), excluye a quienes ya ganaron y queda registrado en `ganadores`. En `/admin/carteles` hay un cartel blanco y rojo de la camiseta con el mismo QR.
 > - Estado y detalles técnicos: ver `README.md`.
 
 App web para el **Mundial de Café by Bruno Brown**. El evento es en Bodega Arizu, Mendoza, el **sábado 3 y el domingo 4 de octubre de 2026**, con entrada libre.

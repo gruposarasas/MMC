@@ -7,6 +7,9 @@ import { Emb } from '@/components/Emb';
 import { Salir } from '@/components/Salir';
 import { AvisoInicial } from '@/components/Toast';
 import { Instalar } from '@/components/Instalar';
+import { SorteoVisitante } from '@/components/SorteoVisitante';
+import { sorteoAbierto } from '@/lib/sorteo';
+import { db } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +22,11 @@ export default async function Billetera({ searchParams }: { searchParams: Promis
   const v = await visitanteActual();
   if (!v) redirect('/');
   const { aviso } = await searchParams;
-  const { marcas, usados, canjes } = await billetera(v.id);
+  const [{ marcas, usados, canjes }, abierto, pres] = await Promise.all([
+    billetera(v.id),
+    sorteoAbierto(),
+    db().from('visitantes').select('presente_at').eq('id', v.id).maybeSingle(),
+  ]);
   const primer = v.nombre.split(' ')[0];
 
   const cupones = marcas.map((m) => {
@@ -47,6 +54,7 @@ export default async function Billetera({ searchParams }: { searchParams: Promis
         <p className="guardado">
           Tus cupones están guardados con {v.mail ? <>tu mail <b>{v.mail}</b></> : <>tu WhatsApp <b>{formatoTel(v.whatsapp || '')}</b></>}. Con él los recuperás desde cualquier celular.
         </p>
+        <SorteoVisitante abiertoIni={abierto} presenteIni={!!pres.data?.presente_at} />
         <Instalar />
         <p className="resumen-b">
           {disp
