@@ -13,7 +13,7 @@ type Fase = 'espera' | 'ruleta' | 'ganador';
 
 const MAX_VISIBLES = 160;
 const DURACION = 10000; // la ruleta gira 10 segundos
-const EN_RUEDA = 50; // casilleros de la ruleta (el ganador sale entre TODOS los presentes)
+const EN_RUEDA = 50; // casilleros de la ruleta (el ganador sale entre TODOS los presentes, incluso quienes salieron antes)
 
 export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: string; url: string }) {
   const [e, setE] = useState<Estado>(inicial);
@@ -97,7 +97,7 @@ export function PantallaSorteo({ inicial, qr, url }: { inicial: Estado; qr: stri
 
       {fase === 'ruleta' && ganador && (
         <Ruleta
-          presentes={disponibles.filter((p) => p.id === ganador.id || !e.ganadores.some((g) => g.vid === p.id))}
+          presentes={disponibles}
           ganadorId={ganador.id}
           ganadorNombre={ganador.nombre}
           entre={ganador.entre}

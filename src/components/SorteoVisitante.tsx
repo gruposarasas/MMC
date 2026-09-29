@@ -11,16 +11,17 @@ export function SorteoVisitante({ inicial }: { inicial: Estado }) {
   const [e, setE] = useState<Estado>(inicial);
   const [enviando, setEnviando] = useState(false);
 
-  // Se actualiza sola: el domingo a las 18 aparece el botón sin recargar.
+  // Se actualiza sola: el domingo a las 18 aparece el botón sin recargar,
+  // y si administración reinicia el sorteo, vuelve a aparecer.
   useEffect(() => {
-    if (e.presente || (e.ventana === 'cerrada' && !e.habilitada)) return;
+    if (e.ventana === 'cerrada' && !e.habilitada && !e.presente) return;
     const t = setInterval(async () => {
       if (document.hidden) return;
       const r = await fetch('/api/sorteo/estado', { cache: 'no-store' }).catch(() => null);
       if (r?.ok) setE(await r.json());
     }, 15000);
     return () => clearInterval(t);
-  }, [e.presente, e.ventana, e.habilitada]);
+  }, [e.ventana, e.habilitada, e.presente]);
 
   async function confirmar() {
     setEnviando(true);

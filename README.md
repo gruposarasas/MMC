@@ -53,7 +53,7 @@ Las migraciones están en `supabase/migrations/` y **ya están aplicadas** en el
 - `canjear(visitante, marca, código)`: valida y registra el canje en una transacción. Bloquea la fila del visitante, así que pedidos simultáneos nunca superan los créditos. Con 3 códigos mal seguidos para una marca, bloquea 60 segundos. Los canjes después del 4/10 (hora de Mendoza) quedan con `post_evento = true`.
 - `registrar_visitante(...)`: si el mail o el WhatsApp ya existen, devuelve esa billetera.
 - `resumen_admin()`: números del back office.
-- `sortear()`: elige al azar un visitante presente que no haya ganado y lo guarda en `ganadores`. El estado del sorteo (abierto o cerrado) está en la tabla `sorteo`, y la presencia en `visitantes.presente_at`.
+- `sortear()`: elige al azar entre todos los visitantes presentes (aunque hayan salido antes) y guarda el resultado en `ganadores`, como historial. El estado del sorteo (abierto o cerrado) está en la tabla `sorteo`, y la presencia en `visitantes.presente_at`.
 - **Seguridad:** RLS activado en todas las tablas y sin políticas; permisos revocados a `anon` y `authenticated`, incluidas las funciones. Todo pasa por el servidor con la service role. El código de caja y la clave nunca llegan a las pantallas del visitante.
 - Bucket público `logos` (hasta 1 MB, PNG/JPG/WebP). Solo sube el servidor.
 
