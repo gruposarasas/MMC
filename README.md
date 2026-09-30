@@ -19,8 +19,8 @@ Los visitantes escanean un QR, se registran y reciben una billetera con cupones 
 | `/admin` | Organización | Back office (Resumen, Beneficios, Visitantes, Canjes). |
 | `/admin/carteles` | Organización | Cartel con QR y tarjetas de caja para imprimir. |
 | `/sorteo` | Organización | Pantalla para proyectar el sorteo de la camiseta (pide la contraseña de admin): presentes en vivo, SORTEAR con ruleta y ganador. `/admin/sorteo` redirige acá. |
-| `/baristas` | Público | Pantalla del torneo de baristas para proyectar: clasificación estilo F1 y llaves del playoff. |
-| `/admin/baristas` | Organización | Carga de participantes, puntajes, llaves y resultados del torneo. |
+| `/baristas` | Público | Pantalla del torneo de baristas para proyectar: tabla estilo F1 de la ronda en curso y la final con podio. |
+| `/admin/baristas` | Organización | Participantes, puntajes ronda por ronda y cierre de cada ronda (pasan 16, 6 y 2). |
 | `/api/salud` | — | Healthcheck. |
 
 ## Variables de entorno

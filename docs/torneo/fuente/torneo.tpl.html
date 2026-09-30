@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Torneo de Baristas · Metodología y cronograma</title><link rel="stylesheet" href="estilos.css">
+<style>
+.embudo{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin:7mm 0 8mm}
+.etapa{background:var(--plum);color:var(--crema);border-radius:4mm;padding:5mm 4mm 4.5mm;text-align:center;position:relative}
+.etapa .num{font-size:30pt;font-weight:800;color:var(--arena);line-height:1}
+.etapa .de{font-size:9pt;color:rgba(243,233,220,.7)}
+.etapa h3{color:var(--crema);font-size:12pt;margin:2mm 0 1mm}
+.etapa .pasa{display:inline-block;margin-top:2mm;background:var(--vino);color:#fff;border-radius:99px;padding:.6mm 3.5mm;font-size:8.5pt;font-weight:700}
+.etapa.final{background:var(--vino)}
+.etapa.final .num{color:#fff}
+.etapa.final .pasa{background:var(--arena);color:var(--plum)}
+.etapa:not(:last-child)::after{content:"›";position:absolute;right:-3.6mm;top:50%;transform:translateY(-50%);font-size:18pt;font-weight:800;color:var(--vino)}
+.reglas{display:grid;grid-template-columns:1fr 1fr;gap:4mm 9mm}
+.regla h3{color:var(--vino);font-size:11pt;margin:0 0 1mm}
+.regla p{margin:0;font-size:10pt}
+table.crono{width:100%;border-collapse:separate;border-spacing:0 1.6mm;font-size:9.5pt;margin-top:3mm}
+table.crono thead th{background:var(--plum);color:var(--arena);font-size:9pt;text-transform:uppercase;letter-spacing:.08em;padding:2.2mm 3mm;text-align:left}
+table.crono thead th:first-child{border-radius:2.5mm 0 0 2.5mm}
+table.crono thead th:last-child{border-radius:0 2.5mm 2.5mm 0}
+table.crono tbody th{white-space:nowrap;font-weight:800;color:var(--vino);padding:2mm 3mm;text-align:left;background:#fff;border-radius:2.5mm 0 0 2.5mm;width:25mm}
+table.crono td{background:#fff;padding:2mm 3mm;vertical-align:top}
+table.crono td:last-child{border-radius:0 2.5mm 2.5mm 0}
+table.crono td b{display:block;font-size:10pt}
+table.crono td small{display:block;font-size:8pt;color:rgba(40,23,34,.6)}
+table.crono td.vacia{color:rgba(40,23,34,.3)}
+table.crono td.pos b{font-size:13pt;color:var(--vino)}
+table.crono tr.corte td{background:transparent;text-align:center;font-size:8.5pt;font-weight:600;color:rgba(40,23,34,.55);padding:1mm}
+.bloque{margin-top:6mm}
+.bloque h2{font-size:17pt;margin:0}
+.bloque .sub{margin:0 0 1mm;font-size:10pt}
+.momento{display:flex;align-items:center;gap:3mm;background:var(--plum);color:var(--crema);border-radius:2.5mm;padding:2.4mm 4mm;margin-top:2mm;font-size:9.5pt}
+.momento b{color:var(--arena);white-space:nowrap;min-width:25mm}
+.momento.final{background:var(--vino)}
+.momento.final b{color:#fff}
+.dia{display:inline-block;background:var(--vino);color:#fff;border-radius:99px;padding:.8mm 4mm;font-size:9pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2mm}
+.podio-pdf{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin-top:10mm}
+.podio-pdf div{background:#fff;border-radius:3mm;padding:4mm;text-align:center;border-top:1.6mm solid var(--arena)}
+.podio-pdf div:first-child{border-top-color:var(--vino)}
+.podio-pdf span{display:block;font-size:20pt;font-weight:800;color:var(--vino);line-height:1}
+.podio-pdf b{display:block;margin-top:1.5mm;font-size:10.5pt}
+.podio-pdf small{display:block;font-size:8.5pt;color:rgba(40,23,34,.6)}
+</style></head>
+<body>
+
+<section class="hoja tapa">
+  <img class="deco" src="rec/ic_chemex.png" style="width:82mm;right:-16mm;top:20mm">
+  <img class="deco" src="rec/ic_grano.png" style="width:48mm;right:40mm;top:124mm">
+  <img class="logo" src="rec/logo.png" alt="Mundial de Café by Bruno Brown">
+  <div class="kicker">Torneo de Baristas</div>
+  <h1>Metodología y cronograma</h1>
+  <p class="bajada">Cómo se compite, cómo se pasa de ronda y a qué hora le toca a cada uno.</p>
+  <div class="datos">
+    <div><b>Sábado 3 y domingo 4</b>de octubre de 2026</div>
+    <div><b>Bodega Arizu</b>Mendoza</div>
+    <div><b>Resultados en vivo</b>mmc.saraimagineers.com/baristas</div>
+  </div>
+  <img class="guarda" src="rec/guarda.png" alt="">
+</section>
+
+<section class="hoja">
+  <img class="deco-p" src="rec/ic_taza.png" style="width:60mm;right:-12mm;bottom:22mm">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>Metodología</span></div>
+  <h2>Cómo es la competencia</h2>
+  <p class="sub">Cuatro etapas por puntaje. En cada ronda pasan los mejores, hasta la gran final mano a mano.</p>
+  <div class="embudo">
+    <div class="etapa"><div class="num">31</div><div class="de">baristas</div><h3>Ronda 1</h3><div class="de">Sábado 3</div><span class="pasa">Pasan 16</span></div>
+    <div class="etapa"><div class="num">16</div><div class="de">baristas</div><h3>Ronda 2</h3><div class="de">Domingo 4 · mañana</div><span class="pasa">Pasan 6</span></div>
+    <div class="etapa"><div class="num">6</div><div class="de">baristas</div><h3>Ronda 3</h3><div class="de">Domingo 4 · tarde</div><span class="pasa">Pasan 2</span></div>
+    <div class="etapa final"><div class="num">1 vs 1</div><div class="de" style="color:rgba(255,255,255,.8)">la gran final</div><h3>Final</h3><div class="de" style="color:rgba(255,255,255,.8)">Domingo 4 · 18:30</div><span class="pasa">Campeón</span></div>
+  </div>
+  <div class="reglas">
+    <div class="regla"><h3>Tres mesas en simultáneo</h3><p>Se compite de a tres baristas por turno, uno en cada mesa (Mesa 1, Mesa 2 y Mesa 3). Cada turno dura 30 minutos.</p></div>
+    <div class="regla"><h3>Puntaje de 1 a 10</h3><p>Cada presentación recibe un puntaje de 1 a 10, con un decimal (por ejemplo, 8,5). El orden de cada ronda sale de esos puntajes.</p></div>
+    <div class="regla"><h3>Cada ronda arranca de cero</h3><p>Pasar de ronda depende solo del puntaje de esa ronda. El puesto con el que llegás define tu horario y tu mesa en la ronda siguiente.</p></div>
+    <div class="regla"><h3>Ronda 1: pasan 16</h3><p>Compiten los 31 inscriptos, el sábado. Los 16 mejores puntajes pasan a la Ronda 2.</p></div>
+    <div class="regla"><h3>Ronda 2: pasan 6</h3><p>Compiten los 16 clasificados, el domingo a la mañana. Los 6 mejores puntajes pasan a la Ronda 3.</p></div>
+    <div class="regla"><h3>Ronda 3: pasan 2 y se define el podio</h3><p>Compiten los 6, el domingo a la tarde. Los 2 mejores van a la final. El 3° y el 4° de esta ronda son el <b>3° y 4° puesto</b> del torneo, sin volver a competir.</p></div>
+    <div class="regla"><h3>Final: 1 vs 1</h3><p>Los dos finalistas compiten mano a mano. El mayor puntaje es el <b>campeón</b>; el otro, el subcampeón.</p></div>
+    <div class="regla"><h3>Empates</h3><p>Si hay un empate en un puesto que define quién pasa de ronda, lo resuelve el jurado.</p></div>
+  </div>
+  <div class="nota plum" style="margin-top:6mm"><b>Resultados en vivo.</b> Los puntajes se muestran en la pantalla gigante a medida que se cargan, y también en <b>mmc.saraimagineers.com/baristas</b>.</div>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas</span><span>2</span></div>
+</section>
+
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>Cronograma · Sábado 3</span></div>
+  <span class="dia">Sábado 3 de octubre</span>
+  <h2>Ronda 1 · Pasan 16</h2>
+  <p class="sub" style="margin-bottom:1mm">Los 31 inscriptos, en turnos de 30 minutos y de a tres por mesa.</p>
+  <table class="crono">
+    <thead><tr><th>Horario</th><th>Mesa 1</th><th>Mesa 2</th><th>Mesa 3</th></tr></thead>
+    <tbody>{{R1}}</tbody>
+  </table>
+  <div class="momento"><b>Desde las 20:00</b>Cierre musical · DJ Virginia Dacuna</div>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas</span><span>3</span></div>
+</section>
+
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>Cronograma · Domingo 4</span></div>
+  <span class="dia">Domingo 4 de octubre · mañana</span>
+  <div class="bloque" style="margin-top:1mm">
+    <h2>Ronda 2 · Pasan 6</h2>
+    <p class="sub">Compiten los 16 clasificados, según el puesto con que terminaron la Ronda 1.</p>
+    <table class="crono">
+      <thead><tr><th>Horario</th><th>Mesa 1</th><th>Mesa 2</th><th>Mesa 3</th></tr></thead>
+      <tbody>{{R2}}</tbody>
+    </table>
+    <div class="momento"><b>Desde las 13:00</b>Show · DJ · ballet</div>
+  </div>
+  <div class="nota" style="margin-top:8mm"><b>¿Cómo sé mi turno?</b> Tu horario y tu mesa en la Ronda 2 dependen del puesto con que terminás la Ronda 1. Mirá la tabla final en la pantalla gigante o en mmc.saraimagineers.com/baristas.</div>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas</span><span>4</span></div>
+</section>
+
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>Cronograma · Domingo 4</span></div>
+  <span class="dia">Domingo 4 de octubre · tarde</span>
+  <div class="bloque" style="margin-top:1mm">
+    <h2>Ronda 3 · Pasan 2</h2>
+    <p class="sub">Compiten los 6 clasificados, según el puesto con que terminaron la Ronda 2. El 3° y el 4° de esta ronda son el 3° y 4° puesto del torneo.</p>
+    <table class="crono">
+      <thead><tr><th>Horario</th><th>Mesa 1</th><th>Mesa 2</th><th>Mesa 3</th></tr></thead>
+      <tbody>{{R3}}</tbody>
+    </table>
+    <div class="momento"><b>18:00 – 18:30</b>Contenido · preparación de la final</div>
+  </div>
+  <div class="bloque">
+    <h2>Final · 1 vs 1</h2>
+    <div class="momento final"><b>18:30 – 19:00</b>1° de la Ronda 3 (Mesa 1) vs. 2° de la Ronda 3 (Mesa 2)</div>
+    <div class="momento"><b>Después</b>Cierre musical · Clari Ceschin · Cierre</div>
+  </div>
+  <div class="podio-pdf">
+    <div><span>1°</span><b>Campeón</b><small>ganador de la final</small></div>
+    <div><span>2°</span><b>Subcampeón</b><small>finalista</small></div>
+    <div><span>3°</span><b>Tercer puesto</b><small>3° de la Ronda 3</small></div>
+    <div><span>4°</span><b>Cuarto puesto</b><small>4° de la Ronda 3</small></div>
+  </div>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas</span><span>5</span></div>
+</section>
+
+</body></html>

@@ -1,66 +1,72 @@
 // Torneo de baristas: acceso a datos. Solo servidor.
 import { db } from './supabase';
-import { LLAVE, clasificacion, recalcular, type Barista, type Partido } from './llaves';
+import { RONDAS, participantes, tabla, empateEnCorte, type Barista, type Puntaje, type Fase } from './rondas';
 
-export type Pantalla = 'auto' | 'clasificacion' | 'llaves';
-export type EstadoTorneo = { fase: 'clasificacion' | 'playoff'; pantalla: Pantalla; baristas: Barista[]; partidos: Partido[] };
-
-const num = (v: unknown) => (v == null ? null : Number(v));
+export type Pantalla = 'auto' | Fase;
+export type EstadoTorneo = { fase: Fase; pantalla: Pantalla; baristas: Barista[]; puntajes: Puntaje[] };
 
 export async function estadoTorneo(): Promise<EstadoTorneo> {
   const [t, b, p] = await Promise.all([
     db().from('torneo').select('fase, pantalla').eq('id', 1).maybeSingle(),
-    db().from('baristas').select('*').order('created_at'),
-    db().from('partidos').select('id, a, b, puntaje_a, puntaje_b, ganador'),
+    db().from('baristas').select('id, nombre, cafeteria, turno, orden, created_at').order('orden').order('created_at'),
+    db().from('puntajes').select('barista_id, ronda, semilla, puntaje, desempate, puntuado_at'),
   ]);
   if (b.error) throw b.error;
+  if (p.error) throw p.error;
   return {
-    fase: (t.data?.fase as EstadoTorneo['fase']) || 'clasificacion',
+    fase: (t.data?.fase as Fase) || 'r1',
     pantalla: (t.data?.pantalla as Pantalla) || 'auto',
-    baristas: (b.data || []).map((x) => ({ ...x, puntaje: num(x.puntaje) })) as Barista[],
-    partidos: (p.data || []).map((x) => ({ ...x, puntaje_a: num(x.puntaje_a), puntaje_b: num(x.puntaje_b) })) as Partido[],
+    baristas: (b.data || []) as Barista[],
+    puntajes: (p.data || []).map((x) => ({ ...x, puntaje: x.puntaje == null ? null : Number(x.puntaje) })) as Puntaje[],
   };
 }
 
-async function guardarPartidos(ps: Partido[]) {
-  if (!ps.length) return;
-  const ahora = new Date().toISOString();
-  const { error } = await db().from('partidos').upsert(ps.map((p) => ({ ...p, updated_at: ahora })));
-  if (error) throw error;
-}
-
-/** Arma los octavos con los 16 primeros de la clasificación y pasa a la fase de playoff. */
-export async function generarLlaves() {
+/** Guarda el puntaje de un barista en una ronda en la que compite. */
+export async function puntuar(baristaId: string, n: number, puntaje: number | null, desempate: number) {
   const e = await estadoTorneo();
-  const orden = clasificacion(e.baristas).filter((b) => b.puntaje != null);
-  if (orden.length < 16) return `Hacen falta 16 baristas con puntaje: hay ${orden.length}.`;
-  const vacios = new Map<string, Partido>();
-  for (const def of LLAVE) {
-    const [s1, s2] = def.semillas || [0, 0];
-    vacios.set(def.id, { id: def.id, a: def.semillas ? orden[s1 - 1].id : null, b: def.semillas ? orden[s2 - 1].id : null, puntaje_a: null, puntaje_b: null, ganador: null });
-  }
-  await guardarPartidos([...vacios.values()]);
-  await db().from('torneo').update({ fase: 'playoff', updated_at: new Date().toISOString() }).eq('id', 1);
+  const actual = RONDAS.find((r) => r.fase === e.fase)!.n;
+  if (n > actual) return 'Esa ronda todavía no empezó.';
+  if (n < actual) return 'Esa ronda ya está cerrada. Para corregirla, volvé a esa ronda.';
+  const previo = e.puntajes.find((p) => p.barista_id === baristaId && p.ronda === n);
+  if (n > 1 && !previo) return 'Ese barista no compite en esta ronda.';
+  if (n === 1 && !e.baristas.some((b) => b.id === baristaId)) return 'Ese barista no existe.';
+  const cambia = puntaje !== (previo?.puntaje ?? null);
+  const fila = {
+    barista_id: baristaId,
+    ronda: n,
+    semilla: previo?.semilla ?? null,
+    puntaje,
+    desempate,
+    // La hora de puntuación sirve para desempatar y para resaltarlo en la pantalla.
+    puntuado_at: puntaje == null ? null : cambia ? new Date().toISOString() : previo?.puntuado_at ?? new Date().toISOString(),
+  };
+  const { error } = await db().from('puntajes').upsert(fila);
+  if (error) throw error;
   return null;
 }
 
-export async function volverAClasificacion() {
-  await db().from('partidos').delete().neq('id', '');
-  await db().from('torneo').update({ fase: 'clasificacion', updated_at: new Date().toISOString() }).eq('id', 1);
+/** Cierra la ronda actual: los mejores pasan a la siguiente con su puesto como semilla. */
+export async function cerrarRonda() {
+  const e = await estadoTorneo();
+  const i = RONDAS.findIndex((r) => r.fase === e.fase);
+  const r = RONDAS[i], sig = RONDAS[i + 1];
+  if (!sig) return 'La final no se cierra: el campeón sale de los puntajes de la final.';
+  const orden = tabla(participantes(r.n, e.baristas, e.puntajes)).filter((f) => f.puntaje != null);
+  if (orden.length < r.pasan) return `Para cerrar la ${r.titulo} hacen falta ${r.pasan} baristas con puntaje: hay ${orden.length}.`;
+  if (empateEnCorte(orden, r.pasan)) return `Hay un empate en el puesto ${r.pasan}, justo en el corte. Resolvelo con "Desempate" antes de cerrar.`;
+  const filas = orden.slice(0, r.pasan).map((f, k) => ({ barista_id: f.id, ronda: sig.n, semilla: k + 1, puntaje: null, desempate: 0, puntuado_at: null }));
+  await db().from('puntajes').delete().gte('ronda', sig.n);
+  const { error } = await db().from('puntajes').insert(filas);
+  if (error) throw error;
+  await db().from('torneo').update({ fase: sig.fase, updated_at: new Date().toISOString() }).eq('id', 1);
+  return null;
 }
 
-/** Carga el resultado de un partido. Si hay puntajes distintos y no se eligió ganador, gana el mayor. */
-export async function cargarResultado(id: string, puntajeA: number | null, puntajeB: number | null, ganador: string | null | undefined) {
-  const e = await estadoTorneo();
-  const mapa = new Map(e.partidos.map((p) => [p.id, p]));
-  const p = mapa.get(id);
-  if (!p) return 'Ese partido no existe todavía.';
-  if (!p.a || !p.b) return 'Todavía no están definidos los dos baristas de este partido.';
-  let g = ganador === undefined ? p.ganador : ganador;
-  if (ganador === undefined && puntajeA != null && puntajeB != null && puntajeA !== puntajeB) g = puntajeA > puntajeB ? p.a : p.b;
-  if (g && g !== p.a && g !== p.b) return 'El ganador tiene que ser uno de los dos baristas.';
-  const nuevo = { ...p, puntaje_a: puntajeA, puntaje_b: puntajeB, ganador: g };
-  mapa.set(id, nuevo);
-  await guardarPartidos([nuevo, ...recalcular(mapa)]);
+/** Vuelve a una ronda anterior: borra las rondas posteriores y sus puntajes. */
+export async function volverARonda(fase: Fase) {
+  const r = RONDAS.find((x) => x.fase === fase);
+  if (!r) return 'Ronda inválida.';
+  await db().from('puntajes').delete().gt('ronda', r.n);
+  await db().from('torneo').update({ fase, updated_at: new Date().toISOString() }).eq('id', 1);
   return null;
 }

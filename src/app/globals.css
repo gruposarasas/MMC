@@ -286,28 +286,37 @@ a.btn{text-align:center;text-decoration:none}
 @keyframes tbRecien{from{box-shadow:0 0 0 0 rgba(194,162,123,.9)}to{box-shadow:0 0 0 .6vh rgba(194,162,123,.9)}}
 .tb-ultimo{position:absolute;left:3vw;right:3vw;bottom:2.2vh;text-align:center;font-size:clamp(14px,2.4vh,30px);color:var(--arena2);animation:sxPop .6s ease-out}
 .tb-ultimo b{color:var(--crema)}
-/* llaves */
-.tb-llaves{display:grid;grid-template-columns:1.25fr 1.15fr 1.1fr 1.3fr 1.1fr 1.15fr 1.25fr;gap:1.1vw;height:82vh;margin-top:2vh}
-.tb-col{display:flex;flex-direction:column;min-width:0}
-.tb-col h3{margin:0 0 1vh;text-align:center;font-size:clamp(12px,1.9vh,24px);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--arena)}
-.tb-col-in{flex:1;display:flex;flex-direction:column;justify-content:space-around}
-.tb-partido{background:rgba(255,255,255,.07);border:1px solid rgba(194,162,123,.35);border-radius:1vh;overflow:hidden}
-.tb-lado{display:grid;grid-template-columns:auto 1fr auto;gap:.5vw;align-items:center;padding:.7vh .7vw;font-size:clamp(11px,1.85vh,24px);font-weight:600;min-height:4.6vh}
-.tb-lado+.tb-lado{border-top:1px solid rgba(194,162,123,.25)}
-.tb-sem{display:grid;place-items:center;min-width:1.7em;height:1.7em;border-radius:.4em;background:rgba(255,255,255,.12);font-size:.75em;font-weight:800;color:var(--arena2)}
-.tb-lnom{line-height:1.12;overflow-wrap:anywhere}
-.tb-lpts{font-weight:800;color:var(--arena);font-variant-numeric:tabular-nums}
-.tb-lado.gano{background:var(--arena);color:var(--plum)}
-.tb-lado.gano .tb-lpts{color:var(--plum)}
-.tb-lado.gano .tb-sem{background:rgba(40,23,34,.15);color:var(--plum)}
-.tb-lado.perdio{opacity:.4;text-decoration:line-through;text-decoration-thickness:1px}
-.tb-centro{justify-content:center;gap:1.2vh}
-.tb-campeon{text-align:center}
-.tb-campeon img{width:9vh;height:9vh;opacity:.6}
-.tb-campeon span{display:block;font-size:clamp(14px,2.6vh,34px);font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--arena)}
-.tb-campeon b{display:block;margin-top:.4vh;font-size:clamp(20px,4.4vh,60px);line-height:1.05;color:#fff;animation:sxEntra .9s cubic-bezier(.2,1.5,.4,1)}
-.tb-campeon.si img{opacity:1;animation:gira 6s linear infinite}
-.tb-centro .tb-partido{border-width:2px;border-color:var(--arena)}
-.tb-h3-t{margin:1.5vh 0 0!important}
-.tb-tercero{margin:0;text-align:center;font-weight:700;color:var(--arena2);font-size:clamp(12px,2vh,26px)}
-@media (prefers-reduced-motion:reduce){.tb-fila{transition:none}.tb-fila.recien,.tb-campeon b,.tb-campeon.si img{animation:none}}
+.tb-tabla.una{max-width:min(1400px,86vw);margin-left:auto;margin-right:auto}
+.tb-tabla.una .tb-fila{width:100%}
+.tb-tabla.una .tb-zona{width:calc(100% + 1.6vw)}
+.tb-llego{margin-left:.7em;font-weight:600;font-size:.6em!important;color:var(--arena2)!important;text-transform:uppercase;letter-spacing:.06em}
+.tb-puesto{margin-left:.7em;font-style:normal;font-size:.62em;font-weight:800;background:var(--arena);color:var(--plum);border-radius:.4em;padding:.1em .5em;vertical-align:.12em}
+.tb-turno{font-weight:600;font-size:.72em;color:rgba(243,233,220,.75);white-space:nowrap}
+/* final 1 vs 1 */
+.tb-final{position:relative;height:84vh;display:flex;flex-direction:column;justify-content:center;gap:5vh}
+.tb-duelo{display:grid;grid-template-columns:1fr 1fr;gap:6vw;padding:0 4vw}
+.tb-finalista{position:relative;text-align:center;background:rgba(255,255,255,.06);border:.4vh solid rgba(194,162,123,.5);border-radius:3vh;padding:4vh 2vw;transition:transform .6s,opacity .6s,background .6s}
+.tb-fsem{display:block;font-size:clamp(12px,2.2vh,28px);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--arena2)}
+.tb-fnom{display:block;margin-top:1.5vh;font-size:clamp(26px,6.4vh,86px);line-height:1.05;color:#fff}
+.tb-fcaf{display:block;margin-top:.8vh;font-size:clamp(14px,2.6vh,34px);color:rgba(243,233,220,.7)}
+.tb-fpts{display:block;margin-top:2.5vh;font-size:clamp(40px,12vh,160px);line-height:1;font-weight:800;color:var(--arena);font-variant-numeric:tabular-nums}
+.tb-vs{position:absolute;right:-5.2vw;top:50%;transform:translateY(-50%);font-size:clamp(24px,6vh,80px);font-weight:800;color:var(--vino);text-shadow:0 0 .2em rgba(0,0,0,.4)}
+.tb-finalista.campeon{background:var(--arena);border-color:#fff;transform:scale(1.04)}
+.tb-finalista.campeon .tb-fnom,.tb-finalista.campeon .tb-fpts,.tb-finalista.campeon .tb-fsem,.tb-finalista.campeon .tb-fcaf{color:var(--plum)}
+.tb-finalista.campeon .tb-fnom{animation:sxEntra .9s cubic-bezier(.2,1.5,.4,1)}
+.tb-fcorona{display:inline-block;margin-top:2vh;background:var(--vino);color:#fff;border-radius:99px;padding:.6vh 2vw;font-size:clamp(16px,3vh,40px);font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.tb-finalista.sub{opacity:.55;transform:scale(.96)}
+.tb-finalista.recien{box-shadow:0 0 0 .8vh var(--vino)}
+.tb-podio{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5vw;padding:0 4vw}
+.tb-escalon{background:rgba(255,255,255,.07);border-radius:1.4vh;padding:1.6vh 1.2vw;text-align:center}
+.tb-escalon span{display:block;font-size:clamp(14px,2.6vh,34px);font-weight:800;color:var(--arena)}
+.tb-escalon b{display:block;margin-top:.4vh;font-size:clamp(13px,2.4vh,30px);color:#fff}
+.tb-escalon.vacio b{color:rgba(243,233,220,.4);font-weight:600}
+.tb-estrella{position:absolute;left:50%;top:-1vh;transform:translateX(-50%);pointer-events:none}
+.tb-estrella img{width:12vh;height:12vh;animation:gira 6s linear infinite}
+@media (prefers-reduced-motion:reduce){.tb-fila,.tb-finalista{transition:none}.tb-fila.recien,.tb-finalista.campeon .tb-fnom,.tb-estrella img{animation:none}}
+/* pestañas de rondas (back office del torneo) */
+.tr-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.tr-tabs button{border:1.5px solid var(--linea);background:transparent;color:var(--arena2);border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px}
+.tr-tabs button.on{background:var(--arena);border-color:var(--arena);color:var(--plum)}
+.tr-tabs button:disabled{opacity:.35}
