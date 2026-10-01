@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/Toast';
+import { DESARROLLADOR } from '@/lib/config';
 
 export const metadata: Metadata = {
   title: 'Mundial de Café · Beneficios',
@@ -29,6 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <main id="app">{children}</main>
+        <footer className="firma">
+          App desarrollada por{' '}
+          <a href={DESARROLLADOR.instagram} target="_blank" rel="noopener noreferrer">{DESARROLLADOR.nombre}</a>
+        </footer>
         <Toaster />
       </body>
     </html>

@@ -33,3 +33,6 @@ export const VOTOS_CIERRE = '2026-10-04T20:00:00-03:00';
 export const votosAbiertos = (ahora = Date.now()) => ahora < Date.parse(VOTOS_CIERRE);
 export const VOTOS_TEXTO = 'El ganador se conoce el domingo 4 a las 20 hs.';
 export const LINK_BARISTA = `${URL_PUBLICA}/baristas`;
+
+// Firma del desarrollador, abajo de todo en cada pantalla.
+export const DESARROLLADOR = { nombre: 'Sara Imagineers', instagram: 'https://www.instagram.com/saraimagineers/' };

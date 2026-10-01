@@ -460,3 +460,9 @@ a.btn{text-align:center;text-decoration:none}
 .tb.movil .tb-escalon span{font-size:18px}
 .tb.movil .tb-escalon b{font-size:14px}
 .tb.movil .tb-estrella{display:none}
+/* firma del desarrollador */
+.firma{text-align:center;font-size:11px;letter-spacing:.02em;color:rgba(243,233,220,.38);padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.firma a{color:rgba(243,233,220,.6);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(243,233,220,.25)}
+.firma a:hover,.firma a:focus-visible{color:var(--arena)}
+body:has(.votar-bar) .firma{padding-bottom:110px}
+@media print{.firma{display:none}}
