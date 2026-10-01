@@ -19,7 +19,7 @@ const base = (nombre: string) => {
 const ALFA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 /** Clave nueva, única: NOMBRE-XXXX. Sirve para marcas y para baristas. */
-export async function nuevaClave(nombre: string, tabla: 'marcas' | 'baristas' = 'marcas') {
+export async function nuevaClave(nombre: string, tabla: 'marcas' | 'baristas' | 'jurados' = 'marcas') {
   for (let i = 0; i < 20; i++) {
     const c = `${base(nombre)}-${Array.from({ length: 4 }, () => ALFA[randomInt(ALFA.length)]).join('')}`;
     const { data } = await db().from(tabla).select('id').eq('clave', c).maybeSingle();

@@ -386,3 +386,26 @@ a.btn{text-align:center;text-decoration:none}
 .barra.voto span{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 @media (max-width:980px){.dos-col{grid-template-columns:1fr}}
 @media (max-width:360px){.secs{grid-template-columns:1fr}.sec-t{flex-direction:row;align-items:center;gap:10px}.sec-t img{margin:0}}
+/* ---------- jurados ---------- */
+.jur-lista{margin-top:16px;display:grid;gap:8px}
+.jur-it{background:var(--plum3);border-radius:14px;overflow:hidden;border:1.5px solid transparent}
+.jur-it.abierto{border-color:var(--arena)}
+.jur-cab{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;background:none;padding:13px 14px;text-align:left;color:var(--crema)}
+.jur-cab b{display:block;font-size:16px;line-height:1.25}
+.jur-cab small{font-size:12.5px;color:rgba(243,233,220,.6)}
+.jur-form{padding:2px 14px 16px}
+.jur-campo{display:grid;grid-template-columns:1fr 96px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--linea)}
+.jur-campo span{font-weight:600;font-size:15px;color:var(--arena2)}
+.jur-campo input{width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--linea);background:rgba(255,255,255,.06);font-size:20px;font-weight:700;text-align:center;color:var(--crema)}
+.jur-campo input:focus{border-color:var(--arena);outline:none}
+.jur-campo.col{grid-template-columns:1fr}
+.dev{background:var(--plum3);border-radius:16px;padding:16px;margin-top:14px}
+.dev h3{margin:0;font-size:17px;color:var(--arena)}
+.dev table{margin-top:8px}
+.dev td.n,.dev th.n{text-align:center}
+.dev tr.tot td{font-weight:700;color:var(--arena2)}
+.dev .com{margin-top:10px;font-size:14px}
+.dev .com b{color:var(--arena2)}
+.dev .final{display:flex;justify-content:space-between;align-items:center;margin-top:12px;background:var(--vino);border-radius:12px;padding:10px 14px}
+.dev .final b{font-size:26px}
+.buscar:disabled{opacity:.75;border-style:dashed}

@@ -3,6 +3,7 @@ import { db } from '@/lib/supabase';
 import { soloAdmin } from '@/lib/admin';
 import { estadoTorneo, puntuar, cerrarRonda, volverARonda } from '@/lib/torneo';
 import { RONDAS, type Fase } from '@/lib/rondas';
+import { avanceJurados, recalcular } from '@/lib/jurados';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ function puntaje(v: unknown): number | null {
 export async function GET() {
   const no = await soloAdmin();
   if (no) return no;
-  return NextResponse.json(await estadoTorneo(), { headers: { 'cache-control': 'no-store' } });
+  return NextResponse.json({ ...(await estadoTorneo()), avance: await avanceJurados() }, { headers: { 'cache-control': 'no-store' } });
 }
 
 export async function POST(req: Request) {
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
   if (no) return no;
   const j = await req.json().catch(() => ({}));
   const mal = (error: string, status = 400) => NextResponse.json({ error }, { status });
-  const ok = async () => NextResponse.json(await estadoTorneo());
+  const ok = async () => NextResponse.json({ ...(await estadoTorneo()), avance: await avanceJurados() });
 
   switch (j.accion) {
     case 'agregar': {
@@ -70,8 +71,12 @@ export async function POST(req: Request) {
       const esp = puntaje(j.espresso);
       if (Number.isNaN(esp)) return mal('El puntaje del espresso va de 1 a 9, con un decimal.');
       const desempate = Math.max(-99, Math.min(99, Math.round(Number(j.desempate) || 0)));
+      const descuento = Math.max(0, Math.min(20, Math.round(Number(j.descuento) || 0)));
       const err = await puntuar(j.id, n, p, esp, desempate);
       if (err) return mal(err, 409);
+      // Descuentos de los jueces fiscales. Si los 3 jurados ya cargaron su planilla, el puntaje sale de ellos.
+      await db().from('puntajes').update({ descuento }).eq('barista_id', j.id).eq('ronda', n);
+      await recalcular(j.id, n);
       return ok();
     }
     case 'cerrar': {

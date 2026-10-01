@@ -21,6 +21,11 @@ Los visitantes escanean un QR, se registran y reciben una billetera con cupones 
 | `/sorteo` | Organización | Pantalla para proyectar el sorteo de la camiseta (pide la contraseña de admin): presentes en vivo, SORTEAR con ruleta y ganador. `/admin/sorteo` redirige acá. |
 | `/baristas` | Público | Pantalla del torneo de baristas para proyectar: tabla estilo F1 de la ronda en curso y la final con podio. |
 | `/admin/baristas` | Organización | Participantes, puntajes ronda por ronda y cierre de cada ronda (pasan 16, 6 y 2). |
+| `/votar` | Visitante | Votación del stand más lindo (una vez por visitante). El ganador se ve en la app desde el domingo 4 a las 20 hs. |
+| `/torneo` · `/torneo/[id]` | Visitante | Perfiles de los baristas, mensajes de aliento y voto al barista favorito (una vez por visitante). |
+| `/mapa` | Público | Mapa del evento con zoom (`public/img/mapa.jpg`, sale de `docs/mapa/mapa-stands.pdf`). |
+| `/barista` | Barista | Ingreso con su clave: foto, historia, experiencia, hobby y por qué merece ganar; mensajes recibidos y la devolución del jurado. |
+| `/jurado` | Jurados | Jurado 1, 2 y 3 entran con su clave y cargan su planilla de cada barista en la ronda en curso. |
 | `/api/salud` | — | Healthcheck. |
 
 ## Variables de entorno
@@ -53,6 +58,8 @@ Las migraciones están en `supabase/migrations/` y **ya están aplicadas** en el
 - `canjear(visitante, marca, código)`: valida y registra el canje en una transacción. Bloquea la fila del visitante, así que pedidos simultáneos nunca superan los créditos. Con 3 códigos mal seguidos para una marca, bloquea 60 segundos. Los canjes después del 4/10 (hora de Mendoza) quedan con `post_evento = true`.
 - `registrar_visitante(...)`: si el mail o el WhatsApp ya existen, devuelve esa billetera.
 - `resumen_admin()`: números del back office.
+- `votos_stand`, `votos_barista` (un voto por visitante: la clave primaria es el visitante) y `mensajes_barista`. Cierre de las votaciones: `VOTOS_CIERRE` en `src/lib/config.ts`.
+- `jurados` (3 filas, con su clave) y `evaluaciones` (planilla de cada jurado por barista y ronda). Los ítems de la planilla están en `src/lib/planilla.ts`. Cuando los 3 completan la planilla de un barista, el puntaje de la ronda se calcula solo: promedio de los 3 menos `puntajes.descuento` (jueces fiscales), nunca menos de 1.
 - `sortear()`: elige al azar entre todos los visitantes presentes (aunque hayan salido antes) y guarda el resultado en `ganadores`, como historial. El estado del sorteo (abierto o cerrado) está en la tabla `sorteo`, y la presencia en `visitantes.presente_at`.
 - **Seguridad:** RLS activado en todas las tablas y sin políticas; permisos revocados a `anon` y `authenticated`, incluidas las funciones. Todo pasa por el servidor con la service role. El código de caja y la clave nunca llegan a las pantallas del visitante.
 - Bucket público `logos` (hasta 1 MB, PNG/JPG/WebP). Solo sube el servidor.

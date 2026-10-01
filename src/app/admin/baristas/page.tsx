@@ -4,6 +4,7 @@ import { EntrarAdmin } from '@/components/admin/Comun';
 import { AdminTorneo } from '@/components/torneo/AdminTorneo';
 import { AccesosBaristas } from '@/components/torneo/AccesosBaristas';
 import { accesosBaristas } from '@/lib/votos';
+import { avanceJurados, accesosJurados } from '@/lib/jurados';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Torneo de Baristas · Back office' };
@@ -13,8 +14,8 @@ export default async function AdminBaristas() {
   return (
     <div className="bo" style={{ gridTemplateColumns: '1fr', maxWidth: 1100 }}>
       <section>
-        <AdminTorneo inicial={await estadoTorneo()} />
-        <AccesosBaristas inicial={await accesosBaristas()} />
+        <AdminTorneo inicial={{ ...(await estadoTorneo()), avance: await avanceJurados() }} />
+        <AccesosBaristas inicial={await accesosBaristas()} jurados={await accesosJurados()} />
       </section>
     </div>
   );

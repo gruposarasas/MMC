@@ -5,7 +5,8 @@ import { ronda, participantes, tabla, type Barista, type Puntaje, type Fase, typ
 
 type Estado = { fase: Fase; pantalla: 'auto' | Fase; baristas: Barista[]; puntajes: Puntaje[] };
 
-export const fPuntaje = (n: number | null) => (n == null ? '—' : n.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+export { fPuntaje } from '@/lib/rondas';
+import { fPuntaje } from '@/lib/rondas';
 const clave = (p: Puntaje) => `${p.barista_id}:${p.ronda}`;
 
 /** Pantalla para proyectar el torneo de baristas. Se actualiza sola cada 3 segundos. */

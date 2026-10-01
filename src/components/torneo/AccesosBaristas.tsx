@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { LINK_BARISTA } from '@/lib/config';
+import { LINK_BARISTA, URL_PUBLICA } from '@/lib/config';
+import type { AccesoJurado } from '@/lib/jurados';
 import type { AccesoBarista } from '@/lib/votos';
 import { FotoBarista } from '../Secciones';
 import { toast } from '../Toast';
@@ -10,21 +11,50 @@ const texto = (b: AccesoBarista) =>
 const wa = (b: AccesoBarista) => `https://wa.me/549${b.tel.replace(/^549?/, '')}?text=${encodeURIComponent(texto(b))}`;
 
 /** Accesos de los baristas a su perfil (/barista): clave, WhatsApp y estado del perfil. */
-export function AccesosBaristas({ inicial }: { inicial: AccesoBarista[] }) {
+export function AccesosBaristas({ inicial, jurados }: { inicial: AccesoBarista[]; jurados: AccesoJurado[] }) {
   const [bs, setBs] = useState(inicial);
+  const [js, setJs] = useState(jurados);
   async function act(c: Record<string, unknown>, ok?: string) {
     const r = await fetch('/api/admin/accesos-baristas', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(c) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) : {};
     if (!r?.ok) return toast(j.error || 'Algo falló. Probá de nuevo.');
     setBs(j.accesos);
+    setJs(j.jurados);
     if (ok) toast(ok);
   }
   const copiar = async (t: string) => {
     try { await navigator.clipboard.writeText(t); toast('Acceso copiado: link y clave.'); } catch { prompt('Copiá el acceso:', t); }
   };
+  const bloqueJurados = (
+    <div className="tarj tabla" style={{ marginTop: 22 }}>
+      <h2 style={{ margin: 0, fontSize: 17, color: 'var(--arena)' }}>Jurados</h2>
+      <p className="ayuda">
+        Cada jurado entra en <b>{URL_PUBLICA}/jurado</b> con su clave y carga su planilla de cada barista en la ronda en curso. Cuando los 3 completan la de un barista, su puntaje se calcula solo y el barista ve la devolución en su perfil, firmada como Jurado 1, 2 y 3 (sin nombres).
+      </p>
+      <table>
+        <thead><tr><th>Jurado</th><th>Clave</th><th>Acceso</th></tr></thead>
+        <tbody>
+          {js.map((j) => (
+            <tr key={j.n}>
+              <td><b>Jurado {j.n}</b></td>
+              <td style={{ fontWeight: 700, letterSpacing: '.04em' }}>{j.clave || '—'}</td>
+              <td>
+                <div className="acciones" style={{ marginTop: 0 }}>
+                  {j.clave && <button className="link" onClick={() => copiar(`Jurado ${j.n} · Torneo de Baristas del Mundial de Café\n${URL_PUBLICA}/jurado\nClave: ${j.clave}`)}>Copiar acceso</button>}
+                  <button className="link" onClick={() => (!j.clave || confirm(`¿Generar una clave nueva para el Jurado ${j.n}? La anterior deja de andar.`)) && act({ accion: 'jurado', n: j.n }, 'Clave del jurado generada.')}>{j.clave ? 'Nueva clave' : 'Generar clave'}</button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
   const faltan = bs.filter((b) => !b.clave).length;
   const completos = bs.filter((b) => b.completo).length;
   return (
+    <>
+    {bloqueJurados}
     <div className="tarj tabla" style={{ marginTop: 22 }}>
       <div className="fila">
         <h2 style={{ margin: 0, fontSize: 17, color: 'var(--arena)' }}>Perfiles de los baristas · {completos} de {bs.length} completos</h2>
@@ -60,5 +90,6 @@ export function AccesosBaristas({ inicial }: { inicial: AccesoBarista[] }) {
         </tbody>
       </table>
     </div>
+    </>
   );
 }

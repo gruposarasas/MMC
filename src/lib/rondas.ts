@@ -11,6 +11,7 @@ export type Puntaje = {
   puntaje: number | null;
   espresso: number | null; // desempate: a igual puntaje, pasa el de mejor espresso
   desempate: number; // si también empatan en el espresso, decide el jurado (más alto va primero)
+  descuento?: number; // puntos que descuentan los jueces fiscales
   puntuado_at: string | null;
 };
 
@@ -44,7 +45,7 @@ export const TURNOS: Record<number, Record<number, string>> = {
 /** Orden de salida de cada ronda (para listar a quienes todavía no compitieron). */
 const ordenTurno = (t: string) => t.replace(/^(Sáb|Dom) /, (m) => (m.startsWith('Sáb') ? '1 ' : '2 '));
 
-export type Fila = Barista & { semilla: number | null; puntaje: number | null; espresso: number | null; desempate: number; puntuado_at: string | null; turnoRonda: string };
+export type Fila = Barista & { semilla: number | null; puntaje: number | null; espresso: number | null; desempate: number; descuento: number; puntuado_at: string | null; turnoRonda: string };
 
 /** Participantes de una ronda con su puntaje. La ronda 1 incluye a todos los baristas. */
 export function participantes(n: number, baristas: Barista[], puntajes: Puntaje[]): Fila[] {
@@ -59,6 +60,7 @@ export function participantes(n: number, baristas: Barista[], puntajes: Puntaje[
       puntaje: p?.puntaje ?? null,
       espresso: p?.espresso ?? null,
       desempate: p?.desempate ?? 0,
+      descuento: p?.descuento ?? 0,
       puntuado_at: p?.puntuado_at ?? null,
       turnoRonda: n === 1 ? b.turno : (semilla != null && TURNOS[n]?.[semilla]) || '',
     };
@@ -88,3 +90,6 @@ export function empateEnCorte(orden: Fila[], pasan: number) {
   const a = orden[pasan - 1], b = orden[pasan];
   return !!(a && b && a.puntaje != null && b.puntaje != null && a.puntaje === b.puntaje && (a.espresso ?? 0) === (b.espresso ?? 0) && a.desempate === b.desempate);
 }
+
+/** Puntaje con un decimal y coma: 8,5. */
+export const fPuntaje = (n: number | null) => (n == null ? '—' : n.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
