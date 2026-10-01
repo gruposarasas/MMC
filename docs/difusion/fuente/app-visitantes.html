@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Poppins;font-weight:400;src:url(fonts/poppins-latin-400-normal.woff2)}
+@font-face{font-family:Poppins;font-weight:500;src:url(fonts/poppins-latin-500-normal.woff2)}
+@font-face{font-family:Poppins;font-weight:600;src:url(fonts/poppins-latin-600-normal.woff2)}
+@font-face{font-family:Poppins;font-weight:700;src:url(fonts/poppins-latin-700-normal.woff2)}
+@font-face{font-family:Poppins;font-weight:800;src:url(fonts/poppins-latin-800-normal.woff2)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{width:1080px;background:#281722;color:#F3E9DC;font-family:Poppins,sans-serif;position:relative;overflow:hidden}
+.deco{position:absolute;opacity:.12}
+.top{padding:64px 70px 0;position:relative}
+.logo{width:300px}
+.kicker{margin-top:40px;font-size:24px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#DCC3A1}
+h1{margin:6px 0 0;font-size:76px;line-height:1.02;font-weight:800;color:#C2A27B;letter-spacing:-.01em}
+.url{display:inline-block;margin-top:22px;background:#8E3949;color:#fff;border-radius:999px;padding:12px 30px;font-size:34px;font-weight:700;letter-spacing:.01em}
+.lista{margin:40px 70px 0;display:grid;gap:14px}
+.it{display:grid;grid-template-columns:84px 1fr;gap:24px;align-items:center;background:#3A2330;border-radius:26px;padding:20px 26px}
+.it .ic{width:84px;height:84px;border-radius:18px;display:grid;place-items:center;overflow:hidden}
+.it .ic img{width:84px;height:84px;border-radius:18px}
+.it b{display:block;font-size:33px;line-height:1.15;color:#F3E9DC}
+.it span{display:block;font-size:23px;line-height:1.35;color:rgba(243,233,220,.75);margin-top:3px}
+.it em{display:inline-block;margin-top:8px;font-style:normal;font-size:22px;font-weight:700;color:#C2A27B}
+.it.camiseta{background:#fff;color:#281722;border:4px solid #D71920}
+.it.camiseta b{color:#D71920}
+.it.camiseta span{color:rgba(40,23,34,.8)}
+.it.camiseta em{color:#281722}
+.it.vivo{background:#8E3949}
+.it.vivo span{color:rgba(255,255,255,.85)}
+.it.vivo em{color:#fff}
+.pie{margin:44px 70px 0;display:grid;grid-template-columns:200px 1fr;gap:34px;align-items:center}
+.qr{background:#fff;border-radius:22px;padding:16px;border:4px solid #8E3949}
+.qr svg{display:block;width:100%;height:auto}
+.pie b{display:block;font-size:34px;line-height:1.2;color:#C2A27B}
+.pie span{display:block;font-size:24px;line-height:1.4;color:rgba(243,233,220,.8);margin-top:6px}
+.guarda{display:block;width:100%;margin-top:50px}
+</style></head>
+<body>
+<img class="deco" src="rec/ic_chemex.png" style="width:300px;right:-60px;top:40px">
+<div class="top">
+  <img class="logo" src="rec/logo.png" alt="">
+  <div class="kicker">Bodega Arizu · 3 y 4 de octubre</div>
+  <h1>Todo el Mundial<br>en tu celular</h1>
+  <div class="url">mmc.saraimagineers.com</div>
+</div>
+<div class="lista">
+  <div class="it"><div class="ic"><img src="rec/ic_taza.png"></div><div><b>Cupones de descuento</b><span>Registrate gratis y recibí tus cupones de las marcas del Mundial. En cada stand tocá <b style="display:inline;font-size:inherit;color:#DCC3A1">Usar</b> y escribí el código que te dice el cajero.</span><em>mmc.saraimagineers.com</em></div></div>
+  <div class="it camiseta"><div class="ic"><svg viewBox="0 0 200 200" width="84" height="84"><defs><clipPath id="c"><path d="M70 18 L88 10 Q100 22 112 10 L130 18 L178 44 L160 84 L142 74 L142 188 L58 188 L58 74 L40 84 L22 44 Z"/></clipPath></defs><path d="M70 18 L88 10 Q100 22 112 10 L130 18 L178 44 L160 84 L142 74 L142 188 L58 188 L58 74 L40 84 L22 44 Z" fill="#fff"/><g clip-path="url(#c)"><path d="M166.8 13.4 L194 38.6 L30 215.3 L2.8 190.1 Z" fill="#D71920"/></g><path d="M88 10 Q100 22 112 10" fill="none" stroke="#D71920" stroke-width="5" stroke-linecap="round"/><path d="M70 18 L88 10 Q100 22 112 10 L130 18 L178 44 L160 84 L142 74 L142 188 L58 188 L58 74 L40 84 L22 44 Z" fill="none" stroke="#281722" stroke-width="4" stroke-linejoin="round"/></svg></div><div><b>¡Quiero la camiseta de Enzo!</b><span>Sorteo: domingo 4 de octubre, 18 hs. Poné "Estoy presente" en tu billetera a partir de las 18 hs. * Para ganar hay que presentar el DNI.</span></div></div>
+  <div class="it vivo"><div class="ic"><img src="rec/ic_copa.png"></div><div><b>Torneo de Baristas en vivo</b><span>Puntajes y posiciones de cada ronda, hasta la gran final del domingo.</span><em>mmc.saraimagineers.com/competencia</em></div></div>
+  <div class="it"><div class="ic"><img src="rec/ic_jarra.png"></div><div><b>Conocé a los baristas</b><span>Su historia, mandales aliento y votá a tu favorito: el más votado gana un premio.</span><em>mmc.saraimagineers.com/torneo</em></div></div>
+  <div class="it"><div class="ic"><img src="rec/ic_estrella.png"></div><div><b>Votá el stand más lindo</b><span>Un voto por persona. El ganador se conoce el domingo a las 20 hs.</span><em>mmc.saraimagineers.com/votar</em></div></div>
+  <div class="it"><div class="ic"><img src="rec/ic_planta.png"></div><div><b>Mapa del evento</b><span>Encontrá cada stand, los talleres y los food trucks.</span><em>mmc.saraimagineers.com/mapa</em></div></div>
+  <div class="it"><div class="ic"><img src="rec/ic_reloj.png"></div><div><b>¿Cambiaste de celular?</b><span>Recuperá tus cupones con tu mail o tu WhatsApp.</span><em>mmc.saraimagineers.com/recuperar</em></div></div>
+</div>
+<div class="pie">
+  <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h29v29H0z"/><path stroke="#281722" d="M0 0.5h7m1 0h1m1 0h1m7 0h1m3 0h7M0 1.5h1m5 0h1m4 0h2m3 0h1m2 0h2m1 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m3 0h1m1 0h2m1 0h6m1 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h3m1 0h2m2 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m1 0h2m1 0h5m3 0h1m2 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M8 7.5h1m5 0h1m2 0h2M0 8.5h1m3 0h1m1 0h3m1 0h2m1 0h5m2 0h6m2 0h1M0 9.5h1m1 0h4m1 0h2m1 0h1m10 0h8M0 10.5h2m1 0h1m1 0h6m1 0h4m4 0h5m3 0h1M0 11.5h4m4 0h1m1 0h2m1 0h1m1 0h3m1 0h2m3 0h2m1 0h2M1 12.5h1m1 0h1m2 0h3m2 0h3m3 0h1m1 0h3m5 0h1M0 13.5h1m1 0h3m4 0h1m3 0h2m1 0h1m5 0h1m1 0h5M1 14.5h1m3 0h7m4 0h1m3 0h3m1 0h3m1 0h1M0 15.5h1m1 0h3m2 0h1m3 0h2m1 0h1m2 0h2m3 0h2m3 0h2M0 16.5h2m3 0h2m4 0h11m5 0h1M0 17.5h3m5 0h2m1 0h2m4 0h2m2 0h5m1 0h2M3 18.5h1m1 0h2m2 0h1m3 0h3m2 0h1m1 0h3m3 0h1m1 0h1M2 19.5h1m1 0h2m3 0h3m1 0h1m1 0h3m2 0h2m2 0h1m2 0h2M0 20.5h3m1 0h1m1 0h1m3 0h2m1 0h1m3 0h1m2 0h6m2 0h1M8 21.5h2m1 0h4m1 0h1m1 0h3m3 0h1m3 0h1M0 22.5h7m1 0h1m3 0h1m3 0h1m2 0h2m1 0h1m1 0h3m1 0h1M0 23.5h1m5 0h1m4 0h2m1 0h1m2 0h4m3 0h1m2 0h1M0 24.5h1m1 0h3m1 0h1m1 0h1m2 0h5m1 0h1m1 0h7m1 0h2M0 25.5h1m1 0h3m1 0h1m3 0h3m4 0h2m1 0h2m5 0h1M0 26.5h1m1 0h3m1 0h1m2 0h2m2 0h3m2 0h1m1 0h2m3 0h4M0 27.5h1m5 0h1m2 0h2m1 0h1m1 0h2m1 0h2m1 0h3m2 0h1m1 0h2M0 28.5h7m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1"/></svg>
+</div>
+  <div><b>Escaneá y entrá</b><span>Agregá la app a la pantalla de inicio de tu celular para tenerla siempre a mano.</span></div>
+</div>
+<img class="guarda" src="rec/guarda.png" alt="">
+</body></html>
