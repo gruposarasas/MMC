@@ -320,3 +320,69 @@ a.btn{text-align:center;text-decoration:none}
 .tr-tabs button{border:1.5px solid var(--linea);background:transparent;color:var(--arena2);border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px}
 .tr-tabs button.on{background:var(--arena);border-color:var(--arena);color:var(--plum)}
 .tr-tabs button:disabled{opacity:.35}
+/* ---------- secciones del visitante: votaciones, baristas y mapa ---------- */
+.secs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.sec-t{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--plum3);border:1px solid var(--linea);border-radius:14px;padding:11px 10px 12px;text-decoration:none;color:var(--crema);min-width:0}
+.sec-t img{width:30px;height:30px;border-radius:7px;margin-bottom:4px}
+.sec-t b{font-size:13.5px;line-height:1.2;color:var(--arena)}
+.sec-t span{font-size:11.5px;line-height:1.3;color:rgba(243,233,220,.72)}
+.sec-t:active{background:rgba(194,162,123,.18)}
+.cab-sec{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cab-sec img{width:96px}
+.foto-b{border-radius:50%;object-fit:cover;flex:none;display:block;background:var(--plum3)}
+.foto-b.ini{display:grid;place-items:center;background:var(--vino);color:var(--crema);font-weight:800;letter-spacing:.02em}
+.buscar-v{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--linea);background:rgba(255,255,255,.05);font-size:16px}
+.votables{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0 90px}
+.votable{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;background:var(--plum3);border:2px solid transparent;border-radius:14px;padding:12px 8px;color:var(--crema)}
+.votable b{font-size:14px;line-height:1.2}
+.votable span{font-size:12px;color:rgba(243,233,220,.6)}
+.votable.on{border-color:var(--arena);background:rgba(194,162,123,.18)}
+.votar-bar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:10px 20px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--plum) 70%,transparent)}
+.votar-bar .btn{max-width:400px;margin:0 auto}
+.voto-ok{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;background:var(--plum3);border-radius:16px;padding:16px}
+.voto-ok p{margin:0;font-size:13px;color:rgba(243,233,220,.65)}
+.voto-ok b{display:block;font-size:20px;color:var(--arena);line-height:1.2}
+.voto-ok span{font-size:13px;color:rgba(243,233,220,.8)}
+.ganador-v{margin-top:16px;background:var(--vino);border-radius:18px;padding:16px 16px 6px}
+.ganador-v>p{margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--arena2)}
+.ganador-it{display:flex;gap:14px;align-items:center;margin-bottom:10px;color:#fff;text-decoration:none}
+.ganador-it b{display:block;font-size:22px;line-height:1.15}
+.ganador-it span{font-size:13px;color:rgba(255,255,255,.8)}
+.fav-aviso{margin-top:16px;background:rgba(194,162,123,.12);border-radius:12px;padding:10px 14px;font-size:14px}
+.fav-aviso p{margin:0}
+.fav-aviso b{color:var(--arena2)}
+.baristas-l{margin-top:14px;display:grid;gap:8px}
+.barista-it{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--plum3);border-radius:14px;padding:10px 12px;text-decoration:none;color:var(--crema)}
+.barista-it b{display:block;font-size:15.5px;line-height:1.25}
+.barista-it span{font-size:12.5px;color:rgba(243,233,220,.65)}
+.barista-it i{font-style:normal;font-size:24px;color:var(--arena)}
+.fav{font-style:normal;font-size:12px;color:var(--arena);font-weight:600}
+.perfil-cab{display:flex;flex-direction:column;align-items:center;text-align:center;margin-top:18px}
+.perfil-cab .foto-b{border:3px solid var(--arena)}
+.perfil-b{margin-top:18px}
+.perfil-b h2{margin:0 0 4px;font-size:15px;color:var(--arena)}
+.perfil-b p{margin:0;white-space:pre-line;color:rgba(243,233,220,.9);font-size:15px}
+.perfil-b.destacado{background:var(--crema);color:var(--plum);border-radius:16px;padding:14px 16px}
+.perfil-b.destacado h2{color:var(--vino)}
+.perfil-b.destacado p{color:var(--plum)}
+.perfil-fav{margin-top:22px;text-align:center}
+.perfil-fav p{margin:0;font-size:14px;color:rgba(243,233,220,.8)}
+.perfil-fav .btn{margin-top:10px}
+.perfil-msj{margin-top:22px;background:var(--plum3);border-radius:16px;padding:16px}
+.perfil-msj h2{margin:0 0 4px;font-size:17px;color:var(--arena)}
+.perfil-msj textarea,textarea.area{width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--linea);background:rgba(255,255,255,.05);font-size:16px;color:var(--crema);resize:vertical}
+.perfil-msj textarea:focus,textarea.area:focus{border-color:var(--arena);outline:none}
+.mapa{position:relative;margin-top:14px}
+.mapa-caja{overflow:auto;border-radius:14px;background:var(--crema);max-height:72vh;max-height:72dvh;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom}
+.mapa-caja img{display:block;max-width:none;height:auto;user-select:none}
+.mapa-zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px}
+.mapa-zoom button{width:44px;height:44px;border-radius:50%;border:0;background:var(--plum);color:var(--arena);font-size:24px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.mapa-zoom button:disabled{opacity:.4}
+.msj{border-top:1px solid var(--linea);padding:10px 0}
+.msj p{margin:0;white-space:pre-line}
+.msj span{font-size:12px;color:rgba(243,233,220,.55)}
+.dos-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.barra.voto{grid-template-columns:220px 1fr 40px}
+.barra.voto span{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+@media (max-width:980px){.dos-col{grid-template-columns:1fr}}
+@media (max-width:360px){.secs{grid-template-columns:1fr}.sec-t{flex-direction:row;align-items:center;gap:10px}.sec-t img{margin:0}}

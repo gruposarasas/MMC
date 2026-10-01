@@ -26,3 +26,10 @@ export type Ventana = 'antes' | 'abierta' | 'cerrada';
 export const ventanaSorteo = (ahora = Date.now()): Ventana =>
   ahora < Date.parse(SORTEO_DESDE) ? 'antes' : ahora < Date.parse(SORTEO_HASTA) ? 'abierta' : 'cerrada';
 export const SORTEO_DNI = '* Para ganar el premio hay que presentar el DNI.';
+
+// Votaciones del público (stand más lindo y barista favorito): se vota hasta el domingo a las 20 hs
+// y a partir de ese momento se muestran los ganadores en la app.
+export const VOTOS_CIERRE = '2026-10-04T20:00:00-03:00';
+export const votosAbiertos = (ahora = Date.now()) => ahora < Date.parse(VOTOS_CIERRE);
+export const VOTOS_TEXTO = 'El ganador se conoce el domingo 4 a las 20 hs.';
+export const LINK_BARISTA = `${URL_PUBLICA}/barista`;

@@ -10,6 +10,9 @@ import { Instalar } from '@/components/Instalar';
 import { SorteoVisitante } from '@/components/SorteoVisitante';
 import { inscripcion } from '@/lib/sorteo';
 import { db } from '@/lib/supabase';
+import { Secciones } from '@/components/Secciones';
+import { votoStandDe, votoBaristaDe, rankingStand, rankingBarista } from '@/lib/votos';
+import { votosAbiertos } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,11 +25,19 @@ export default async function Billetera({ searchParams }: { searchParams: Promis
   const v = await visitanteActual();
   if (!v) redirect('/');
   const { aviso } = await searchParams;
-  const [{ marcas, usados, canjes }, ins, pres] = await Promise.all([
+  const abierto = votosAbiertos();
+  const [{ marcas, usados, canjes }, ins, pres, vStand, vBarista, rStand, rBarista] = await Promise.all([
     billetera(v.id),
     inscripcion(),
     db().from('visitantes').select('presente_at').eq('id', v.id).maybeSingle(),
+    votoStandDe(v.id),
+    votoBaristaDe(v.id),
+    abierto ? null : rankingStand(),
+    abierto ? null : rankingBarista(),
   ]);
+  const gana = (r: { ganadores: { nombre: string }[] } | null) => (r?.ganadores.length ? `Ganó ${r.ganadores.map((g) => g.nombre).join(' y ')}` : 'La votación cerró');
+  const txtStand = abierto ? (vStand ? '✓ Ya votaste' : 'Votá el que más te gustó') : gana(rStand);
+  const txtBarista = abierto ? (vBarista ? '✓ Ya elegiste favorito' : 'Conocelos y votá a tu favorito') : gana(rBarista);
   const primer = v.nombre.split(' ')[0];
 
   const cupones = marcas.map((m) => {
@@ -54,6 +65,7 @@ export default async function Billetera({ searchParams }: { searchParams: Promis
         <p className="guardado">
           Tus cupones están guardados con {v.mail ? <>tu mail <b>{v.mail}</b></> : <>tu WhatsApp <b>{formatoTel(v.whatsapp || '')}</b></>}. Con él los recuperás desde cualquier celular.
         </p>
+        <Secciones stand={txtStand} barista={txtBarista} />
         <SorteoVisitante inicial={{ ventana: ins.ventana, habilitada: ins.habilitada, presente: !!pres.data?.presente_at }} />
         <Instalar />
         <p className="resumen-b">

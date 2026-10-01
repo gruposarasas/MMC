@@ -16,16 +16,19 @@ function tipo(buf: Buffer): string | null {
 const EXT: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
 
 /** Sube un logo recibido como data URL. Devuelve el path en el bucket. */
-export async function subirLogo(marcaId: string, dataUrl: string): Promise<string> {
+export const subirLogo = (marcaId: string, dataUrl: string) => subirImagen(`marcas/${marcaId}`, dataUrl, 'El logo');
+
+/** Sube una imagen (data URL PNG, JPG o WebP, hasta 1 MB) al bucket público. Devuelve el path. */
+export async function subirImagen(prefijo: string, dataUrl: string, que = 'La imagen'): Promise<string> {
   const m = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
-  if (!m) throw new Error('El logo tiene que ser PNG, JPG o WebP.');
+  if (!m) throw new Error(`${que} tiene que ser PNG, JPG o WebP.`);
   const buf = Buffer.from(m[2], 'base64');
-  if (buf.length > MAX) throw new Error('El logo pesa más de 1 MB.');
+  if (buf.length > MAX) throw new Error(`${que} pesa más de 1 MB.`);
   const t = tipo(buf);
   if (!t) throw new Error('El archivo no es una imagen válida.');
-  const p = `marcas/${marcaId}-${randomBytes(4).toString('hex')}.${EXT[t]}`;
+  const p = `${prefijo}-${randomBytes(4).toString('hex')}.${EXT[t]}`;
   const { error } = await db().storage.from('logos').upload(p, buf, { contentType: t, cacheControl: '31536000', upsert: false });
-  if (error) throw new Error('No se pudo subir el logo.');
+  if (error) throw new Error(`No se pudo subir ${que.toLowerCase()}.`);
   return p;
 }
 

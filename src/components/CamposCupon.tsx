@@ -3,8 +3,8 @@ import { useRef } from 'react';
 import { EVENTO_FIN } from '@/lib/config';
 import { toast } from './Toast';
 
-/** Achica la imagen a 260 px como máximo y la devuelve como PNG en data URL. */
-function achicar(file: File, max = 260): Promise<string> {
+/** Achica la imagen (por defecto a 260 px como máximo) y la devuelve como data URL (PNG, o JPG para fotos). */
+export function achicar(file: File, max = 260, tipo: 'image/png' | 'image/jpeg' = 'image/png'): Promise<string> {
   return new Promise((ok, mal) => {
     const r = new FileReader();
     r.onload = () => {
@@ -14,8 +14,10 @@ function achicar(file: File, max = 260): Promise<string> {
         const c = document.createElement('canvas');
         c.width = Math.max(1, Math.round(im.width * k));
         c.height = Math.max(1, Math.round(im.height * k));
-        c.getContext('2d')!.drawImage(im, 0, 0, c.width, c.height);
-        ok(c.toDataURL('image/png'));
+        const x = c.getContext('2d')!;
+        if (tipo === 'image/jpeg') { x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); }
+        x.drawImage(im, 0, 0, c.width, c.height);
+        ok(tipo === 'image/jpeg' ? c.toDataURL(tipo, 0.85) : c.toDataURL(tipo));
       };
       im.onerror = mal;
       im.src = r.result as string;

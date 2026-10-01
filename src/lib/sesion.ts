@@ -5,9 +5,10 @@ import { cookies } from 'next/headers';
 export const COOKIE_VISITANTE = 'mc_v';
 export const COOKIE_MARCA = 'mc_m';
 export const COOKIE_ADMIN = 'mc_a';
+export const COOKIE_BARISTA = 'mc_b';
 
 const DIA = 24 * 60 * 60;
-export const DURACION = { [COOKIE_VISITANTE]: 365 * DIA, [COOKIE_MARCA]: 30 * DIA, [COOKIE_ADMIN]: DIA / 2 } as const;
+export const DURACION = { [COOKIE_VISITANTE]: 365 * DIA, [COOKIE_MARCA]: 30 * DIA, [COOKIE_ADMIN]: DIA / 2, [COOKIE_BARISTA]: 30 * DIA } as const;
 type Nombre = keyof typeof DURACION;
 
 function secreto() {

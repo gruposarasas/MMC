@@ -119,6 +119,8 @@ export function Registro() {
         </form>
         <p style={{ textAlign: 'center', marginTop: 18 }}>
           <Link className="link" href="/recuperar">¿Ya te registraste? Recuperá tus cupones</Link>
+          <br />
+          <Link className="link" href="/mapa" style={{ marginTop: 10 }}>Ver el mapa del evento</Link>
         </p>
       </div>
       {/* eslint-disable-next-line @next/next/no-img-element */}

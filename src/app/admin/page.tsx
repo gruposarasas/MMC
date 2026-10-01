@@ -7,11 +7,16 @@ import { EntrarAdmin, SalirAdmin } from '@/components/admin/Comun';
 import { AdminMarcas } from '@/components/admin/Marcas';
 import { AdminVisitantes } from '@/components/admin/Visitantes';
 import { AdminCanjes } from '@/components/admin/Canjes';
+import { MensajesAdmin } from '@/components/admin/Votaciones';
+import { Emb } from '@/components/Emb';
+import { FotoBarista } from '@/components/Secciones';
+import { rankingStand, rankingBarista, mensajes } from '@/lib/votos';
+import { votosAbiertos } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Back office · Mundial de Café' };
 
-const TABS = [['resumen', 'Resumen'], ['marcas', 'Beneficios'], ['visitantes', 'Visitantes'], ['canjes', 'Canjes']] as const;
+const TABS = [['resumen', 'Resumen'], ['marcas', 'Beneficios'], ['visitantes', 'Visitantes'], ['canjes', 'Canjes'], ['votos', 'Votaciones']] as const;
 type Tab = (typeof TABS)[number][0];
 
 export default async function Admin({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -93,6 +98,59 @@ async function Seccion({ tab }: { tab: Tab }) {
           canjes: n.get(v.id) || 0, novedades: v.novedades,
         }))}
       />
+    );
+  }
+
+  if (tab === 'votos') {
+    const [st, ba, msj] = await Promise.all([rankingStand(), rankingBarista(), mensajes(undefined, true)]);
+    const abierto = votosAbiertos();
+    const maxS = Math.max(1, st.filas[0]?.votos || 0);
+    const maxB = Math.max(1, ba.filas[0]?.votos || 0);
+    return (
+      <>
+        <h1>Votaciones del público</h1>
+        <p className="sub">
+          Cada visitante vota una sola vez en cada una. {abierto ? `Se vota hasta el domingo 4 a las 20 hs; desde ese momento los ganadores se ven en la app.` : 'La votación cerró: los ganadores ya se ven en la app.'} Recargá para ver lo último.
+        </p>
+        <div className="stats" style={{ gridTemplateColumns: 'repeat(2,1fr)' }}>
+          <div className="tarj stat">
+            <b>{st.total}</b><span>votos al stand más lindo</span>
+            {st.ganadores.length > 0 && <p style={{ margin: '8px 0 0' }}>{abierto ? 'Va ganando' : 'Ganó'}: <b style={{ display: 'inline', fontSize: 16 }}>{st.ganadores.map((g) => g.nombre).join(' y ')}</b>{st.ganadores.length > 1 ? ' (empate)' : ''}</p>}
+          </div>
+          <div className="tarj stat">
+            <b>{ba.total}</b><span>votos al barista favorito</span>
+            {ba.ganadores.length > 0 && <p style={{ margin: '8px 0 0' }}>{abierto ? 'Va ganando' : 'Ganó'}: <b style={{ display: 'inline', fontSize: 16 }}>{ba.ganadores.map((g) => g.nombre).join(' y ')}</b>{ba.ganadores.length > 1 ? ' (empate)' : ''}</p>}
+          </div>
+        </div>
+        <div className="dos-col">
+          <div className="tarj" style={{ marginTop: 14 }}>
+            <h2 style={{ margin: 0, fontSize: 17, color: 'var(--arena)' }}>Stand más lindo</h2>
+            <div className="barras">
+              {st.filas.map((m, i) => (
+                <div className="barra voto" key={m.id}>
+                  <span><Emb logoUrl={m.logo} emblema={m.emblema} nombre={m.nombre} t={26} /> {i + 1}. {m.nombre}</span>
+                  <i style={{ width: `${Math.max(2, (m.votos / maxS) * 100)}%` }} />
+                  <em>{m.votos}</em>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="tarj" style={{ marginTop: 14 }}>
+            <h2 style={{ margin: 0, fontSize: 17, color: 'var(--arena)' }}>Barista favorito</h2>
+            <div className="barras">
+              {ba.filas.map((b, i) => (
+                <div className="barra voto" key={b.id}>
+                  <span><FotoBarista foto={b.foto} nombre={b.nombre} t={26} /> {i + 1}. {b.nombre}</span>
+                  <i style={{ width: `${Math.max(2, (b.votos / maxB) * 100)}%` }} />
+                  <em>{b.votos}</em>
+                </div>
+              ))}
+              {!ba.filas.length && <p>Todavía no hay baristas cargados.</p>}
+            </div>
+          </div>
+        </div>
+        <MensajesAdmin inicial={msj.map((m) => ({ ...m, cuando: diaHora(m.cuando) }))} />
+      </>
     );
   }
 

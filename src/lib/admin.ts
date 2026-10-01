@@ -18,11 +18,11 @@ const base = (nombre: string) => {
 
 const ALFA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-/** Clave nueva, única: NOMBRE-XXXX. */
-export async function nuevaClave(nombre: string) {
+/** Clave nueva, única: NOMBRE-XXXX. Sirve para marcas y para baristas. */
+export async function nuevaClave(nombre: string, tabla: 'marcas' | 'baristas' = 'marcas') {
   for (let i = 0; i < 20; i++) {
     const c = `${base(nombre)}-${Array.from({ length: 4 }, () => ALFA[randomInt(ALFA.length)]).join('')}`;
-    const { data } = await db().from('marcas').select('id').eq('clave', c).maybeSingle();
+    const { data } = await db().from(tabla).select('id').eq('clave', c).maybeSingle();
     if (!data) return c;
   }
   throw new Error('No se pudo generar una clave');
