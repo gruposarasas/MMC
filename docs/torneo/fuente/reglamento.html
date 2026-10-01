@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Torneo de Baristas · Reglamento</title><link rel="stylesheet" href="estilos.css">
+<style>
+.sec{font-size:8.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--arena);display:block;margin-bottom:1mm}
+h2{font-size:20pt}
+h3.t{color:var(--vino);font-size:11.5pt;margin:5mm 0 1.2mm}
+ul.l{margin:0 0 2.5mm;padding-left:5mm}
+ul.l li{margin-bottom:1mm}
+.etapas{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin:3mm 0 2mm}
+.prev{background:#fff;border-radius:3mm;padding:4mm 5mm;border-top:1.4mm solid var(--arena)}
+.prev h3{color:var(--vino);font-size:11pt;margin:0 0 1mm}
+.prev p{font-size:9.5pt;margin:0 0 1.2mm}
+.prev .hecho{display:inline-block;background:rgba(194,162,123,.3);color:#6b4f2c;border-radius:99px;padding:.2mm 2.6mm;font-size:8pt;font-weight:700;margin-bottom:1.5mm}
+.embudo{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin:4mm 0 5mm}
+.etapa{background:var(--plum);color:var(--crema);border-radius:4mm;padding:4mm 3mm;text-align:center;position:relative}
+.etapa .num{font-size:24pt;font-weight:800;color:var(--arena);line-height:1}
+.etapa .de{font-size:8.5pt;color:rgba(243,233,220,.7)}
+.etapa h3{color:var(--crema);font-size:11pt;margin:1.5mm 0 .5mm}
+.etapa .pasa{display:inline-block;margin-top:1.5mm;background:var(--vino);color:#fff;border-radius:99px;padding:.5mm 3mm;font-size:8pt;font-weight:700}
+.etapa.final{background:var(--vino)}
+.etapa.final .num{color:#fff}
+.etapa.final .pasa{background:var(--arena);color:var(--plum)}
+.etapa:not(:last-child)::after{content:"›";position:absolute;right:-3.6mm;top:50%;transform:translateY(-50%);font-size:16pt;font-weight:800;color:var(--vino)}
+table.rondas{width:100%;border-collapse:separate;border-spacing:0 1.6mm;font-size:9.3pt}
+table.rondas thead th{background:var(--plum);color:var(--arena);font-size:8.5pt;text-transform:uppercase;letter-spacing:.06em;padding:2mm 3mm;text-align:left}
+table.rondas thead th:first-child{border-radius:2.5mm 0 0 2.5mm}
+table.rondas thead th:last-child{border-radius:0 2.5mm 2.5mm 0}
+table.rondas tbody th{background:#fff;color:var(--vino);font-weight:800;text-align:left;padding:2.4mm 3mm;border-radius:2.5mm 0 0 2.5mm;white-space:nowrap}
+table.rondas tbody th small{display:block;font-size:8pt;font-weight:500;color:rgba(40,23,34,.6)}
+table.rondas td{background:#fff;padding:2.4mm 3mm;vertical-align:top}
+table.rondas td:last-child{border-radius:0 2.5mm 2.5mm 0}
+table.rondas td small{display:block;font-size:8pt;color:rgba(40,23,34,.6)}
+.tiempos{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin-top:3mm}
+.tiempo{background:#fff;border-radius:3mm;padding:4mm 5mm}
+.tiempo h3{color:var(--vino);font-size:10.5pt;margin:0 0 2mm}
+.reloj{display:flex;gap:2mm;flex-wrap:wrap}
+.reloj span{background:var(--crema);border-radius:2mm;padding:1.6mm 2.4mm;font-size:8.5pt;line-height:1.25;flex:1;min-width:20mm}
+.reloj span b{display:block;font-size:13pt;color:var(--plum)}
+.reloj span.no{background:transparent;border:1px dashed rgba(40,23,34,.25)}
+.escala{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin:3mm 0}
+.escala div{border-radius:3mm;padding:3.5mm;color:#fff;text-align:center}
+.escala b{display:block;font-size:17pt;line-height:1.1}
+.escala span{font-size:8.5pt}
+.escala .e1{background:#a8606c}.escala .e2{background:var(--arena);color:var(--plum)}.escala .e3{background:var(--vino)}
+.formula{display:flex;align-items:center;gap:3mm;background:var(--plum);color:var(--crema);border-radius:3mm;padding:4mm 5mm;font-size:9.5pt;margin:3mm 0}
+.formula b{color:var(--arena);font-size:11pt}
+.formula .op{font-size:16pt;font-weight:800;color:var(--arena)}
+.paso3{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin:3mm 0}
+.paso3 div{background:#fff;border-radius:3mm;padding:3.5mm 4mm;position:relative}
+.paso3 i{font-style:normal;display:inline-grid;place-items:center;width:6.5mm;height:6.5mm;border-radius:50%;background:var(--vino);color:#fff;font-weight:800;font-size:9pt;margin-bottom:1.5mm}
+.paso3 b{display:block;font-size:10pt}
+.paso3 span{font-size:9pt}
+.prov{columns:2;column-gap:8mm;margin:2mm 0 3mm;padding:0;list-style:none;font-size:9.5pt}
+.prov li{position:relative;padding-left:5mm;margin-bottom:1.2mm;break-inside:avoid}
+.prov li::before{content:"";position:absolute;left:0;top:2mm;width:2.2mm;height:2.2mm;border-radius:50%;background:var(--arena)}
+.check li{font-size:9.5pt;margin-bottom:1.6mm}
+.premios{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;margin:5mm 0}
+.premio{background:#fff;border-radius:4mm;padding:5mm;border-top:2mm solid var(--arena)}
+.premio.p1{background:var(--plum);color:var(--crema);border-top-color:var(--vino)}
+.premio .n{font-size:30pt;font-weight:800;color:var(--vino);line-height:1}
+.premio.p1 .n{color:var(--arena)}
+.premio h3{margin:1mm 0 2mm;font-size:11pt}
+.premio.p1 h3{color:var(--crema)}
+.premio ul{margin:0;padding-left:4.5mm;font-size:9.5pt}
+.conducta{display:grid;grid-template-columns:repeat(4,1fr);gap:2.5mm;margin:3mm 0}
+.conducta span{background:#fff;border-radius:2.5mm;padding:3mm 2mm;text-align:center;font-size:8.5pt;font-weight:600;line-height:1.3}
+/* planilla */
+table.planilla{width:100%;border-collapse:collapse;font-size:9.5pt;margin:2mm 0 4mm;background:#fff}
+table.planilla th,table.planilla td{border:1px solid rgba(40,23,34,.35);padding:1.9mm 3mm;text-align:left;vertical-align:middle}
+table.planilla thead th{background:var(--plum);color:var(--arena);font-size:8.5pt;text-transform:uppercase;letter-spacing:.06em}
+table.planilla td.c{width:24mm}
+table.planilla td.n{width:9mm;text-align:center;font-weight:700;color:var(--vino)}
+table.planilla td.k{width:62mm;font-weight:600}
+.obs{background:#fff;border:1px solid rgba(40,23,34,.35);height:20mm;border-radius:1mm;margin:1mm 0 0}
+.firmas{display:grid;grid-template-columns:1fr 1fr;gap:14mm;margin-top:12mm}
+.firmas div{border-top:1.4px solid var(--plum);padding-top:1.5mm;font-size:9pt;font-weight:600;text-align:center}
+</style></head>
+<body>
+
+<!-- 1 · TAPA -->
+<section class="hoja tapa">
+  <img class="deco" src="rec/ic_copa.png" style="width:78mm;right:-12mm;top:22mm">
+  <img class="deco" src="rec/ic_grano.png" style="width:40mm;right:26mm;top:150mm">
+  <img class="logo" src="rec/logo.png" alt="Mundial de Café by Bruno Brown">
+  <div class="kicker">Torneo de Baristas</div>
+  <h1>Reglamento</h1>
+  <p class="bajada">Bases y condiciones del campeonato: cómo se compite, qué se prepara, cómo se puntúa y qué se gana.</p>
+  <div class="datos">
+    <div><b>Sábado 3 y domingo 4</b>de octubre de 2026</div>
+    <div><b>Bodega Arizu</b>Godoy Cruz, Mendoza</div>
+    <div><b>Resultados en vivo</b>mmc.saraimagineers.com/baristas</div>
+  </div>
+  <img class="guarda" src="rec/guarda.png" alt="">
+</section>
+
+<!-- 2 · CONDICIONES Y ETAPAS -->
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>Reglamento</span></div>
+  <span class="sec">1 · Condiciones de participación</span>
+  <h2>Antes de empezar</h2>
+  <p>La Organización del Mundial de Café se reserva el derecho de modificar horarios, fechas y cualquier requisito de este reglamento por razones de fuerza mayor.</p>
+  <p>La Organización tiene los derechos de filmación, difusión y registro fotográfico de todo el evento, y los participantes tienen acceso a ese material.</p>
+  <p>Al inscribirse, cada concursante se compromete a respetar estas bases, el reglamento del campeonato, las órdenes de trabajo y las disposiciones que la Organización indique durante el desarrollo.</p>
+
+  <span class="sec" style="margin-top:7mm">2 · La competencia</span>
+  <h2>Cómo se llega a la final</h2>
+  <p class="sub" style="margin-bottom:2mm">El campeonato tuvo dos preliminares en septiembre. Los clasificados compiten en el Play Off del Mundial.</p>
+  <div class="etapas">
+    <div class="prev"><span class="hecho">Ya disputada</span><h3>Preliminar · Streaming</h3><p>Septiembre, en Floyd TV (San Juan 199, Mendoza). Compitieron 20 baristas: los <b>10 mejores puntajes</b> pasaron al Play Off.</p><p style="font-size:8.5pt;color:rgba(40,23,34,.65)">1 espresso y 1 flat white · 4 min de preparación y 6 min para las bebidas.</p></div>
+    <div class="prev"><span class="hecho">Ya disputada</span><h3>Preliminar · Presencial</h3><p>Sábado 26 de septiembre, en Bruno Brown Factory (Juan Manuel Fangio 461, Godoy Cruz). Inscripción libre, más los 10 que no clasificaron por streaming: los <b>22 mejores puntajes</b> pasaron al Play Off.</p></div>
+  </div>
+  <h3 class="t" style="margin-top:6mm">Play Off · Bodega Arizu, 3 y 4 de octubre</h3>
+  <p>Cuatro etapas por puntaje. En cada ronda pasan los mejores, hasta la gran final mano a mano.</p>
+  <div class="embudo">
+    <div class="etapa"><div class="num">31</div><div class="de">baristas</div><h3>Ronda 1</h3><div class="de">Sábado 3</div><span class="pasa">Pasan 16</span></div>
+    <div class="etapa"><div class="num">16</div><div class="de">baristas</div><h3>Ronda 2</h3><div class="de">Domingo · mañana</div><span class="pasa">Pasan 6</span></div>
+    <div class="etapa"><div class="num">6</div><div class="de">baristas</div><h3>Ronda 3</h3><div class="de">Domingo · tarde</div><span class="pasa">Pasan 2</span></div>
+    <div class="etapa final"><div class="num">1 vs 1</div><div class="de" style="color:rgba(255,255,255,.8)">la gran final</div><h3>Final</h3><div class="de" style="color:rgba(255,255,255,.8)">Domingo · 18:30</div><span class="pasa">Campeón</span></div>
+  </div>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>2</span></div>
+</section>
+
+<!-- 3 · PLAY OFF -->
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>2 · La competencia</span></div>
+  <h2>Las rondas del Play Off</h2>
+  <p class="sub" style="margin-bottom:1mm;font-size:10pt">Se compite de a tres baristas en simultáneo, uno por mesa (Mesa 1, 2 y 3), en turnos de 30 minutos. Las mesas pueden arrancar con unos minutos de diferencia para que las bebidas lleguen al jurado en condiciones.</p>
+  <table class="rondas">
+    <thead><tr><th>Ronda</th><th>Compiten</th><th>Preparan</th><th>Pasan</th></tr></thead>
+    <tbody>
+      <tr><th>Ronda 1<small>Sábado 3</small></th><td>Los 31 clasificados</td><td>3 espressos · 3 flat white</td><td><b>16</b></td></tr>
+      <tr><th>Ronda 2<small>Domingo · mañana</small></th><td>16</td><td>3 espressos · 3 flat white</td><td><b>6</b></td></tr>
+      <tr><th>Ronda 3<small>Domingo · tarde</small></th><td>6</td><td>3 espressos · 3 flat white · 3 bebidas de autor</td><td><b>2</b><small>el 3° y el 4° son 3° y 4° puesto</small></td></tr>
+      <tr><th>Final<small>Domingo · 18:30</small></th><td>2, mano a mano</td><td>3 espressos · 3 flat white · 3 bebidas de autor</td><td><b>Campeón</b><small>y subcampeón</small></td></tr>
+    </tbody>
+  </table>
+  <div class="tiempos">
+    <div class="tiempo"><h3>Rondas 1 y 2 · 6 bebidas</h3><div class="reloj"><span><b>5 min</b>preparación</span><span><b>12 min</b>para las 6 bebidas</span><span class="no">la estación queda vacía y limpia</span></div></div>
+    <div class="tiempo"><h3>Ronda 3 y Final · 9 bebidas</h3><div class="reloj"><span><b>5 min</b>calibración</span><span><b>17 min</b>presentación y 9 bebidas</span><span><b>5 min</b>limpieza</span></div></div>
+  </div>
+  <p style="margin-top:3mm;font-size:9.3pt"><b>En la preparación</b> se pueden acomodar las herramientas, calibrar, hacer shots de prueba, emulsionar leche y verificar que todo funcione. <b>En la limpieza</b> (Ronda 3 y Final), el competidor retira todo su equipo personal y deja su estación impecable; los jueces no evalúan ese tiempo.</p>
+  <div class="nota vino" style="margin-top:3mm;font-size:9.5pt"><h3>Cada ronda arranca de cero</h3>Cada participante recibe un puntaje que se muestra en ese momento en la pantalla. Pasar de ronda depende solo del puntaje de esa ronda; el puesto con el que llegás define tu horario y tu mesa en la siguiente. Horarios y mesas: ver <b>Metodología y cronograma</b>.</div>
+  <div class="nota" style="font-size:9.5pt;margin-bottom:0"><h3>Tercer y cuarto puesto</h3>No se juega un partido aparte: el 3° y el 4° de la Ronda 3 quedan como <b>3° y 4° puesto</b> del torneo.</div>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>3</span></div>
+</section>
+
+<!-- 4 · SERVICIO Y BEBIDAS -->
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>2 y 3 · Servicio y bebidas</span></div>
+  <h2>Cómo se sirve</h2>
+  <ul class="l">
+    <li>El orden es <b>espresso, flat white y bebida de autor</b>. Cada categoría se sirve seguida: todos los jueces prueban la misma bebida al mismo tiempo.</li>
+    <li>Cada participante entrega sus bebidas a los jueces líderes, que pueden evaluar apenas les llega la suya.</li>
+    <li>Se pueden preparar todas las bebidas que se quiera, pero solo se evalúan las servidas a los jueces en tiempo y forma, en el espacio previsto.</li>
+    <li>El latte art puede tener cualquier forma: se evalúan la complejidad del dibujo, la consistencia entre las tres tazas y la simetría.</li>
+  </ul>
+
+  <span class="sec" style="margin-top:6mm">3 · Definiciones de las bebidas</span>
+  <h3 class="t" style="margin-top:1mm">Espresso</h3>
+  <p>Bebida con una relación café:agua de entre 1:1 y 1:4. Un shot de espresso es lo que sale de cada boquilla de un portafiltros doble: un portafiltros doble produce dos shots. La dosis, el rendimiento y el nivel de extracción los decide cada participante.</p>
+  <p>La Organización configura la máquina antes de la competencia y todos la usan en esas condiciones.</p>
+
+  <h3 class="t">Bebida con leche (flat white)</h3>
+  <ul class="l">
+    <li>Se prepara con <b>2 shots de espresso</b>. Es una bebida de café y leche con poca cremosidad, con un balance armónico de leche rica y dulce, donde la protagonista es la doble extracción.</li>
+    <li>Tazas de <b>120 ml o más</b>. Toda la vajilla corre por cuenta del barista.</li>
+    <li>Se presenta con latte art y se sirve a los jueces <b>con plato</b>.</li>
+    <li>Sin toppings, azúcar ni polvos saborizantes: <b>es motivo de descalificación</b>.</li>
+    <li>Los jueces evalúan el balance de sabor (dulce, ácido y amargo), en lo visual y en lo sensorial.</li>
+  </ul>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>4</span></div>
+</section>
+
+<!-- 5 · BEBIDA DE AUTOR -->
+<section class="hoja">
+  <img class="deco-p" src="rec/ic_taza.png" style="width:56mm;right:-10mm;bottom:22mm">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>3 · Definiciones de las bebidas</span></div>
+  <h2>Bebida de autor</h2>
+  <p class="sub">Solo en la Ronda 3 y la Final. Muestra la creatividad del competidor para crear un trago atractivo y propio, centrado en el espresso.</p>
+  <ul class="l">
+    <li>Tiene que ser una bebida líquida: los jueces deben poder beberla. Se puede servir a cualquier temperatura consumible.</li>
+    <li>Debe tener un sabor predominante a espresso; si no, se refleja en "Experiencia gustativa".</li>
+    <li>Se prepara y se arma en el momento, durante la presentación. Se acepta la preparación previa de algunos ingredientes (por ejemplo, una infusión de 24 horas).</li>
+    <li>Todos los ingredientes deben informarse si se piden.</li>
+    <li>Se puede presentar la misma bebida de autor en la Ronda 3 y en la Final, o una distinta.</li>
+  </ul>
+  <h3 class="t">Lo que da cero puntos</h3>
+  <table class="t">
+    <thead><tr><th>Si la bebida…</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>no tiene al menos <b>1 shot de espresso</b></td><td>0 en "Experiencia gustativa"</td></tr>
+      <tr><td>usa un espresso que <b>no se preparó durante la presentación</b></td><td>0 en "Experiencia gustativa"</td></tr>
+      <tr><td>tiene <b>alcohol</b>, extractos o subproductos de alcohol, o sustancias controladas o ilegales</td><td>0 en todas las categorías de la bebida de autor</td></tr>
+      <tr><td>lleva en el portafiltros algo más que <b>café molido y agua</b></td><td>0 en todas las categorías de la bebida de autor</td></tr>
+    </tbody>
+  </table>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>5</span></div>
+</section>
+
+<!-- 6 · EVALUACIÓN Y PUNTAJE -->
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>4 · Criterios de evaluación</span></div>
+  <h2>Jueces y puntaje</h2>
+  <p>En el Play Off hay <b>3 jueces líderes</b> y de <b>2 a 4 jueces fiscales</b> o de línea (puede modificarse). Solo los jueces líderes prueban las bebidas.</p>
+  <p>Los jueces buscan un campeón que domine la técnica, el oficio y la comunicación; que prepare y sirva bebidas de alta calidad; que tenga vocación de servicio y que pueda ser un modelo e inspiración para otros baristas.</p>
+
+  <h3 class="t">Escala de los jueces líderes: de 1 a 9</h3>
+  <div class="escala">
+    <div class="e1"><b>1 · 2 · 3</b><span>inaceptable · muy malo</span></div>
+    <div class="e2"><b>4 · 5 · 6</b><span>por debajo · aceptable · bueno</span></div>
+    <div class="e3"><b>7 · 8 · 9</b><span>muy bueno · excelente · excepcional</span></div>
+  </div>
+  <h3 class="t">Cómo sale el puntaje de cada barista</h3>
+  <div class="paso3">
+    <div><i>1</i><b>Jueces líderes</b><span>Cada uno puntúa de 1 a 9.</span></div>
+    <div><i>2</i><b>Promedio</b><span>Se promedian los 3 puntajes, con un decimal (por ejemplo, 8,5).</span></div>
+    <div><i>3</i><b>Jueces fiscales</b><span>Cada ítem "No cumple" de su planilla descuenta 1 punto. "Cumple" no modifica el puntaje.</span></div>
+  </div>
+  <div class="formula"><b>Puntaje</b><span class="op">=</span><span>promedio de los 3 jueces líderes</span><span class="op">−</span><span>1 punto por cada "No cumple"</span></div>
+  <p style="font-size:9.5pt">Ese puntaje es el que se carga en la app y se ve en vivo en la pantalla y en <b>mmc.saraimagineers.com/baristas</b>. Además se registra el <b>puntaje del espresso</b>, que se usa para desempatar.</p>
+
+  <h3 class="t">Área de competición</h3>
+  <p>Bodega Arizu, Godoy Cruz, Mendoza, con público. Tres estaciones de competencia (Mesa 1, 2 y 3) y una mesa para los jueces (puede variar).</p>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>6</span></div>
+</section>
+
+<!-- 7 · SENSORIAL, TÉCNICA, HOSPITALIDAD -->
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>4 · Criterios de evaluación</span></div>
+  <h2>Qué se evalúa</h2>
+  <h3 class="t" style="margin-top:2mm">Evaluación sensorial</h3>
+  <p>La hacen todos los jueces líderes: experiencia gustativa y táctil. Lo más buscado es el balance y la complejidad: buena textura y equilibrio entre intensidad aromática, acidez y dulzor.</p>
+  <h3 class="t">Evaluación técnica</h3>
+  <p>Durante la presentación se evalúan la técnica y las buenas prácticas.</p>
+  <div class="dos" style="gap:7mm">
+    <div>
+      <b style="color:var(--vino);font-size:9.5pt">Extracción de los espressos</b>
+      <ul class="check" style="margin-top:2mm">
+        <li>Enjuaga la cabeza del grupo.</li>
+        <li>Seca o limpia la canasta del filtro antes de dosificar.</li>
+        <li>Derrames o residuos aceptables al dosificar y moler.</li>
+        <li>Dosificación y tampeo consistentes.</li>
+        <li>Limpia el portafiltros antes de insertarlo.</li>
+        <li>Inserta el portafiltros y extrae enseguida.</li>
+        <li>Tiempo de extracción de más de 20 segundos.</li>
+      </ul>
+    </div>
+    <div>
+      <b style="color:var(--vino);font-size:9.5pt">Texturizado de la leche</b>
+      <ul class="check" style="margin-top:2mm">
+        <li>Jarra vacía y limpia al comienzo.</li>
+        <li>Purga la lanceta antes de vaporizar.</li>
+        <li>Limpia la lanceta después de emulsionar.</li>
+        <li>Purga la lanceta después de texturizar.</li>
+        <li>Desperdicio de leche aceptable al final.</li>
+      </ul>
+      <b style="color:var(--vino);font-size:9.5pt">En general</b>
+      <ul class="check" style="margin-top:2mm">
+        <li>Estación ordenada y limpia al final.</li>
+        <li>Limpia las boquillas del portafiltros.</li>
+        <li>Higiene durante toda la presentación y buen uso de los paños.</li>
+      </ul>
+    </div>
+  </div>
+  <h3 class="t">Hospitalidad y servicio</h3>
+  <p>La oratoria y la comunicación son parte de la rutina: el ganador tiene que poder comunicar sus ideas con claridad y armar un relato interesante. Se evalúa en la <b>Ronda 3</b>, al servir las bebidas en la mesa, y en la <b>Final</b>, durante la elaboración.</p>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>7</span></div>
+</section>
+
+<!-- 8 · ACCESORIOS Y AGUA -->
+<section class="hoja">
+  <img class="deco-p" src="rec/ic_jarra.png" style="width:50mm;right:-8mm;bottom:22mm">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>5 · Lo que pone la Organización</span></div>
+  <h2>Accesorios de la estación</h2>
+  <ul class="prov">
+    <li>Mesa para la máquina y el molino</li>
+    <li>Máquina de espresso</li>
+    <li>Molino</li>
+    <li>Agua para la máquina (solo la provista)</li>
+    <li>Leche</li>
+    <li>Tamper</li>
+    <li>Caja para el descarte de café</li>
+    <li>Tacho de basura</li>
+    <li>Servilletas</li>
+    <li>Toallas de bar y trapos limpios (práctica y competencia)</li>
+    <li>Elementos de limpieza (cepillo de mesada, de molino, etc.)</li>
+    <li>Mesa de presentación para el jurado, con agua y vasos para los jueces</li>
+  </ul>
+  <div class="nota plum"><b>El café lo trae cada barista.</b> Cada participante lleva su propio café a la competencia, pero <b>no</b> su propia leche. La vajilla también corre por su cuenta.</div>
+
+  <h3 class="t" style="margin-top:7mm">Agua oficial de la competencia</h3>
+  <p>La provee solo la Organización y es la misma para todos. Tiene un perfil sensorial neutro, delicado y equilibrado, de mineralización débil y bajo sodio, para que se expresen bien las características del café. La Organización garantiza su estabilidad fisicoquímica y microbiológica.</p>
+  <table class="t">
+    <tbody>
+      <tr><td><b>Tranquila</b></td><td>Sin gas añadido.</td></tr>
+      <tr><td><b>Bicarbonatada sódica</b></td><td>Según su composición mineral y su origen.</td></tr>
+      <tr><td><b>Mineralización débil</b></td><td>Adecuada para preparar y extraer café.</td></tr>
+      <tr><td><b>Perfil delicado</b></td><td>Sin aromas ni sabores que interfieran con el café.</td></tr>
+      <tr><td><b>Versátil para maridar</b></td><td>Acompaña bien las características de cada preparación.</td></tr>
+    </tbody>
+  </table>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>8</span></div>
+</section>
+
+<!-- 9 · INSTRUCCIONES, PENALIDADES, EMPATE -->
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>6 a 8 · Reglas</span></div>
+  <span class="sec">6 · Instrucciones previas</span>
+  <h2>Antes de competir</h2>
+  <p>En la semana previa (puede modificarse), los participantes tienen una charla de inducción con el equipo de Bruno Brown: presentación de los equipos, cómo funcionan y buenas prácticas de uso. Cada uno tiene además un tiempo para tirar shots y familiarizarse con el equipo. Las fechas se coordinan con el equipo.</p>
+
+  <span class="sec" style="margin-top:6mm">7 · Penalidades</span>
+  <h2>Descalificación</h2>
+  <div class="dos" style="gap:6mm;margin-top:2mm">
+    <div class="nota vino" style="margin:0"><h3>Equipo</h3>No se puede cambiar, ajustar ni reemplazar ningún elemento o ajuste de la máquina (portafiltros, filtros, temperatura, presión, punta de la lanceta, etc.). Cualquier cambio, o un daño al equipo por mal uso o mala intención, puede descalificar al competidor.</div>
+    <div class="nota vino" style="margin:0"><h3>Tiempo y bebidas</h3>Si el participante supera el tiempo de su ronda, queda descalificado y el jurado no prueba las bebidas. También descalifica no presentar todas las bebidas pedidas: todos los jueces líderes tienen que tener las suyas para poder evaluar.</div>
+  </div>
+
+  <span class="sec" style="margin-top:7mm">8 · Devolución de los jueces</span>
+  <h2>Empates</h2>
+  <p>Si dos o más competidores empatan en un puesto que define quién pasa de ronda o el campeón:</p>
+  <div class="paso3">
+    <div><i>1</i><b>Espresso</b><span>Gana el de mayor puntaje sensorial en el espresso.</span></div>
+    <div><i>2</i><b>Bebida de autor</b><span>Si siguen empatados (Ronda 3 y Final), gana el de mayor puntaje sensorial en la bebida de autor.</span></div>
+    <div><i>3</i><b>Jurado</b><span>Si todavía empatan, decide el jurado según la presentación.</span></div>
+  </div>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>9</span></div>
+</section>
+
+<!-- 10 · REDES, CONDUCTA, PREMIOS -->
+<section class="hoja">
+  <img class="deco-p" src="rec/ic_estrella.png" style="width:56mm;right:-10mm;bottom:22mm">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>9 a 11 · Redes, conducta y premios</span></div>
+  <span class="sec">9 · Redes sociales</span>
+  <p>Cada barista crea un video de presentación y lo comparte con los perfiles de Instagram del Mundial de Café, Bruno Brown y Un Café Con. Los videos se publican en las redes.</p>
+
+  <span class="sec" style="margin-top:6mm">10 · Conducta</span>
+  <p>Los competidores deben:</p>
+  <div class="conducta"><span>Respetar a los jueces</span><span>Respetar a la Organización</span><span>Respetar a los competidores</span><span>Cuidar el equipamiento</span></div>
+  <p style="font-size:9.5pt">La Organización puede descalificar conductas antideportivas.</p>
+
+  <span class="sec" style="margin-top:6mm">11 · Premios</span>
+  <h2>El podio</h2>
+  <div class="premios">
+    <div class="premio p1"><div class="n">1°</div><h3>Campeón</h3><ul><li>Viaje a Colombia</li><li>Premio sponsor</li></ul></div>
+    <div class="premio"><div class="n">2°</div><h3>Subcampeón</h3><ul><li>Curso SCA</li><li>Premio sponsor</li><li>¼ de café por mes, durante 1 año</li></ul></div>
+    <div class="premio"><div class="n">3°</div><h3>Tercer puesto</h3><ul><li>Acceso a las competencias de Bruno Brown</li><li>Premios sponsor</li><li>Curso en Bruno Brown</li></ul></div>
+  </div>
+  <div class="pie"><span>Mundial de Café by Bruno Brown · Torneo de Baristas · Reglamento</span><span>10</span></div>
+</section>
+
+<!-- 11 · PLANILLA -->
+<section class="hoja">
+  <div class="cab"><img src="rec/logoOsc.png" alt=""><span>Anexo · Jueces fiscales</span></div>
+  <h2>Planilla de evaluación</h2>
+  <p class="sub" style="margin-bottom:2mm;font-size:10pt">La completa el juez fiscal. Cada "No" en los criterios para el competidor descuenta 1 punto del puntaje de los jueces líderes.</p>
+  <table class="planilla">
+    <tbody>
+      <tr><td class="k">Juez</td><td></td></tr>
+      <tr><td class="k">Competidor</td><td></td></tr>
+      <tr><td class="k">Ronda y mesa</td><td></td></tr>
+      <tr><td class="k">Tiempo</td><td></td></tr>
+      <tr><td class="k">Entrega total de bebidas en tiempo y forma</td><td></td></tr>
+      <tr><td class="k">Puntos a descontar</td><td></td></tr>
+    </tbody>
+  </table>
+  <table class="planilla">
+    <thead><tr><th>N°</th><th>Criterio para el competidor (controla el juez fiscal)</th><th>Cumple (Sí/No)</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>Usa balanza o gramera para la receta de las bebidas</td><td class="c"></td></tr>
+      <tr><td class="n">2</td><td>Purga el grupo antes de insertar el portafiltros</td><td class="c"></td></tr>
+      <tr><td class="n">3</td><td>Limpieza del pocillo o la taza</td><td class="c"></td></tr>
+      <tr><td class="n">4</td><td>Uso de los paños</td><td class="c"></td></tr>
+      <tr><td class="n">5</td><td>Las bebidas se presentan en el lugar previsto</td><td class="c"></td></tr>
+      <tr><td class="n">6</td><td>Limpieza y orden de la estación de trabajo</td><td class="c"></td></tr>
+    </tbody>
+  </table>
+  <table class="planilla">
+    <thead><tr><th>N°</th><th>Declaración del competidor</th><th>Cumple (Sí/No)</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>Los equipos están operativos y disponibles para su uso</td><td class="c"></td></tr>
+      <tr><td class="n">2</td><td>Todos los utensilios y herramientas de la Organización están a la vista para ser usados</td><td class="c"></td></tr>
+    </tbody>
+  </table>
+  <b style="font-size:9.5pt">Observaciones</b>
+  <div class="obs"></div>
+  <div class="firmas"><div>Firma del competidor</div><div>Firma del juez fiscal</div></div>
+</section>
+
+</body></html>
