@@ -19,12 +19,12 @@ Los visitantes escanean un QR, se registran y reciben una billetera con cupones 
 | `/admin` | Organización | Back office (Resumen, Beneficios, Visitantes, Canjes). |
 | `/admin/carteles` | Organización | Cartel con QR y tarjetas de caja para imprimir. |
 | `/sorteo` | Organización | Pantalla para proyectar el sorteo de la camiseta (pide la contraseña de admin): presentes en vivo, SORTEAR con ruleta y ganador. `/admin/sorteo` redirige acá. |
-| `/baristas` | Público | Pantalla del torneo de baristas para proyectar: tabla estilo F1 de la ronda en curso y la final con podio. |
+| `/competencia` | Público | Pantalla del torneo de baristas para proyectar: tabla estilo F1 de la ronda en curso y la final con podio. |
 | `/admin/baristas` | Organización | Participantes, puntajes ronda por ronda y cierre de cada ronda (pasan 16, 6 y 2). |
 | `/votar` | Visitante | Votación del stand más lindo (una vez por visitante). El ganador se ve en la app desde el domingo 4 a las 20 hs. |
 | `/torneo` · `/torneo/[id]` | Visitante | Perfiles de los baristas, mensajes de aliento y voto al barista favorito (una vez por visitante). |
 | `/mapa` | Público | Mapa del evento con zoom (`public/img/mapa.jpg`, sale de `docs/mapa/mapa-stands.pdf`). |
-| `/barista` | Barista | Ingreso con su clave: foto, historia, experiencia, hobby y por qué merece ganar; mensajes recibidos y la devolución del jurado. |
+| `/baristas` | Barista | Ingreso con su clave: foto, historia, experiencia, hobby y por qué merece ganar; mensajes recibidos y la devolución del jurado. |
 | `/jurado` | Jurados | Jurado 1, 2 y 3 entran con su clave y cargan su planilla de cada barista en la ronda en curso. |
 | `/api/salud` | — | Healthcheck. |
 

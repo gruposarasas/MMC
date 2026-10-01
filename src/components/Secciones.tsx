@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import recursos from '@/lib/recursos.json';
 
-type Tile = { href: string; ic: string; titulo: string; texto: string; ok?: boolean };
+type Tile = { href: string; ic: string; titulo: string; texto: string; vivo?: boolean };
 
-/** Accesos de la billetera: votar el stand, conocer a los baristas y el mapa del evento. */
+/** Accesos de la billetera: la competencia en vivo, votar el stand, conocer a los baristas y el mapa del evento. */
 export function Secciones({ stand, barista }: { stand: string; barista: string }) {
   const tiles: Tile[] = [
+    { href: '/competencia', ic: recursos.ic_copa, titulo: 'Competencia', texto: 'Puntajes y posiciones del torneo', vivo: true },
     { href: '/votar', ic: recursos.ic_estrella, titulo: 'Stand más lindo', texto: stand },
     { href: '/torneo', ic: recursos.ic_taza, titulo: 'Baristas', texto: barista },
     { href: '/mapa', ic: recursos.ic_planta, titulo: 'Mapa', texto: 'Encontrá cada stand' },
@@ -13,10 +14,10 @@ export function Secciones({ stand, barista }: { stand: string; barista: string }
   return (
     <nav className="secs" aria-label="Más del Mundial">
       {tiles.map((t) => (
-        <Link key={t.href} href={t.href} className="sec-t">
+        <Link key={t.href} href={t.href} className={`sec-t ${t.vivo ? 'vivo' : ''}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={t.ic} alt="" />
-          <b>{t.titulo}</b>
+          <b>{t.titulo}{t.vivo && <i className="en-vivo">En vivo</i>}</b>
           <span>{t.texto}</span>
         </Link>
       ))}

@@ -10,7 +10,7 @@ const texto = (b: AccesoBarista) =>
   `¡Hola ${b.nombre.split(' ')[0]}! Te paso el acceso a tu perfil de barista del Mundial de Café: entrá en ${LINK_BARISTA} con la clave ${b.clave}. Subí tu foto y contale al público tu historia, tu experiencia, tu hobby y por qué merecés ganar: el barista más votado por el público gana un premio.`;
 const wa = (b: AccesoBarista) => `https://wa.me/549${b.tel.replace(/^549?/, '')}?text=${encodeURIComponent(texto(b))}`;
 
-/** Accesos de los baristas a su perfil (/barista): clave, WhatsApp y estado del perfil. */
+/** Accesos de los baristas a su perfil (/baristas): clave, WhatsApp y estado del perfil. */
 export function AccesosBaristas({ inicial, jurados }: { inicial: AccesoBarista[]; jurados: AccesoJurado[] }) {
   const [bs, setBs] = useState(inicial);
   const [js, setJs] = useState(jurados);

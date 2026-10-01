@@ -321,7 +321,7 @@ a.btn{text-align:center;text-decoration:none}
 .tr-tabs button.on{background:var(--arena);border-color:var(--arena);color:var(--plum)}
 .tr-tabs button:disabled{opacity:.35}
 /* ---------- secciones del visitante: votaciones, baristas y mapa ---------- */
-.secs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.secs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:16px}
 .sec-t{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--plum3);border:1px solid var(--linea);border-radius:14px;padding:11px 10px 12px;text-decoration:none;color:var(--crema);min-width:0}
 .sec-t img{width:30px;height:30px;border-radius:7px;margin-bottom:4px}
 .sec-t b{font-size:13.5px;line-height:1.2;color:var(--arena)}
@@ -385,7 +385,7 @@ a.btn{text-align:center;text-decoration:none}
 .barra.voto{grid-template-columns:220px 1fr 40px}
 .barra.voto span{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 @media (max-width:980px){.dos-col{grid-template-columns:1fr}}
-@media (max-width:360px){.secs{grid-template-columns:1fr}.sec-t{flex-direction:row;align-items:center;gap:10px}.sec-t img{margin:0}}
+@media (max-width:330px){.secs{grid-template-columns:1fr}}
 /* ---------- jurados ---------- */
 .jur-lista{margin-top:16px;display:grid;gap:8px}
 .jur-it{background:var(--plum3);border-radius:14px;overflow:hidden;border:1.5px solid transparent}
@@ -409,3 +409,54 @@ a.btn{text-align:center;text-decoration:none}
 .dev .final{display:flex;justify-content:space-between;align-items:center;margin-top:12px;background:var(--vino);border-radius:12px;padding:10px 14px}
 .dev .final b{font-size:26px}
 .buscar:disabled{opacity:.75;border-style:dashed}
+.sec-t.vivo{background:var(--vino);border-color:var(--vino)}
+.sec-t.vivo b{color:#fff}
+.sec-t.vivo span{color:rgba(255,255,255,.85)}
+.en-vivo{display:inline-flex;align-items:center;gap:4px;margin-left:6px;font-style:normal;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;vertical-align:2px}
+.en-vivo::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;animation:late 1.4s infinite}
+@keyframes late{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.en-vivo::before{animation:none}}
+/* competencia en el celular */
+.tb.movil{position:static;min-height:100vh;min-height:100dvh;overflow:visible;padding:18px 16px 40px}
+.tb-volver{display:inline-block;margin-bottom:12px}
+.tb.movil .tb-cab{grid-template-columns:auto 1fr;height:auto;gap:12px}
+.tb.movil .tb-logo{height:52px}
+.tb.movil .tb-tit h1{font-size:24px}
+.tb.movil .tb-tit p{font-size:12px;letter-spacing:.06em;margin-top:4px}
+.tb.movil .tb-cuenta{grid-column:1/-1;text-align:left;display:flex;gap:6px;align-items:baseline}
+.tb.movil .tb-cuenta b{font-size:22px}
+.tb.movil .tb-cuenta span{display:inline;font-size:13px}
+.tb.movil .tb-vacio{margin-top:60px;font-size:18px}
+.tbm-ultimo{margin-top:14px;background:rgba(194,162,123,.14);border-radius:10px;padding:8px 12px;font-size:13.5px;color:var(--arena2)}
+.tbm-ultimo b{color:var(--crema)}
+.tbm{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.tbm-fila{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;padding-right:12px;min-height:50px;font-size:15px}
+.tbm-fila .tb-pos{font-size:16px}
+.tbm-fila .tb-pts{font-size:20px}
+.tbm-fila .tb-turno{font-size:12px}
+.tbm-nom{min-width:0;padding:6px 0}
+.tbm-nom b{display:block;line-height:1.2}
+.tbm-nom small{display:block;font-size:12px;color:rgba(243,233,220,.6)}
+.tbm-nom .tb-puesto{margin-left:0;margin-top:2px;display:inline-block}
+.tbm-fila.clasif{background:rgba(194,162,123,.14)}
+.tbm-fila.podio .tb-pos{background:var(--arena);color:var(--plum)}
+.tbm-fila.p1 .tb-pos{background:#E9C46A}
+.tbm-fila.pend{opacity:.5}
+.tbm-fila.pend .tb-pos{background:rgba(255,255,255,.12)}
+.tbm-fila.recien{background:var(--vino)}
+.tbm-fila.corte{position:relative;margin-bottom:26px;overflow:visible}
+.tbm-fila.corte::after{content:attr(data-aviso) " ▲";position:absolute;left:0;right:0;top:calc(100% + 5px);text-align:center;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--arena);border-top:2px dashed rgba(194,162,123,.55);padding-top:3px}
+.tb.movil .tb-final{height:auto;gap:22px;margin-top:20px}
+.tb.movil .tb-duelo{grid-template-columns:1fr;gap:26px;padding:0}
+.tb.movil .tb-finalista{padding:18px 12px;border-width:2px;border-radius:16px}
+.tb.movil .tb-fsem{font-size:11px}
+.tb.movil .tb-fnom{font-size:24px;margin-top:6px}
+.tb.movil .tb-fcaf{font-size:13px}
+.tb.movil .tb-fpts{font-size:48px;margin-top:8px}
+.tb.movil .tb-vs{right:auto;left:50%;top:auto;bottom:-24px;transform:translateX(-50%);font-size:20px}
+.tb.movil .tb-fcorona{font-size:13px;padding:4px 14px;margin-top:8px}
+.tb.movil .tb-podio{grid-template-columns:1fr 1fr;gap:8px;padding:0}
+.tb.movil .tb-escalon{padding:10px;border-radius:10px}
+.tb.movil .tb-escalon span{font-size:18px}
+.tb.movil .tb-escalon b{font-size:14px}
+.tb.movil .tb-estrella{display:none}

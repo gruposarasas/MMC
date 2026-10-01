@@ -52,7 +52,7 @@ export function AdminTorneo({ inicial }: { inicial: Estado }) {
           <p className="sub" style={{ marginBottom: 0 }}>Ronda en curso: <b>{actual.titulo}</b>. Lo que cargás acá se ve en la pantalla en unos segundos.</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <a className="btn chico" href="/baristas" target="_blank" rel="noopener">Abrir pantalla</a>
+          <a className="btn chico" href="/competencia" target="_blank" rel="noopener">Abrir pantalla</a>
           <select className="buscar" style={{ minWidth: 0 }} aria-label="Qué muestra la pantalla" value={e.pantalla} onChange={(x) => act({ accion: 'pantalla', valor: x.target.value })}>
             <option value="auto">Pantalla: ronda en curso</option>
             {RONDAS.map((x) => <option key={x.fase} value={x.fase}>Pantalla: {x.titulo}</option>)}

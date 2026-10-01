@@ -42,7 +42,7 @@ export default async function Torneo() {
           </div>
         )}
         <p style={{ margin: '14px 0 0' }}>
-          <Link className="link" href="/baristas">Ver los puntajes del torneo en vivo →</Link>
+          <Link className="link" href="/competencia">Ver la competencia en vivo →</Link>
         </p>
         <div className="baristas-l">
           {bs.map((b) => (

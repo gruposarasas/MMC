@@ -9,7 +9,20 @@ export { fPuntaje } from '@/lib/rondas';
 import { fPuntaje } from '@/lib/rondas';
 const clave = (p: Puntaje) => `${p.barista_id}:${p.ronda}`;
 
-/** Pantalla para proyectar el torneo de baristas. Se actualiza sola cada 3 segundos. */
+/** En el celular la pantalla se muestra como lista (la versión para proyectar usa todo el ancho). */
+function useMovil() {
+  const [m, setM] = useState(false);
+  useEffect(() => {
+    const q = window.matchMedia('(max-width: 760px)');
+    const f = () => setM(q.matches);
+    f();
+    q.addEventListener('change', f);
+    return () => q.removeEventListener('change', f);
+  }, []);
+  return m;
+}
+
+/** Pantalla del torneo de baristas: para proyectar y para seguirla en vivo desde el celular. Se actualiza sola cada 3 segundos. */
 export function PantallaTorneo({ inicial }: { inicial: Estado }) {
   const [e, setE] = useState<Estado>(inicial);
   const [recien, setRecien] = useState<Set<string>>(new Set());
@@ -19,7 +32,7 @@ export function PantallaTorneo({ inicial }: { inicial: Estado }) {
     let vivo = true;
     const t = setInterval(async () => {
       if (document.hidden) return;
-      const r = await fetch('/api/baristas', { cache: 'no-store' }).catch(() => null);
+      const r = await fetch('/api/competencia', { cache: 'no-store' }).catch(() => null);
       if (!r?.ok || !vivo) return;
       const j: Estado = await r.json();
       const nuevos = new Set<string>();
@@ -38,9 +51,11 @@ export function PantallaTorneo({ inicial }: { inicial: Estado }) {
   const r = ronda(vista);
   const filas = useMemo(() => tabla(participantes(r.n, e.baristas, e.puntajes)), [r.n, e.baristas, e.puntajes]);
   const compitieron = filas.filter((f) => f.puntaje != null).length;
+  const movil = useMovil();
 
   return (
-    <div className="tb">
+    <div className={`tb ${movil ? 'movil' : ''}`}>
+      {movil && <a className="link tb-volver" href="/billetera">← Mis cupones</a>}
       <header className="tb-cab">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={recursos.logo} alt="Mundial de Café by Bruno Brown" className="tb-logo" />
@@ -55,7 +70,7 @@ export function PantallaTorneo({ inicial }: { inicial: Estado }) {
       {vista === 'final' ? (
         <Final filas={filas} e={e} recien={recien} />
       ) : (
-        <Tabla filas={filas} pasan={r.pasan} aviso={r.aviso} podio={vista === 'r3'} recien={recien} />
+        movil ? <TablaMovil filas={filas} pasan={r.pasan} aviso={r.aviso} podio={vista === 'r3'} recien={recien} /> : <Tabla filas={filas} pasan={r.pasan} aviso={r.aviso} podio={vista === 'r3'} recien={recien} />
       )}
     </div>
   );
@@ -102,6 +117,34 @@ function Tabla({ filas, pasan, aviso, podio, recien }: { filas: Fila[]; pasan: n
           Último puntaje: <b>{ultimo.nombre}</b> · {fPuntaje(ultimo.puntaje)} · <b>P{posUltimo}</b>
         </div>
       )}
+    </>
+  );
+}
+
+function TablaMovil({ filas, pasan, aviso, podio, recien }: { filas: Fila[]; pasan: number; aviso: string; podio: boolean; recien: Set<string> }) {
+  const ultimo = [...filas].filter((f) => f.puntuado_at).sort((x, y) => (y.puntuado_at || '').localeCompare(x.puntuado_at || ''))[0];
+  if (!filas.length) return <p className="tb-vacio">Pronto empieza esta ronda.</p>;
+  return (
+    <>
+      {ultimo && <div className="tbm-ultimo">Último puntaje: <b>{ultimo.nombre}</b> · {fPuntaje(ultimo.puntaje)}</div>}
+      <ol className="tbm">
+        {filas.map((f, i) => {
+          const puntuado = f.puntaje != null;
+          return (
+            <li key={f.id} className={`tbm-fila ${puntuado ? '' : 'pend'} ${i < pasan && puntuado ? 'clasif' : ''} ${recien.has(f.id) ? 'recien' : ''} ${i < 3 && puntuado ? `podio p${i + 1}` : ''} ${i === pasan - 1 && puntuado ? 'corte' : ''}`} data-aviso={i === pasan - 1 && puntuado ? aviso : undefined}>
+              <span className="tb-pos">{puntuado ? i + 1 : ''}</span>
+              <span className="tbm-nom">
+                <b>{f.nombre}</b>
+                <small>
+                  {[f.cafeteria, f.semilla != null ? `llegó ${f.semilla}°` : ''].filter(Boolean).join(' · ')}
+                  {podio && puntuado && (i === 2 || i === 3) && <em className="tb-puesto">{i + 1}° puesto</em>}
+                </small>
+              </span>
+              <span className={puntuado ? 'tb-pts' : 'tb-turno'}>{puntuado ? fPuntaje(f.puntaje) : f.turnoRonda || '—'}</span>
+            </li>
+          );
+        })}
+      </ol>
     </>
   );
 }
