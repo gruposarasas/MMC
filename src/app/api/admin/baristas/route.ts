@@ -10,11 +10,11 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const texto = (v: unknown, max: number) => String(v ?? '').trim().replace(/\s+/g, ' ').slice(0, max);
 const FASES = RONDAS.map((r) => r.fase) as string[];
 
-/** Puntaje de 1 a 10 con un decimal ("8,5" o "8.5"). null si viene vacío; NaN si es inválido. */
+/** Puntaje de 1 a 9 con un decimal ("8,5" o "8.5"). null si viene vacío; NaN si es inválido. */
 function puntaje(v: unknown): number | null {
   if (v === null || v === undefined || String(v).trim() === '') return null;
   const n = Number(String(v).replace(',', '.'));
-  if (!Number.isFinite(n) || n < 1 || n > 10) return NaN;
+  if (!Number.isFinite(n) || n < 1 || n > 9) return NaN;
   return Math.round(n * 10) / 10;
 }
 
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
       const n = Number(j.ronda);
       if (![1, 2, 3, 4].includes(n)) return mal('Ronda inválida.');
       const p = puntaje(j.puntaje);
-      if (Number.isNaN(p)) return mal('El puntaje va de 1 a 10, con un decimal. Por ejemplo: 8,5.');
+      if (Number.isNaN(p)) return mal('El puntaje va de 1 a 9, con un decimal. Por ejemplo: 8,5.');
       const desempate = Math.max(-99, Math.min(99, Math.round(Number(j.desempate) || 0)));
       const err = await puntuar(j.id, n, p, desempate);
       if (err) return mal(err, 409);

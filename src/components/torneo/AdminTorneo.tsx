@@ -79,7 +79,7 @@ export function AdminTorneo({ inicial }: { inicial: Estado }) {
           )}
         </div>
         <p className="ayuda">
-          Puntaje de 1 a 10 con un decimal (por ejemplo 8,5). Guardá con Enter o con el botón. <b>Desempate</b>: a igual puntaje, el número más alto queda arriba.
+          Puntaje de 1 a 9 con un decimal (por ejemplo 8,5). Guardá con Enter o con el botón. <b>Desempate</b>: a igual puntaje, el número más alto queda arriba.
           {r.fase === 'r3' && ' Los puestos 3 y 4 de esta ronda son el 3° y 4° puesto del torneo.'}
         </p>
         {empate && <p className="pill off" style={{ marginTop: 8 }}>Hay un empate en el puesto {r.pasan}, justo en el corte: resolvelo con Desempate antes de cerrar.</p>}

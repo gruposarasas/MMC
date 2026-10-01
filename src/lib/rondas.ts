@@ -1,6 +1,6 @@
 // Torneo de baristas: reglas puras (se usan en el servidor y en las pantallas).
 //   Ronda 1: todos, pasan 16 · Ronda 2: pasan 6 · Ronda 3: pasan 2 (3° y 4° puesto) · Final: 1 vs 1.
-// Cada ronda se puntúa de cero, de 1 a 10 con un decimal.
+// Cada ronda se puntúa de cero, de 1 a 9 con un decimal.
 
 export type Barista = { id: string; nombre: string; cafeteria: string; turno: string; orden: number; created_at: string };
 
