@@ -79,17 +79,17 @@ export function AdminTorneo({ inicial }: { inicial: Estado }) {
           )}
         </div>
         <p className="ayuda">
-          Puntaje de 1 a 9 con un decimal (por ejemplo 8,5). Guardá con Enter o con el botón. <b>Desempate</b>: a igual puntaje, el número más alto queda arriba.
+          Puntaje de 1 a 9 con un decimal (por ejemplo 8,5). Guardá con Enter o con el botón. <b>Empates</b>: a igual puntaje, pasa el de mejor <b>espresso</b>; si también empatan, decide el jurado con <b>Jurado</b> (el número más alto queda arriba).
           {r.fase === 'r3' && ' Los puestos 3 y 4 de esta ronda son el 3° y 4° puesto del torneo.'}
         </p>
-        {empate && <p className="pill off" style={{ marginTop: 8 }}>Hay un empate en el puesto {r.pasan}, justo en el corte: resolvelo con Desempate antes de cerrar.</p>}
+        {empate && <p className="pill off" style={{ marginTop: 8 }}>Hay un empate en el puesto {r.pasan}, justo en el corte: cargá el espresso y, si siguen empatados, usá Jurado antes de cerrar.</p>}
         <table>
-          <thead><tr><th>Pos.</th><th>Barista</th><th>Turno</th><th>Puntaje</th><th>Desempate</th><th></th></tr></thead>
+          <thead><tr><th>Pos.</th><th>Barista</th><th>Turno</th><th>Puntaje</th><th>Espresso</th><th>Jurado</th><th></th></tr></thead>
           <tbody>
             {filas.map((f, i) => (
-              <FilaBarista key={f.id + r.n + (f.puntuado_at || '') + f.desempate} f={f} n={r.n} pos={f.puntaje == null ? null : i + 1} corte={i === r.pasan - 1} editable={editable} act={act} />
+              <FilaBarista key={f.id + r.n + (f.puntuado_at || '') + f.desempate + (f.espresso ?? '')} f={f} n={r.n} pos={f.puntaje == null ? null : i + 1} corte={i === r.pasan - 1} editable={editable} act={act} />
             ))}
-            {!filas.length && <tr><td colSpan={6}>{r.n === 1 ? 'Todavía no hay participantes.' : 'Esta ronda empieza cuando se cierra la anterior.'}</td></tr>}
+            {!filas.length && <tr><td colSpan={7}>{r.n === 1 ? 'Todavía no hay participantes.' : 'Esta ronda empieza cuando se cierra la anterior.'}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -113,8 +113,9 @@ export function AdminTorneo({ inicial }: { inicial: Estado }) {
 
 function FilaBarista({ f, n, pos, corte, editable, act }: { f: Fila; n: number; pos: number | null; corte: boolean; editable: boolean; act: Act }) {
   const [pts, setPts] = useState(entrada(f.puntaje));
+  const [esp, setEsp] = useState(entrada(f.espresso));
   const [des, setDes] = useState(String(f.desempate || 0));
-  const guardar = () => act({ accion: 'puntaje', id: f.id, ronda: n, puntaje: pts, desempate: des }, pts ? `Puntaje de ${f.nombre}: ${pts}` : 'Puntaje borrado.');
+  const guardar = () => act({ accion: 'puntaje', id: f.id, ronda: n, puntaje: pts, espresso: esp, desempate: des }, pts ? `Puntaje de ${f.nombre}: ${pts}` : 'Puntaje borrado.');
   return (
     <tr style={corte ? { borderBottom: '3px solid var(--arena)' } : undefined}>
       <td><b>{pos ?? '—'}</b>{f.semilla != null && <div className="ayuda">llegó {f.semilla}°</div>}</td>
@@ -139,13 +140,17 @@ function FilaBarista({ f, n, pos, corte, editable, act }: { f: Fila; n: number; 
             <input className="buscar" style={{ minWidth: 0, width: 90, fontWeight: 700 }} inputMode="decimal" aria-label={`Puntaje de ${f.nombre}`} placeholder="—" value={pts} onChange={(x) => setPts(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
           </td>
           <td>
-            <input className="buscar" style={{ minWidth: 0, width: 64 }} inputMode="numeric" aria-label={`Desempate de ${f.nombre}`} value={des} onChange={(x) => setDes(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
+            <input className="buscar" style={{ minWidth: 0, width: 80 }} inputMode="decimal" aria-label={`Espresso de ${f.nombre}`} placeholder="—" value={esp} onChange={(x) => setEsp(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
+          </td>
+          <td>
+            <input className="buscar" style={{ minWidth: 0, width: 64 }} inputMode="numeric" aria-label={`Desempate del jurado para ${f.nombre}`} value={des} onChange={(x) => setDes(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
           </td>
           <td><button className="btn chico" onClick={guardar}>Guardar</button></td>
         </>
       ) : (
         <>
           <td><b>{fPuntaje(f.puntaje)}</b></td>
+          <td>{f.espresso == null ? '' : fPuntaje(f.espresso)}</td>
           <td>{f.desempate || ''}</td>
           <td />
         </>

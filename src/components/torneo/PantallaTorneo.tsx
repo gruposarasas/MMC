@@ -108,8 +108,8 @@ function Tabla({ filas, pasan, aviso, podio, recien }: { filas: Fila[]; pasan: n
 function Final({ filas, e, recien }: { filas: Fila[]; e: Estado; recien: Set<string> }) {
   // Finalistas en el orden en que llegaron (1° y 2° de la ronda 3).
   const finalistas = [...filas].sort((x, y) => (x.semilla ?? 9) - (y.semilla ?? 9));
-  const definidos = filas.length === 2 && filas.every((f) => f.puntaje != null) && !(filas[0].puntaje === filas[1].puntaje && filas[0].desempate === filas[1].desempate);
-  const campeon = definidos ? filas[0] : null; // tabla() ya ordenó por puntaje y desempate
+  const definidos = filas.length === 2 && filas.every((f) => f.puntaje != null) && !(filas[0].puntaje === filas[1].puntaje && (filas[0].espresso ?? 0) === (filas[1].espresso ?? 0) && filas[0].desempate === filas[1].desempate);
+  const campeon = definidos ? filas[0] : null; // tabla() ya ordenó por puntaje, espresso y jurado
   const r3 = useMemo(() => tabla(participantes(3, e.baristas, e.puntajes)), [e.baristas, e.puntajes]);
   const tercero = r3[2]?.puntaje != null ? r3[2] : null;
   const cuarto = r3[3]?.puntaje != null ? r3[3] : null;

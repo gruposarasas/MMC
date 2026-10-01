@@ -67,8 +67,10 @@ export async function POST(req: Request) {
       if (![1, 2, 3, 4].includes(n)) return mal('Ronda inválida.');
       const p = puntaje(j.puntaje);
       if (Number.isNaN(p)) return mal('El puntaje va de 1 a 9, con un decimal. Por ejemplo: 8,5.');
+      const esp = puntaje(j.espresso);
+      if (Number.isNaN(esp)) return mal('El puntaje del espresso va de 1 a 9, con un decimal.');
       const desempate = Math.max(-99, Math.min(99, Math.round(Number(j.desempate) || 0)));
-      const err = await puntuar(j.id, n, p, desempate);
+      const err = await puntuar(j.id, n, p, esp, desempate);
       if (err) return mal(err, 409);
       return ok();
     }

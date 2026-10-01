@@ -9,7 +9,7 @@ export async function estadoTorneo(): Promise<EstadoTorneo> {
   const [t, b, p] = await Promise.all([
     db().from('torneo').select('fase, pantalla').eq('id', 1).maybeSingle(),
     db().from('baristas').select('id, nombre, cafeteria, turno, orden, created_at').order('orden').order('created_at'),
-    db().from('puntajes').select('barista_id, ronda, semilla, puntaje, desempate, puntuado_at'),
+    db().from('puntajes').select('barista_id, ronda, semilla, puntaje, espresso, desempate, puntuado_at'),
   ]);
   if (b.error) throw b.error;
   if (p.error) throw p.error;
@@ -17,12 +17,12 @@ export async function estadoTorneo(): Promise<EstadoTorneo> {
     fase: (t.data?.fase as Fase) || 'r1',
     pantalla: (t.data?.pantalla as Pantalla) || 'auto',
     baristas: (b.data || []) as Barista[],
-    puntajes: (p.data || []).map((x) => ({ ...x, puntaje: x.puntaje == null ? null : Number(x.puntaje) })) as Puntaje[],
+    puntajes: (p.data || []).map((x) => ({ ...x, puntaje: x.puntaje == null ? null : Number(x.puntaje), espresso: x.espresso == null ? null : Number(x.espresso) })) as Puntaje[],
   };
 }
 
 /** Guarda el puntaje de un barista en una ronda en la que compite. */
-export async function puntuar(baristaId: string, n: number, puntaje: number | null, desempate: number) {
+export async function puntuar(baristaId: string, n: number, puntaje: number | null, espresso: number | null, desempate: number) {
   const e = await estadoTorneo();
   const actual = RONDAS.find((r) => r.fase === e.fase)!.n;
   if (n > actual) return 'Esa ronda todavía no empezó.';
@@ -36,6 +36,7 @@ export async function puntuar(baristaId: string, n: number, puntaje: number | nu
     ronda: n,
     semilla: previo?.semilla ?? null,
     puntaje,
+    espresso,
     desempate,
     // La hora de puntuación sirve para desempatar y para resaltarlo en la pantalla.
     puntuado_at: puntaje == null ? null : cambia ? new Date().toISOString() : previo?.puntuado_at ?? new Date().toISOString(),
@@ -53,8 +54,8 @@ export async function cerrarRonda() {
   if (!sig) return 'La final no se cierra: el campeón sale de los puntajes de la final.';
   const orden = tabla(participantes(r.n, e.baristas, e.puntajes)).filter((f) => f.puntaje != null);
   if (orden.length < r.pasan) return `Para cerrar la ${r.titulo} hacen falta ${r.pasan} baristas con puntaje: hay ${orden.length}.`;
-  if (empateEnCorte(orden, r.pasan)) return `Hay un empate en el puesto ${r.pasan}, justo en el corte. Resolvelo con "Desempate" antes de cerrar.`;
-  const filas = orden.slice(0, r.pasan).map((f, k) => ({ barista_id: f.id, ronda: sig.n, semilla: k + 1, puntaje: null, desempate: 0, puntuado_at: null }));
+  if (empateEnCorte(orden, r.pasan)) return `Hay un empate en el puesto ${r.pasan}, justo en el corte. Cargá el puntaje del espresso; si también empatan, usá "Jurado" antes de cerrar.`;
+  const filas = orden.slice(0, r.pasan).map((f, k) => ({ barista_id: f.id, ronda: sig.n, semilla: k + 1, puntaje: null, espresso: null, desempate: 0, puntuado_at: null }));
   await db().from('puntajes').delete().gte('ronda', sig.n);
   const { error } = await db().from('puntajes').insert(filas);
   if (error) throw error;
