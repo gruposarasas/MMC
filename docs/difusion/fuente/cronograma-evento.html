@@ -1,0 +1,78 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><style>
+@font-face{font-family:Poppins;font-weight:400;src:url(fonts/poppins-latin-400-normal.woff2)}
+@font-face{font-family:Poppins;font-weight:500;src:url(fonts/poppins-latin-500-normal.woff2)}
+@font-face{font-family:Poppins;font-weight:600;src:url(fonts/poppins-latin-600-normal.woff2)}
+@font-face{font-family:Poppins;font-weight:700;src:url(fonts/poppins-latin-700-normal.woff2)}
+@font-face{font-family:Poppins;font-weight:800;src:url(fonts/poppins-latin-800-normal.woff2)}
+*{box-sizing:border-box}html,body{margin:0}
+body{width:1080px;background:#281722;color:#F3E9DC;font-family:Poppins,sans-serif;position:relative;overflow:hidden}
+.deco{position:absolute;opacity:.12}
+.top{padding:64px 70px 0;position:relative}
+.logo{width:290px}
+.kicker{margin-top:36px;font-size:23px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#DCC3A1}
+h1{margin:4px 0 0;font-size:84px;line-height:1;font-weight:800;color:#C2A27B}
+.lugar{margin-top:16px;font-size:26px;color:rgba(243,233,220,.8)}
+.lugar b{color:#F3E9DC}
+.dia{margin:46px 70px 0}
+.dia-cab{display:flex;align-items:baseline;gap:18px;border-bottom:3px solid #8E3949;padding-bottom:10px}
+.dia-cab b{font-size:46px;font-weight:800;color:#F3E9DC;line-height:1}
+.dia-cab span{font-size:26px;font-weight:600;color:#C2A27B}
+.it{display:grid;grid-template-columns:230px 1fr;gap:26px;align-items:center;padding:20px 0;border-bottom:1px solid rgba(194,162,123,.22)}
+.h{font-size:30px;font-weight:800;color:#C2A27B;font-variant-numeric:tabular-nums;line-height:1.15}
+.h small{display:block;font-size:19px;font-weight:600;color:rgba(243,233,220,.55)}
+.q b{display:block;font-size:31px;line-height:1.2}
+.q span{display:block;font-size:22px;line-height:1.35;color:rgba(243,233,220,.75);margin-top:3px}
+.q span.tag{display:inline-block;margin-top:8px;border-radius:999px;padding:3px 14px;font-size:18px;font-weight:700;letter-spacing:.04em}
+.t-torneo{background:#3A2330;color:#DCC3A1;border:1.5px solid rgba(194,162,123,.5)}
+.t-musica{background:#C2A27B;color:#281722}
+.t-app{background:#8E3949;color:#fff}
+.it.final{background:#8E3949;border-radius:22px;padding:22px 24px;margin:12px -24px;border:0}
+.it.final .h{color:#fff}.it.final .h small{color:rgba(255,255,255,.75)}
+.it.final .q span{color:rgba(255,255,255,.85)}
+.it.final .q span.tag{background:#fff;color:#8E3949}
+.it.cam{background:#fff;color:#281722;border-radius:22px;padding:20px 24px;margin:12px -24px;border:4px solid #D71920}
+.it.cam .h{color:#D71920}.it.cam .h small{color:rgba(40,23,34,.55)}
+.it.cam .q b{color:#D71920}.it.cam .q span{color:rgba(40,23,34,.8)}
+.it.cam .q span.tag{background:#D71920;color:#fff}
+.pie{margin:46px 70px 0;display:grid;grid-template-columns:180px 1fr;gap:30px;align-items:center;background:#3A2330;border-radius:26px;padding:24px}
+.qr{background:#fff;border-radius:18px;padding:12px}.qr svg{display:block;width:100%;height:auto}
+.pie b{display:block;font-size:30px;color:#C2A27B;line-height:1.2}
+.pie span{display:block;font-size:22px;line-height:1.45;color:rgba(243,233,220,.82);margin-top:6px}
+.pie em{font-style:normal;font-weight:700;color:#F3E9DC}
+.nota{margin:22px 70px 0;font-size:19px;color:rgba(243,233,220,.5)}
+.guarda{display:block;width:100%;margin-top:44px}
+</style></head><body>
+<img class="deco" src="rec/ic_reloj.png" style="width:280px;right:-50px;top:50px">
+<div class="top">
+  <img class="logo" src="rec/logo.png" alt="">
+  <div class="kicker">Cronograma</div>
+  <h1>Todo el Mundial,<br>hora por hora</h1>
+  <div class="lugar"><b>Bodega Arizu</b> · Godoy Cruz, Mendoza · Entrada libre</div>
+</div>
+
+<div class="dia">
+  <div class="dia-cab"><b>Sábado 3</b><span>de octubre</span></div>
+  <div class="it"><div class="h">10:30<small>a 13:00</small></div><div class="q"><b>Torneo de Baristas · Ronda 1</b><span>Compiten los 31 baristas, de a 3 por turno. Pasan los 16 mejores.</span><span class="tag t-torneo">Torneo</span></div></div>
+  <div class="it"><div class="h">17:00<small>a 20:00</small></div><div class="q"><b>Torneo de Baristas · Ronda 1</b><span>Segunda parte de la ronda. Al final, la tabla con los 16 clasificados.</span><span class="tag t-torneo">Torneo</span></div></div>
+  <div class="it"><div class="h">20:00</div><div class="q"><b>Cierre musical · DJ Virginia Dacuna</b><span>Para terminar el sábado.</span><span class="tag t-musica">Música</span></div></div>
+</div>
+
+<div class="dia">
+  <div class="dia-cab"><b>Domingo 4</b><span>de octubre</span></div>
+  <div class="it"><div class="h">10:00<small>a 13:00</small></div><div class="q"><b>Torneo de Baristas · Ronda 2</b><span>Compiten los 16 clasificados. Pasan los 6 mejores.</span><span class="tag t-torneo">Torneo</span></div></div>
+  <div class="it"><div class="h">13:00</div><div class="q"><b>Show · DJ · Ballet</b><span>La tarde del domingo arranca con show en vivo.</span><span class="tag t-musica">Show</span></div></div>
+  <div class="it"><div class="h">17:00<small>a 18:00</small></div><div class="q"><b>Torneo de Baristas · Ronda 3</b><span>Compiten los 6. Los 2 mejores van a la final; el 3° y el 4° completan el podio.</span><span class="tag t-torneo">Torneo</span></div></div>
+  <div class="it cam"><div class="h">18:00</div><div class="q"><b>Sorteo de la camiseta de Enzo</b><span>Poné "Estoy presente" en la app a partir de las 18 hs. * Para ganar hay que presentar el DNI.</span><span class="tag">En la app</span></div></div>
+  <div class="it final"><div class="h">18:30<small>a 19:00</small></div><div class="q"><b>Gran Final · 1 vs 1</b><span>Los dos finalistas, mano a mano, por el título de campeón del Mundial de Café.</span><span class="tag">Torneo</span></div></div>
+  <div class="it"><div class="h">19:00<small>después de la final</small></div><div class="q"><b>Cierre musical · Clari Ceschin</b><span>El cierre del Mundial de Café.</span><span class="tag t-musica">Música</span></div></div>
+  <div class="it"><div class="h">20:00</div><div class="q"><b>Ganadores del público</b><span>El stand más lindo y el barista favorito, en la app.</span><span class="tag t-app">En la app</span></div></div>
+</div>
+
+<div class="pie">
+  <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h29v29H0z"/><path stroke="#281722" d="M0 0.5h7m1 0h1m1 0h1m7 0h1m3 0h7M0 1.5h1m5 0h1m4 0h2m3 0h1m2 0h2m1 0h1m5 0h1M0 2.5h1m1 0h3m1 0h1m3 0h1m1 0h2m1 0h6m1 0h1m1 0h3m1 0h1M0 3.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h3m1 0h2m2 0h1m1 0h3m1 0h1M0 4.5h1m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1M0 5.5h1m5 0h1m1 0h2m1 0h5m3 0h1m2 0h1m5 0h1M0 6.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M8 7.5h1m5 0h1m2 0h2M0 8.5h1m3 0h1m1 0h3m1 0h2m1 0h5m2 0h6m2 0h1M0 9.5h1m1 0h4m1 0h2m1 0h1m10 0h8M0 10.5h2m1 0h1m1 0h6m1 0h4m4 0h5m3 0h1M0 11.5h4m4 0h1m1 0h2m1 0h1m1 0h3m1 0h2m3 0h2m1 0h2M1 12.5h1m1 0h1m2 0h3m2 0h3m3 0h1m1 0h3m5 0h1M0 13.5h1m1 0h3m4 0h1m3 0h2m1 0h1m5 0h1m1 0h5M1 14.5h1m3 0h7m4 0h1m3 0h3m1 0h3m1 0h1M0 15.5h1m1 0h3m2 0h1m3 0h2m1 0h1m2 0h2m3 0h2m3 0h2M0 16.5h2m3 0h2m4 0h11m5 0h1M0 17.5h3m5 0h2m1 0h2m4 0h2m2 0h5m1 0h2M3 18.5h1m1 0h2m2 0h1m3 0h3m2 0h1m1 0h3m3 0h1m1 0h1M2 19.5h1m1 0h2m3 0h3m1 0h1m1 0h3m2 0h2m2 0h1m2 0h2M0 20.5h3m1 0h1m1 0h1m3 0h2m1 0h1m3 0h1m2 0h6m2 0h1M8 21.5h2m1 0h4m1 0h1m1 0h3m3 0h1m3 0h1M0 22.5h7m1 0h1m3 0h1m3 0h1m2 0h2m1 0h1m1 0h3m1 0h1M0 23.5h1m5 0h1m4 0h2m1 0h1m2 0h4m3 0h1m2 0h1M0 24.5h1m1 0h3m1 0h1m1 0h1m2 0h5m1 0h1m1 0h7m1 0h2M0 25.5h1m1 0h3m1 0h1m3 0h3m4 0h2m1 0h2m5 0h1M0 26.5h1m1 0h3m1 0h1m2 0h2m2 0h3m2 0h1m1 0h2m3 0h4M0 27.5h1m5 0h1m2 0h2m1 0h1m1 0h2m1 0h2m1 0h3m2 0h1m1 0h2M0 28.5h7m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1"/></svg>
+</div>
+  <div><b>Todo el fin de semana, en la app</b><span>Cupones de descuento en los stands, la competencia en vivo, el mapa y las votaciones. Entrá en <em>mmc.saraimagineers.com</em></span></div>
+</div>
+<div class="nota">* Horarios sujetos a cambios.</div>
+<img class="guarda" src="rec/guarda.png" alt="">
+</body></html>
