@@ -19,6 +19,7 @@ export type MarcaAdmin = {
   clave: string;
   emblema: string;
   activa: boolean;
+  en_votacion: boolean;
   vence: string;
   sucursales: string;
   responsable: string;
@@ -58,7 +59,7 @@ export function AdminMarcas({ marcas }: { marcas: MarcaAdmin[] }) {
     const m = id === 'nueva' ? null : marcas.find((x) => x.id === id)!;
     const base: Form = m
       ? { ...m, logo: m.logoUrl }
-      : { nombre: '', stand: '', beneficio: '', condiciones: '', creditos: 1, codigo: codigoAlAzar(usados), emblema: 'taza', activa: true, vence: EVENTO_FIN, sucursales: '', responsable: '', tel_responsable: '', logo: '' };
+      : { nombre: '', stand: '', beneficio: '', condiciones: '', creditos: 1, codigo: codigoAlAzar(usados), emblema: 'taza', activa: true, en_votacion: false, vence: EVENTO_FIN, sucursales: '', responsable: '', tel_responsable: '', logo: '' };
     setF(base);
     setLogoIni(base.logo);
     requestAnimationFrame(() => document.getElementById('fMarca')?.scrollIntoView({ behavior: 'smooth' }));
@@ -147,6 +148,7 @@ export function AdminMarcas({ marcas }: { marcas: MarcaAdmin[] }) {
             </div>
           </div>
           <label className="check"><input type="checkbox" checked={f.activa} onChange={(e) => set({ activa: e.target.checked })} /><span>Visible en la billetera de los visitantes</span></label>
+          <label className="check"><input type="checkbox" checked={f.en_votacion} onChange={(e) => set({ en_votacion: e.target.checked })} /><span>Participa de la votación del stand más lindo</span></label>
           <div className="acciones">
             <button className="btn chico" type="submit" disabled={guardando}>{guardando ? 'Guardando…' : editar === 'nueva' ? 'Crear marca' : 'Guardar cambios'}</button>
             <button type="button" className="btn chico linea" onClick={() => abrir(null)}>Cancelar</button>

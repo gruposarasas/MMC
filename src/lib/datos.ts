@@ -24,6 +24,7 @@ export type Marca = MarcaPublica & {
   clave: string;
   clave_version: number;
   activa: boolean;
+  en_votacion: boolean;
   responsable: string;
   tel_responsable: string;
   enviado_at: string | null;

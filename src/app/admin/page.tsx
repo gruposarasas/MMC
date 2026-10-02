@@ -79,7 +79,7 @@ async function Seccion({ tab }: { tab: Tab }) {
       <AdminMarcas
         marcas={ms.filter((m) => !m.eliminada).map((m) => ({
           id: m.id, nombre: m.nombre, stand: m.stand, beneficio: m.beneficio, condiciones: m.condiciones, creditos: m.creditos,
-          codigo: m.codigo, clave: m.clave, emblema: m.emblema, activa: m.activa, vence: m.vence, sucursales: m.sucursales,
+          codigo: m.codigo, clave: m.clave, emblema: m.emblema, activa: m.activa, en_votacion: m.en_votacion, vence: m.vence, sucursales: m.sucursales,
           responsable: m.responsable, tel_responsable: m.tel_responsable, enviado_at: m.enviado_at, logoUrl: urlLogo(m.logo_path), canjes: n.get(m.id) || 0,
         }))}
       />

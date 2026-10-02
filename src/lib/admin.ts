@@ -48,6 +48,7 @@ export type CamposMarca = {
   codigo: string;
   emblema: string;
   activa: boolean;
+  en_votacion: boolean;
   vence: string;
   sucursales: string;
   responsable: string;
@@ -76,6 +77,7 @@ export function validarMarca(j: Record<string, unknown>): { ok: CamposMarca } | 
       codigo,
       emblema,
       activa: j.activa === true,
+      en_votacion: j.en_votacion === true,
       vence,
       sucursales: String(j.sucursales ?? '').trim().slice(0, 300),
       responsable: s('responsable', 80),

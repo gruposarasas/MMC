@@ -7,9 +7,9 @@ import { urlLogo } from './config';
 // ------------------------------------------------------------ stand más lindo
 export type MarcaVoto = { id: string; nombre: string; stand: string; logo: string; emblema: string };
 
-/** Marcas que se pueden votar: todas las presentes en el Mundial (no eliminadas). */
+/** Marcas que se pueden votar: las que administración marcó para la votación del stand más lindo (y no eliminadas). */
 export async function marcasParaVotar(): Promise<MarcaVoto[]> {
-  const { data, error } = await db().from('marcas').select('id, nombre, stand, logo_path, emblema').eq('eliminada', false).order('orden').order('nombre');
+  const { data, error } = await db().from('marcas').select('id, nombre, stand, logo_path, emblema').eq('eliminada', false).eq('en_votacion', true).order('orden').order('nombre');
   if (error) throw error;
   return (data || []).map((m) => ({ id: m.id, nombre: m.nombre, stand: m.stand, logo: urlLogo(m.logo_path), emblema: m.emblema }));
 }

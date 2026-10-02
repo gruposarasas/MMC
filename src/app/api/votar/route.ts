@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
   const stand = j.tipo === 'stand';
   const existe = stand
-    ? await db().from('marcas').select('id').eq('id', id).eq('eliminada', false).maybeSingle()
+    ? await db().from('marcas').select('id').eq('id', id).eq('eliminada', false).eq('en_votacion', true).maybeSingle()
     : await db().from('baristas').select('id').eq('id', id).maybeSingle();
   if (!existe.data) return NextResponse.json({ error: stand ? 'Esa marca no está en la votación.' : 'Ese barista no está en el torneo.' }, { status: 404 });
 
