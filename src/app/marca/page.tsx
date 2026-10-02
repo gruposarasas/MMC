@@ -49,6 +49,7 @@ export default async function PanelDeMarca() {
               {soloEvento(m.vence) ? 'Vale solo durante el Mundial.' : `Vence el ${fDMY(m.vence)}.`}
               {!soloEvento(m.vence) && m.sucursales ? ` Después del Mundial, también en ${m.sucursales}.` : ''}
             </p>
+            <p style={{ margin: '10px 0 0' }}>Cada visitante lo puede usar {m.creditos === 1 ? '1 vez' : `${m.creditos} veces`}.</p>
             <p style={{ margin: '10px 0 0' }}>Código de caja: <span className="codigo">{m.codigo}</span></p>
             <p className="ayuda" style={{ marginTop: 12 }}>
               El cupón ya está en la billetera de los visitantes y no se puede modificar desde acá. Si necesitás cambiar algo, pedíselo a la organización del Mundial.

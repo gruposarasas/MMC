@@ -52,6 +52,7 @@ type ValorForm = ValorCupon & { beneficio: string; condiciones: string };
 export function FormCupon({ inicial, codigo, creditos }: { inicial: ValorForm; codigo: string; creditos: number }) {
   const router = useRouter();
   const [v, setV] = useState<ValorForm>(inicial);
+  const [usos, setUsos] = useState(Math.max(1, Math.min(10, creditos || 1)));
   const [enviando, setEnviando] = useState(false);
   async function enviar(ev: React.FormEvent) {
     ev.preventDefault();
@@ -61,7 +62,7 @@ export function FormCupon({ inicial, codigo, creditos }: { inicial: ValorForm; c
     if (!confirm('¿Enviar tu cupón? Después no lo vas a poder cambiar ni eliminar: solo la organización puede hacerlo.')) return;
     setEnviando(true);
     const logo = v.logo === inicial.logo ? 'mantener' : v.logo || 'quitar';
-    const r = await fetch('/api/marca/enviar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ beneficio: v.beneficio, condiciones: v.condiciones, vence, sucursales: v.sucursales, logo }) }).catch(() => null);
+    const r = await fetch('/api/marca/enviar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ beneficio: v.beneficio, condiciones: v.condiciones, creditos: usos, vence, sucursales: v.sucursales, logo }) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) : {};
     setEnviando(false);
     if (!r || !r.ok) return toast(j.error || 'No se pudo enviar. Probá de nuevo.');
@@ -84,8 +85,14 @@ export function FormCupon({ inicial, codigo, creditos }: { inicial: ValorForm; c
         <div className="campo">
           <label htmlFor="pmCond">Condiciones</label>
           <input id="pmCond" value={v.condiciones} onChange={(e) => setV((y) => ({ ...y, condiciones: e.target.value }))} placeholder="En cualquier café de la carta" maxLength={240} />
-          <div className="ayuda">Cada visitante lo puede usar {creditos === 1 ? '1 vez' : `${creditos} veces`}: eso lo define la organización.</div>
         </div>
+      </div>
+      <div className="campo">
+        <label htmlFor="pmUsos">Cantidad de usos por visitante</label>
+        <select id="pmUsos" value={usos} onChange={(e) => setUsos(Number(e.target.value))} style={{ maxWidth: 260 }}>
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n === 1 ? '1 vez' : `${n} veces`}</option>)}
+        </select>
+        <div className="ayuda">Cuántas veces puede usar el cupón cada visitante. En la billetera se ve como granos de café.</div>
       </div>
       <CamposCupon v={v} set={(x) => setV((y) => ({ ...y, ...x }))} />
       <div className="campo">
