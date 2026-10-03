@@ -8,10 +8,14 @@ export async function POST(req: Request) {
   if (superado(`jfallo:${dir}`, 10, 900) || superado('jfallo:*', 60, 600))
     return NextResponse.json({ error: 'Demasiados intentos. Esperá unos minutos.' }, { status: 429 });
   let clave = '';
+  let n = 0;
   try {
-    clave = String((await req.json()).clave ?? '').trim().toUpperCase().slice(0, 30);
+    const j = await req.json();
+    clave = String(j.clave ?? '').trim().toUpperCase().slice(0, 30);
+    n = Number(j.n) || 0;
   } catch {}
-  const { data } = clave ? await db().from('jurados').select('n, clave_version').eq('clave', clave).maybeSingle() : { data: null };
+  // El jurado elige su número (1, 2 o 3) y escribe la clave: los tres pueden tener la misma.
+  const { data } = clave && [1, 2, 3].includes(n) ? await db().from('jurados').select('n, clave_version').eq('n', n).eq('clave', clave).maybeSingle() : { data: null };
   if (!data) {
     permitir(`jfallo:${dir}`, 10, 900);
     permitir('jfallo:*', 60, 600);

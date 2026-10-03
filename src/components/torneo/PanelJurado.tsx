@@ -14,11 +14,12 @@ const fmt = (n: number | null) => (n == null ? '—' : n.toLocaleString('es-AR',
 export function EntrarJurado() {
   const router = useRouter();
   const [clave, setClave] = useState('');
+  const [n, setN] = useState(0);
   const [enviando, setEnviando] = useState(false);
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
     setEnviando(true);
-    const r = await fetch('/api/jurado/entrar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ clave }) }).catch(() => null);
+    const r = await fetch('/api/jurado/entrar', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ clave, n }) }).catch(() => null);
     const j = r ? await r.json().catch(() => ({})) : {};
     setEnviando(false);
     if (!r?.ok) return toast(j.error || 'No pudimos entrar. Probá de nuevo.');
@@ -30,13 +31,21 @@ export function EntrarJurado() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="logo" src={recursos.logo} alt="Mundial de Café" style={{ width: 160 }} />
         <h1 className="h1" style={{ fontSize: 26 }}>Jurado del torneo</h1>
-        <p className="lead">Entrá con tu clave de jurado para cargar tu planilla de cada barista.</p>
+        <p className="lead">Elegí qué jurado sos y entrá con tu clave para cargar tu planilla de cada barista.</p>
         <form onSubmit={entrar}>
           <div className="campo">
-            <label htmlFor="jClave">Tu clave</label>
-            <input id="jClave" autoCapitalize="characters" autoComplete="off" placeholder="JURADO-7Q2X" value={clave} onChange={(e) => setClave(e.target.value)} maxLength={30} />
+            <label>Soy el</label>
+            <div className="seg" style={{ gridTemplateColumns: 'repeat(3,1fr)' }} role="radiogroup" aria-label="Número de jurado">
+              {[1, 2, 3].map((x) => (
+                <button key={x} type="button" role="radio" aria-checked={n === x} className={n === x ? 'on' : ''} onClick={() => setN(x)}>Jurado {x}</button>
+              ))}
+            </div>
           </div>
-          <button className="btn" type="submit" disabled={enviando || !clave.trim()}>{enviando ? 'Entrando…' : 'Entrar'}</button>
+          <div className="campo">
+            <label htmlFor="jClave">Tu clave</label>
+            <input id="jClave" autoCapitalize="characters" autoComplete="off" inputMode="numeric" placeholder="Tu clave" value={clave} onChange={(e) => setClave(e.target.value)} maxLength={30} />
+          </div>
+          <button className="btn" type="submit" disabled={enviando || !clave.trim() || !n}>{enviando ? 'Entrando…' : n ? `Entrar como Jurado ${n}` : 'Elegí tu número de jurado'}</button>
         </form>
       </div>
     </div>
