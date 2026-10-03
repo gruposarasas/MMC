@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { juradoActual, vistaJurado, guardarEvaluacion } from '@/lib/jurados';
-import { itemsDe, valorItem, type Valores } from '@/lib/planilla';
+import { itemsDe, valorItem, JURADO_FICHA, FICHA, type Valores } from '@/lib/planilla';
 import { permitir } from '@/lib/limite';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +25,12 @@ export async function POST(req: Request) {
     const v = valorItem(j.valores?.[it.k]);
     if (Number.isNaN(v)) return NextResponse.json({ error: `${it.t}: el puntaje va de 1 a 9, con un decimal (por ejemplo 8,5).` }, { status: 400 });
     if (v != null) valores[it.k] = v;
+  }
+  if (n === JURADO_FICHA && String(j.valores?.ficha ?? '').trim() !== '') {
+    // Ficha técnica: la carga solo el Jurado 2, de 0 a 1 con un decimal.
+    const f = Number(String(j.valores.ficha).replace(',', '.'));
+    if (!Number.isFinite(f) || f < FICHA.min || f > FICHA.max) return NextResponse.json({ error: 'Ficha técnica: va de 0 a 1, con un decimal (por ejemplo 0,5).' }, { status: 400 });
+    valores.ficha = Math.round(f * 10) / 10;
   }
   const comentario = String(j.comentario ?? '').trim().slice(0, 500);
   const err = await guardarEvaluacion(n, j.barista, ronda, valores, comentario);

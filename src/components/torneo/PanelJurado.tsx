@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import recursos from '@/lib/recursos.json';
-import { ESCALA, completa, totalJurado, type Item, type Valores } from '@/lib/planilla';
+import { ESCALA, completa, totalJurado, JURADO_FICHA, type Item, type Valores } from '@/lib/planilla';
 import { toast } from '../Toast';
 
 type B = { id: string; nombre: string; turno: string; valores: Valores; comentario: string };
@@ -93,7 +93,8 @@ export function PanelJurado({ inicial }: { inicial: Vista }) {
 }
 
 function FilaJurado({ b, v, abierto, abrir, guardado }: { b: B; v: Vista; abierto: boolean; abrir: () => void; guardado: (v: Vista) => void }) {
-  const [val, setVal] = useState<Record<string, string>>(() => Object.fromEntries(v.items.map((i) => [i.k, txt(b.valores[i.k])])));
+  const [val, setVal] = useState<Record<string, string>>(() => ({ ...Object.fromEntries(v.items.map((i) => [i.k, txt(b.valores[i.k])])), ficha: txt(b.valores.ficha) }));
+  const conFicha = v.jurado === JURADO_FICHA;
   const [com, setCom] = useState(b.comentario);
   const [enviando, setEnviando] = useState(false);
   const ok = completa(v.ronda.n, b.valores);
@@ -125,6 +126,12 @@ function FilaJurado({ b, v, abierto, abrir, guardado }: { b: B; v: Vista; abiert
               <input inputMode="decimal" placeholder="—" value={val[i.k] || ''} onChange={(e) => setVal((x) => ({ ...x, [i.k]: e.target.value }))} aria-label={`${i.t} de ${b.nombre}`} />
             </label>
           ))}
+          {conFicha && (
+            <label className="jur-campo">
+              <span>Ficha técnica <small style={{ display: 'block', fontWeight: 500, fontSize: 12, color: 'rgba(243,233,220,.6)' }}>De 0 a 1. Se suma al puntaje final.</small></span>
+              <input inputMode="decimal" placeholder="0" value={val.ficha || ''} onChange={(e) => setVal((x) => ({ ...x, ficha: e.target.value }))} aria-label={`Ficha técnica de ${b.nombre}`} />
+            </label>
+          )}
           <label className="jur-campo col">
             <span>Comentario para el barista (opcional)</span>
             <textarea className="area" rows={3} maxLength={500} value={com} onChange={(e) => setCom(e.target.value)} placeholder="Lo ve el barista en su devolución, firmado como Jurado N." />

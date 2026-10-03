@@ -47,7 +47,7 @@ export async function recalcular(baristaId: string, n: number) {
     evaluaciones({ ronda: n, barista: baristaId }),
     db().from('puntajes').select('semilla, puntaje, espresso, desempate, descuento, ficha, puntuado_at').eq('barista_id', baristaId).eq('ronda', n).maybeSingle(),
   ]);
-  const res = resultado(n, evs, (p?.descuento as number) || 0, Number(p?.ficha) || 0);
+  const res = resultado(n, evs, (p?.descuento as number) || 0);
   if (!res) return null;
   const cambia = res.puntaje !== (p?.puntaje == null ? null : Number(p.puntaje));
   const { error } = await db().from('puntajes').upsert({
@@ -58,7 +58,7 @@ export async function recalcular(baristaId: string, n: number) {
     espresso: res.espresso,
     desempate: p?.desempate ?? 0,
     descuento: p?.descuento ?? 0,
-    ficha: p?.ficha ?? 0,
+    ficha: res.ficha,
     puntuado_at: cambia || !p?.puntuado_at ? new Date().toISOString() : p.puntuado_at,
   });
   if (error) throw error;
@@ -94,7 +94,7 @@ export async function devolucion(baristaId: string) {
   return RONDAS.map((r) => {
     const deRonda = evs.filter((e) => e.ronda === r.n).sort((a, b) => a.jurado - b.jurado);
     const p = (ps || []).find((x) => x.ronda === r.n);
-    const res = resultado(r.n, deRonda, (p?.descuento as number) || 0, Number(p?.ficha) || 0);
+    const res = resultado(r.n, deRonda, (p?.descuento as number) || 0);
     if (!res) return null;
     return {
       ronda: r.titulo,
@@ -103,7 +103,7 @@ export async function devolucion(baristaId: string) {
       totales: res.totales,
       promedio: res.promedio,
       descuento: (p?.descuento as number) || 0,
-      ficha: Number(p?.ficha) || 0,
+      ficha: res.ficha,
       puntaje: p?.puntaje == null ? res.puntaje : Number(p.puntaje),
     };
   }).filter((x) => x != null);

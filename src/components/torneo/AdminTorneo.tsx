@@ -88,7 +88,7 @@ export function AdminTorneo({ inicial }: { inicial: Estado }) {
           )}
         </div>
         <p className="ayuda">
-          Cuando los <b>3 jurados</b> cargan su planilla en <Link className="link" href="/jurado">/jurado</Link>, el puntaje y el espresso se calculan solos (promedio de los 3, menos los descuentos de los jueces fiscales en <b>Desc.</b>, más la <b>Ficha técnica</b>, de 0 a 1 con un decimal). Si hace falta, se pueden cargar a mano: de 1 a 9 con un decimal (por ejemplo 8,5). Guardá con Enter o con el botón. <b>Empates</b>: a igual puntaje, pasa el de mejor <b>espresso</b>; si también empatan, el jurado desempata (en la Ronda 3 y la final, por la bebida de autor) cargando <b>Desempate</b>: el número más alto queda arriba.
+          Cuando los <b>3 jurados</b> cargan su planilla en <Link className="link" href="/jurado">/jurado</Link>, el puntaje y el espresso se calculan solos (promedio de los 3, menos los descuentos de los jueces fiscales en <b>Desc.</b>, más la <b>Ficha técnica</b> de 0 a 1 que carga el Jurado 2 en su planilla). Si hace falta, se pueden cargar a mano: de 1 a 9 con un decimal (por ejemplo 8,5). Guardá con Enter o con el botón. <b>Empates</b>: a igual puntaje, pasa el de mejor <b>espresso</b>; si también empatan, el jurado desempata (en la Ronda 3 y la final, por la bebida de autor) cargando <b>Desempate</b>: el número más alto queda arriba.
           {r.fase === 'r3' && ' Los puestos 3 y 4 de esta ronda son el 3° y 4° puesto del torneo.'}
         </p>
         {empate && <p className="pill off" style={{ marginTop: 8 }}>Hay un empate en el puesto {r.pasan}, justo en el corte: cargá el espresso y, si siguen empatados, usá Desempate antes de cerrar.</p>}
@@ -125,9 +125,8 @@ function FilaBarista({ f, n, jurados, pos, corte, editable, act }: { f: Fila; n:
   const [esp, setEsp] = useState(entrada(f.espresso));
   const [des, setDes] = useState(String(f.desempate || 0));
   const [desc, setDesc] = useState(String(f.descuento || 0));
-  const [ficha, setFicha] = useState(f.ficha ? String(f.ficha).replace('.', ',') : '0');
   const auto = jurados === 3; // el puntaje sale de las planillas de los 3 jurados
-  const guardar = () => act({ accion: 'puntaje', id: f.id, ronda: n, puntaje: pts, espresso: esp, desempate: des, descuento: desc, ficha }, auto ? 'Guardado.' : pts ? `Puntaje de ${f.nombre}: ${pts}` : 'Puntaje borrado.');
+  const guardar = () => act({ accion: 'puntaje', id: f.id, ronda: n, puntaje: pts, espresso: esp, desempate: des, descuento: desc }, auto ? 'Guardado.' : pts ? `Puntaje de ${f.nombre}: ${pts}` : 'Puntaje borrado.');
   return (
     <tr style={corte ? { borderBottom: '3px solid var(--arena)' } : undefined}>
       <td><b>{pos ?? '—'}</b>{f.semilla != null && <div className="ayuda">llegó {f.semilla}°</div>}</td>
@@ -158,9 +157,7 @@ function FilaBarista({ f, n, jurados, pos, corte, editable, act }: { f: Fila; n:
           <td>
             <input className="buscar" style={{ minWidth: 0, width: 56 }} inputMode="numeric" aria-label={`Descuentos de los jueces fiscales para ${f.nombre}`} value={desc} onChange={(x) => setDesc(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
           </td>
-          <td>
-            <input className="buscar" style={{ minWidth: 0, width: 64 }} inputMode="decimal" aria-label={`Ficha técnica de ${f.nombre} (de 0 a 1)`} value={ficha} onChange={(x) => setFicha(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
-          </td>
+          <td title="La carga el Jurado 2 en su planilla">{f.ficha ? `+${fPuntaje(f.ficha)}` : '—'}</td>
           <td>
             <input className="buscar" style={{ minWidth: 0, width: 64 }} inputMode="numeric" aria-label={`Desempate del jurado para ${f.nombre}`} value={des} onChange={(x) => setDes(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
           </td>

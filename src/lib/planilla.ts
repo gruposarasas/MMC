@@ -19,6 +19,13 @@ export const ITEM_DESEMPATE = 'espresso';
 
 export const JURADOS = [1, 2, 3] as const;
 
+/** La ficha técnica (de 0 a 1, con un decimal) la carga este jurado en su planilla y se suma al puntaje final. */
+export const JURADO_FICHA = 2;
+export const FICHA = { min: 0, max: 1 };
+
+/** Ficha técnica de un barista en una ronda: la que cargó el Jurado 2 (0 si todavía no la cargó). */
+export const fichaDe = (evs: Evaluacion[]) => Number(evs.find((e) => e.jurado === JURADO_FICHA)?.valores?.ficha) || 0;
+
 export const itemsDe = (ronda: number) => ITEMS.filter((i) => i.rondas.includes(ronda));
 
 export type Valores = Record<string, number>;
@@ -46,15 +53,17 @@ export function totalJurado(ronda: number, v: Valores | undefined) {
 
 /**
  * Puntaje de la ronda: promedio de los 3 jurados menos los descuentos de los jueces fiscales (nunca menos de 1),
- * más la ficha técnica (de 0 a 1). Espresso (para desempatar): promedio del espresso de los 3. null si falta alguna planilla.
+ * más la ficha técnica que carga el Jurado 2 (de 0 a 1). Espresso (para desempatar): promedio del espresso de los 3. null si falta alguna planilla.
  */
-export function resultado(ronda: number, evs: Evaluacion[], descuento: number, ficha = 0) {
+export function resultado(ronda: number, evs: Evaluacion[], descuento: number) {
+  const ficha = fichaDe(evs);
   const totales = JURADOS.map((n) => totalJurado(ronda, evs.find((e) => e.jurado === n)?.valores));
   if (totales.some((t) => t == null)) return null;
   const promedio = r1(prom(totales as number[]));
   return {
     totales: totales as number[],
     promedio,
+    ficha,
     puntaje: r1(Math.max(ESCALA.min, promedio - descuento) + ficha),
     espresso: r1(prom(JURADOS.map((n) => evs.find((e) => e.jurado === n)!.valores[ITEM_DESEMPATE]))),
   };
