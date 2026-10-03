@@ -42,7 +42,7 @@ export default async function PanelDeBarista() {
             {d.jurados.filter((j) => j.comentario).map((j) => (
               <p key={j.n} className="com"><b>Jurado {j.n}:</b> {j.comentario}</p>
             ))}
-            <p className="ayuda">Promedio de los 3 jurados: {fPuntaje(d.promedio)}{d.descuento ? ` · Descuentos de los jueces fiscales: −${d.descuento}` : ''}</p>
+            <p className="ayuda">Promedio de los 3 jurados: {fPuntaje(d.promedio)}{d.descuento ? ` · Descuentos de los jueces fiscales: −${d.descuento}` : ''}{d.ficha ? ` · Ficha técnica: +${fPuntaje(d.ficha)}` : ''}</p>
             <div className="final"><span>Tu puntaje en la {d.ronda}</span><b>{fPuntaje(d.puntaje)}</b></div>
           </section>
         ))}

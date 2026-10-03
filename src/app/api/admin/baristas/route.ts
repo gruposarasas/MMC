@@ -72,10 +72,12 @@ export async function POST(req: Request) {
       if (Number.isNaN(esp)) return mal('El puntaje del espresso va de 1 a 9, con un decimal.');
       const desempate = Math.max(-99, Math.min(99, Math.round(Number(j.desempate) || 0)));
       const descuento = Math.max(0, Math.min(20, Math.round(Number(j.descuento) || 0)));
+      const ficha = Number(String(j.ficha ?? '0').replace(',', '.') || 0);
+      if (!Number.isFinite(ficha) || ficha < 0 || ficha > 1) return mal('La ficha técnica va de 0 a 1, con un decimal. Por ejemplo: 0,5.');
       const err = await puntuar(j.id, n, p, esp, desempate);
       if (err) return mal(err, 409);
       // Descuentos de los jueces fiscales. Si los 3 jurados ya cargaron su planilla, el puntaje sale de ellos.
-      await db().from('puntajes').update({ descuento }).eq('barista_id', j.id).eq('ronda', n);
+      await db().from('puntajes').update({ descuento, ficha: Math.round(ficha * 10) / 10 }).eq('barista_id', j.id).eq('ronda', n);
       await recalcular(j.id, n);
       return ok();
     }

@@ -9,7 +9,7 @@ export async function estadoTorneo(): Promise<EstadoTorneo> {
   const [t, b, p] = await Promise.all([
     db().from('torneo').select('fase, pantalla').eq('id', 1).maybeSingle(),
     db().from('baristas').select('id, nombre, cafeteria, turno, orden, created_at').order('orden').order('created_at'),
-    db().from('puntajes').select('barista_id, ronda, semilla, puntaje, espresso, desempate, descuento, puntuado_at'),
+    db().from('puntajes').select('barista_id, ronda, semilla, puntaje, espresso, desempate, descuento, ficha, puntuado_at'),
   ]);
   if (b.error) throw b.error;
   if (p.error) throw p.error;

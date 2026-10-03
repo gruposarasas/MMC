@@ -88,17 +88,17 @@ export function AdminTorneo({ inicial }: { inicial: Estado }) {
           )}
         </div>
         <p className="ayuda">
-          Cuando los <b>3 jurados</b> cargan su planilla en <Link className="link" href="/jurado">/jurado</Link>, el puntaje y el espresso se calculan solos (promedio de los 3, menos los descuentos de los jueces fiscales en <b>Desc.</b>). Si hace falta, se pueden cargar a mano: de 1 a 9 con un decimal (por ejemplo 8,5). Guardá con Enter o con el botón. <b>Empates</b>: a igual puntaje, pasa el de mejor <b>espresso</b>; si también empatan, el jurado desempata (en la Ronda 3 y la final, por la bebida de autor) cargando <b>Desempate</b>: el número más alto queda arriba.
+          Cuando los <b>3 jurados</b> cargan su planilla en <Link className="link" href="/jurado">/jurado</Link>, el puntaje y el espresso se calculan solos (promedio de los 3, menos los descuentos de los jueces fiscales en <b>Desc.</b>, más la <b>Ficha técnica</b>, de 0 a 1 con un decimal). Si hace falta, se pueden cargar a mano: de 1 a 9 con un decimal (por ejemplo 8,5). Guardá con Enter o con el botón. <b>Empates</b>: a igual puntaje, pasa el de mejor <b>espresso</b>; si también empatan, el jurado desempata (en la Ronda 3 y la final, por la bebida de autor) cargando <b>Desempate</b>: el número más alto queda arriba.
           {r.fase === 'r3' && ' Los puestos 3 y 4 de esta ronda son el 3° y 4° puesto del torneo.'}
         </p>
         {empate && <p className="pill off" style={{ marginTop: 8 }}>Hay un empate en el puesto {r.pasan}, justo en el corte: cargá el espresso y, si siguen empatados, usá Desempate antes de cerrar.</p>}
         <table>
-          <thead><tr><th>Pos.</th><th>Barista</th><th>Turno</th><th>Jurados</th><th>Puntaje</th><th>Espresso</th><th>Desc.</th><th>Desempate</th><th></th></tr></thead>
+          <thead><tr><th>Pos.</th><th>Barista</th><th>Turno</th><th>Jurados</th><th>Puntaje</th><th>Espresso</th><th>Desc.</th><th>Ficha técnica</th><th>Desempate</th><th></th></tr></thead>
           <tbody>
             {filas.map((f, i) => (
-              <FilaBarista key={f.id + r.n + (f.puntuado_at || '') + f.desempate + (f.espresso ?? '') + f.descuento + (e.avance[`${f.id}:${r.n}`] || 0)} f={f} n={r.n} jurados={e.avance[`${f.id}:${r.n}`] || 0} pos={f.puntaje == null ? null : i + 1} corte={i === r.pasan - 1} editable={editable} act={act} />
+              <FilaBarista key={f.id + r.n + (f.puntuado_at || '') + f.desempate + (f.espresso ?? '') + f.descuento + f.ficha + (e.avance[`${f.id}:${r.n}`] || 0)} f={f} n={r.n} jurados={e.avance[`${f.id}:${r.n}`] || 0} pos={f.puntaje == null ? null : i + 1} corte={i === r.pasan - 1} editable={editable} act={act} />
             ))}
-            {!filas.length && <tr><td colSpan={9}>{r.n === 1 ? 'Todavía no hay participantes.' : 'Esta ronda empieza cuando se cierra la anterior.'}</td></tr>}
+            {!filas.length && <tr><td colSpan={10}>{r.n === 1 ? 'Todavía no hay participantes.' : 'Esta ronda empieza cuando se cierra la anterior.'}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -125,8 +125,9 @@ function FilaBarista({ f, n, jurados, pos, corte, editable, act }: { f: Fila; n:
   const [esp, setEsp] = useState(entrada(f.espresso));
   const [des, setDes] = useState(String(f.desempate || 0));
   const [desc, setDesc] = useState(String(f.descuento || 0));
+  const [ficha, setFicha] = useState(f.ficha ? String(f.ficha).replace('.', ',') : '0');
   const auto = jurados === 3; // el puntaje sale de las planillas de los 3 jurados
-  const guardar = () => act({ accion: 'puntaje', id: f.id, ronda: n, puntaje: pts, espresso: esp, desempate: des, descuento: desc }, auto ? 'Guardado.' : pts ? `Puntaje de ${f.nombre}: ${pts}` : 'Puntaje borrado.');
+  const guardar = () => act({ accion: 'puntaje', id: f.id, ronda: n, puntaje: pts, espresso: esp, desempate: des, descuento: desc, ficha }, auto ? 'Guardado.' : pts ? `Puntaje de ${f.nombre}: ${pts}` : 'Puntaje borrado.');
   return (
     <tr style={corte ? { borderBottom: '3px solid var(--arena)' } : undefined}>
       <td><b>{pos ?? '—'}</b>{f.semilla != null && <div className="ayuda">llegó {f.semilla}°</div>}</td>
@@ -158,6 +159,9 @@ function FilaBarista({ f, n, jurados, pos, corte, editable, act }: { f: Fila; n:
             <input className="buscar" style={{ minWidth: 0, width: 56 }} inputMode="numeric" aria-label={`Descuentos de los jueces fiscales para ${f.nombre}`} value={desc} onChange={(x) => setDesc(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
           </td>
           <td>
+            <input className="buscar" style={{ minWidth: 0, width: 64 }} inputMode="decimal" aria-label={`Ficha técnica de ${f.nombre} (de 0 a 1)`} value={ficha} onChange={(x) => setFicha(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
+          </td>
+          <td>
             <input className="buscar" style={{ minWidth: 0, width: 64 }} inputMode="numeric" aria-label={`Desempate del jurado para ${f.nombre}`} value={des} onChange={(x) => setDes(x.target.value)} onKeyDown={(x) => x.key === 'Enter' && guardar()} />
           </td>
           <td><button className="btn chico" onClick={guardar}>Guardar</button></td>
@@ -167,6 +171,7 @@ function FilaBarista({ f, n, jurados, pos, corte, editable, act }: { f: Fila; n:
           <td><b>{fPuntaje(f.puntaje)}</b></td>
           <td>{f.espresso == null ? '' : fPuntaje(f.espresso)}</td>
           <td>{f.descuento ? `−${f.descuento}` : ''}</td>
+          <td>{f.ficha ? `+${fPuntaje(f.ficha)}` : ''}</td>
           <td>{f.desempate || ''}</td>
           <td />
         </>

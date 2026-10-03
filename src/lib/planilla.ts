@@ -45,17 +45,17 @@ export function totalJurado(ronda: number, v: Valores | undefined) {
 }
 
 /**
- * Puntaje de la ronda: promedio de los 3 jurados menos los descuentos de los jueces fiscales (nunca menos de 1).
- * Espresso (para desempatar): promedio del espresso de los 3. null si falta alguna planilla.
+ * Puntaje de la ronda: promedio de los 3 jurados menos los descuentos de los jueces fiscales (nunca menos de 1),
+ * más la ficha técnica (de 0 a 1). Espresso (para desempatar): promedio del espresso de los 3. null si falta alguna planilla.
  */
-export function resultado(ronda: number, evs: Evaluacion[], descuento: number) {
+export function resultado(ronda: number, evs: Evaluacion[], descuento: number, ficha = 0) {
   const totales = JURADOS.map((n) => totalJurado(ronda, evs.find((e) => e.jurado === n)?.valores));
   if (totales.some((t) => t == null)) return null;
   const promedio = r1(prom(totales as number[]));
   return {
     totales: totales as number[],
     promedio,
-    puntaje: r1(Math.max(ESCALA.min, promedio - descuento)),
+    puntaje: r1(Math.max(ESCALA.min, promedio - descuento) + ficha),
     espresso: r1(prom(JURADOS.map((n) => evs.find((e) => e.jurado === n)!.valores[ITEM_DESEMPATE]))),
   };
 }
