@@ -1,17 +1,16 @@
 import html
 R1 = [
- ("10:30 – 11:00", [("Facundo Quiroga",""),("Facundo Lobos","Cake in Box"),("Marcelo Ortega","Patio Café")]),
- ("11:00 – 11:30", [("Lian Yair Diaz","Only Barismo"),("Giuliana Velazco","White Shark"),("Sol Perea","Una Pausita Mendocina")]),
- ("11:30 – 12:00", [("Juan Censi","Club de Café"),("Abril Zeballes","Macanudo"),("Luciano Poblete","")]),
- ("12:00 – 12:30", [("Jeremias Loyola","Chill"),("Alan Vera","El Búho Coffice and Food"),("Chiara Moyano","Hogaza by Erudito")]),
- ("12:30 – 13:00", [("Jerónimo Osorio","Shelby"),("Melina","Modesto Alvear"),("Ignacio López","HÜ Cueva de Café")]),
+ ("10:30 – 11:00", [('Facundo Quiroga', ''), ('Facundo Lobos', 'Cake in Box'), ('Marcelo Ortega', 'Patio Café')]),
+ ("11:00 – 11:30", [('Lian Yair Diaz', 'Only Barismo'), ('Joaquín Karlen', 'Hefesto'), ('Sol Perea', 'Una Pausita Mendocina')]),
+ ("11:30 – 12:00", [('Juan Cenci', 'Club de Café'), ('Abril Zeballes', 'Macanudo'), ('Luciano Poblete', '')]),
+ ("12:00 – 12:30", [('Jeremias Loyola', 'Chill'), ('Alan Vera', 'El Búho Coffice and Food'), ('Chiara Moyano', 'Hogaza by Erudito')]),
+ ("12:30 – 13:00", [('Jerónimo Osorio', 'Shelby'), ('Melina', 'Modesto Alvear'), ('Ignacio López', 'HÜ Cueva de Café')]),
  None,
- ("17:00 – 17:30", [("Italo Siriani","Cumbal"),("Valentino Alvarez","Petit Patisserie"),("Valentina Esquivel","Virgen del Valle")]),
- ("17:30 – 18:00", [("Rosario Molina",""),("Nicolás Zaradnik","Hefesto"),("Rodrigo Herrera","Pato Coffee")]),
- ("18:00 – 18:30", [("Bruno Fernandez","Shelby"),("Priscila Muñoz",""),("Julieta Fernandez","White Shark")]),
- ("18:30 – 19:00", [("Gonzalo Encina","Chiamo"),("Neyen Molina","Modesto Dalvian"),("Daiana Oyola","Una Pausita Mendocina")]),
- ("19:00 – 19:30", [("Agustin Stubbia","Pato Coffee"),("Agustín Benito","Pato Coffee"),None]),
- ("19:30 – 20:00", [("Joaquín Karlen","Hefesto"),("Jonás Mesa","Patio"),None]),
+ ("17:00 – 17:30", [('Italo Siriani', 'Cumbal'), ('Valentino Alvarez', 'Petit Patisserie'), ('Valentina Esquivel', 'Virgen del Valle')]),
+ ("17:30 – 18:00", [('Rosario Molina', ''), ('Nicolás Zaradnik', 'Hefesto'), ('Rodrigo Herrera', 'Pato Coffee')]),
+ ("18:00 – 18:30", [('Bruno Fernandez', 'Shelby'), ('Priscila Muñoz', ''), ('Julieta Fernandez', 'White Shark')]),
+ ("18:30 – 19:00", [('Gonzalo Encina', 'Chiamo'), ('Neyen Molina', 'Modesto Dalvian'), ('Daiana Oyola', 'Una Pausita Mendocina')]),
+ ("19:00 – 19:30", [('Agustin Stubbia', 'Pato Coffee'), ('Agustín Benito', 'Pato Coffee'), ('Jonás Mesa', 'Patio')]),
 ]
 e = html.escape
 def celda(x):
