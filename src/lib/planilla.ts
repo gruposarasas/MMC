@@ -1,7 +1,7 @@
 // Planilla de los jurados: qué puntúa cada jurado en cada ronda y cómo sale el puntaje.
 // Reglas puras (se usan en el servidor y en las pantallas). Para cambiar la planilla, se toca solo este archivo.
 //
-// PROVISORIA: hasta que llegue la estructura oficial de puntuación de los jurados.
+// Rondas 1 y 2: espresso y flat white. Ronda 3 y final: suma la bebida de autor.
 
 export type Item = { k: string; t: string; rondas: number[] };
 
@@ -10,8 +10,7 @@ export const ESCALA = { min: 1, max: 9 }; // con un decimal
 export const ITEMS: Item[] = [
   { k: 'espresso', t: 'Espresso', rondas: [1, 2, 3, 4] },
   { k: 'leche', t: 'Flat white', rondas: [1, 2, 3, 4] },
-  { k: 'autor', t: 'Bebida de autor', rondas: [3, 4] },
-  { k: 'presentacion', t: 'Presentación y hospitalidad', rondas: [3, 4] },
+  { k: 'autor', t: 'Bebida de autor', rondas: [3, 4] }, // desde la Ronda 3 se promedia con el espresso y el flat white
 ];
 
 /** Ítem que se usa para desempatar (el puntaje del espresso). */
