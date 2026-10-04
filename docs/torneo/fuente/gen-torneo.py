@@ -24,7 +24,7 @@ for f in R1:
     h, xs = f
     filas1.append(f'<tr><th>{h}</th>{"".join(celda(x) for x in xs)}</tr>')
 def pos(n, r): return f'<td class="pos"><b>{n}°</b><small>de la {r}</small></td>'
-R2 = [("10:00 – 10:30",[1,16,10]),("10:30 – 11:00",[2,15,9]),("11:00 – 11:30",[3,14,8]),("11:30 – 12:00",[4,13,7]),("12:00 – 12:30",[5,12,None]),("12:30 – 13:00",[6,11,None])]
+R2 = [("10:30 – 11:00",[1,16,10]),("11:00 – 11:30",[2,15,9]),("11:30 – 12:00",[3,14,8]),("12:00 – 12:30",[4,13,7]),("12:30 – 13:00",[5,12,None]),("13:00 – 13:30",[6,11,None])]
 filas2 = [f'<tr><th>{h}</th>{"".join(pos(n,"Ronda 1") if n else "<td class=vacia>—</td>" for n in xs)}</tr>' for h,xs in R2]
 R3 = [("17:00 – 17:30",[1,3,5]),("17:30 – 18:00",[2,4,6])]
 filas3 = [f'<tr><th>{h}</th>{"".join(pos(n,"Ronda 2") for n in xs)}</tr>' for h,xs in R3]

@@ -29,12 +29,12 @@ export const ronda = (f: Fase) => RONDAS.find((r) => r.fase === f)!;
 /** Turnos de las rondas 2, 3 y la final según el puesto con que llega cada barista (cronograma oficial). */
 export const TURNOS: Record<number, Record<number, string>> = {
   2: {
-    1: 'Dom 10:00 · Mesa 1', 16: 'Dom 10:00 · Mesa 2', 10: 'Dom 10:00 · Mesa 3',
-    2: 'Dom 10:30 · Mesa 1', 15: 'Dom 10:30 · Mesa 2', 9: 'Dom 10:30 · Mesa 3',
-    3: 'Dom 11:00 · Mesa 1', 14: 'Dom 11:00 · Mesa 2', 8: 'Dom 11:00 · Mesa 3',
-    4: 'Dom 11:30 · Mesa 1', 13: 'Dom 11:30 · Mesa 2', 7: 'Dom 11:30 · Mesa 3',
-    5: 'Dom 12:00 · Mesa 1', 12: 'Dom 12:00 · Mesa 2',
-    6: 'Dom 12:30 · Mesa 1', 11: 'Dom 12:30 · Mesa 2',
+    1: 'Dom 10:30 · Mesa 1', 16: 'Dom 10:30 · Mesa 2', 10: 'Dom 10:30 · Mesa 3',
+    2: 'Dom 11:00 · Mesa 1', 15: 'Dom 11:00 · Mesa 2', 9: 'Dom 11:00 · Mesa 3',
+    3: 'Dom 11:30 · Mesa 1', 14: 'Dom 11:30 · Mesa 2', 8: 'Dom 11:30 · Mesa 3',
+    4: 'Dom 12:00 · Mesa 1', 13: 'Dom 12:00 · Mesa 2', 7: 'Dom 12:00 · Mesa 3',
+    5: 'Dom 12:30 · Mesa 1', 12: 'Dom 12:30 · Mesa 2',
+    6: 'Dom 13:00 · Mesa 1', 11: 'Dom 13:00 · Mesa 2',
   },
   3: {
     1: 'Dom 17:00 · Mesa 1', 3: 'Dom 17:00 · Mesa 2', 5: 'Dom 17:00 · Mesa 3',
