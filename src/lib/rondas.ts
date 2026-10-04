@@ -38,7 +38,7 @@ export const TURNOS: Record<number, Record<number, string>> = {
   },
   3: {
     1: 'Dom 17:00 · Mesa 1', 3: 'Dom 17:00 · Mesa 2', 5: 'Dom 17:00 · Mesa 3',
-    2: 'Dom 17:30 · Mesa 1', 4: 'Dom 17:30 · Mesa 2', 6: 'Dom 17:30 · Mesa 3',
+    2: 'Dom 17:45 · Mesa 1', 4: 'Dom 17:45 · Mesa 2', 6: 'Dom 17:45 · Mesa 3',
   },
   4: { 1: 'Dom 18:30 · Mesa 1', 2: 'Dom 18:30 · Mesa 2' },
 };
