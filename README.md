@@ -6,6 +6,7 @@ Los visitantes escanean un QR, se registran y reciben una billetera con cupones 
 - **Producción:** https://mmc.saraimagineers.com
 - **Stack:** Next.js 15 (App Router, TypeScript) · Supabase (proyecto `MMC`, São Paulo) · Docker en Easypanel (proyecto `mmc`).
 - **Diseño y textos:** `referencia/prototipo-mundial.html`, el prototipo aprobado. El brief completo está en `CLAUDE.md`.
+- **Otra app en este repo:** `bb-control/` es **BB-CONTROL**, la app de gestión de Bruno Brown (ventas, compras, gastos, sueldos, equipo, costos y KPI). Es independiente: ver `bb-control/README.md`.
 
 ## Rutas
 
