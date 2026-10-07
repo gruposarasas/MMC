@@ -1,16 +1,20 @@
 // Aplica las migraciones de db/migraciones que todavía no se corrieron.
 // Se ejecuta solo al arrancar el contenedor y también con `npm run migrar`.
+// Si falla, explica por qué en el log; el contenedor arranca igual (ver Dockerfile).
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import postgres from 'postgres';
+import { describirConexion, explicarError, opcionesConexion } from './conexion.mjs';
 
-const url = process.env.DATABASE_URL;
-if (!url) {
-  console.error('[migrar] Falta DATABASE_URL');
+let opciones;
+try {
+  opciones = opcionesConexion(process.env.DATABASE_URL);
+} catch (e) {
+  console.error(`[migrar] ${e.message}`);
   process.exit(1);
 }
-
-const sql = postgres(url, { prepare: false, max: 1, onnotice: () => {} });
+console.log(`[migrar] conectando a ${describirConexion(opciones)}`);
+const sql = postgres({ ...opciones, prepare: false, max: 1, connect_timeout: 15, onnotice: () => {} });
 const dir = join(process.cwd(), 'db', 'migraciones');
 
 try {
@@ -30,7 +34,7 @@ try {
   await sql`alter table _migraciones enable row level security`;
   console.log('[migrar] base al día');
 } catch (e) {
-  console.error('[migrar] error:', e.message);
+  console.error(`[migrar] ERROR: ${explicarError(e)}`);
   process.exitCode = 1;
 } finally {
   await sql.end({ timeout: 5 });

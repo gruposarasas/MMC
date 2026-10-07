@@ -1,5 +1,6 @@
 // Conexión a Postgres. Solo servidor.
 import postgres from 'postgres';
+import { opcionesConexion } from '../../scripts/conexion.mjs';
 
 type Sql = postgres.Sql<Record<string, unknown>>;
 const global = globalThis as unknown as { __bbSql?: Sql };
@@ -7,10 +8,10 @@ const global = globalThis as unknown as { __bbSql?: Sql };
 export function db(): Sql {
   if (typeof window !== 'undefined') throw new Error('db() es solo del servidor');
   if (!global.__bbSql) {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('Falta DATABASE_URL');
-    global.__bbSql = postgres(url, {
+    global.__bbSql = postgres({
+      ...opcionesConexion(process.env.DATABASE_URL),
       prepare: false, // compatible con el pooler de Supabase
+      connect_timeout: 15,
       max: 6,
       idle_timeout: 30,
       onnotice: () => {},

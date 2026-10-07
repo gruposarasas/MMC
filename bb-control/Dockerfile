@@ -22,6 +22,7 @@ COPY --from=build --chown=app:app /app/db ./db
 COPY --from=build --chown=app:app /app/scripts ./scripts
 USER app
 EXPOSE 3000
-# Primero aplica las migraciones pendientes y después arranca. HOSTNAME se fija acá
+# Primero aplica las migraciones pendientes y después arranca, aunque la base falle:
+# así el sitio abre y /api/salud y los logs dicen qué pasa. HOSTNAME se fija acá
 # porque Docker lo pisa con el nombre del contenedor.
-CMD ["sh", "-c", "node scripts/migrar.mjs && HOSTNAME=0.0.0.0 exec node server.js"]
+CMD ["sh", "-c", "node scripts/migrar.mjs; HOSTNAME=0.0.0.0 exec node server.js"]
