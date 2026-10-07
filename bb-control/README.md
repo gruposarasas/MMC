@@ -2,7 +2,8 @@
 
 App de gestión de **Bruno Brown** (importadora de café): ventas, compras, gastos, sueldos, equipo, costos y KPI mensuales, con un cashflow permanente. Se carga a mano o con planillas, y de a poco se automatiza.
 
-- **Stack:** Next.js 15 (App Router, TypeScript) · Postgres (Supabase u otro) con `postgres` · Docker en Easypanel.
+- **Producción:** https://bb.saraimagineers.com (equipo: https://bb.saraimagineers.com/mi)
+- **Stack:** Next.js 15 (App Router, TypeScript) · Postgres en Supabase (proyecto `BB-CONTROL`, ref `lojzzhmlsocbamejedxy`, São Paulo) con `postgres` · Docker en Easypanel (proyecto `bb`).
 - **Diseño:** identidad de Bruno Brown y de la app del Mundial de Café: ciruela `#281722`, bordó `#8E3949`, arena `#C2A27B`, crema `#F3E9DC`, Poppins, la "B", las figuras geométricas y la guarda (`public/img`).
 - Vive en la carpeta `bb-control/` del repo de MMC. Es una app aparte: su propio `package.json`, `Dockerfile` y base.
 
@@ -52,18 +53,22 @@ También sirve el Excel de "Mis comprobantes" de ARCA.
 
 ## Base de datos
 
-- Migraciones en `db/migraciones/*.sql`. **Se aplican solas al arrancar el contenedor** (`scripts/migrar.mjs`); también con `npm run migrar`.
+- Migraciones en `db/migraciones/*.sql`. **Se aplican solas al arrancar el contenedor** (`scripts/migrar.mjs`, que anota cada una en la tabla `_migraciones`); también con `npm run migrar`.
 - Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
-- Todo el acceso es desde el servidor. Si la base es de Supabase, RLS queda activado sin políticas: la API pública no ve nada.
+- Todo el acceso es desde el servidor. En Supabase, RLS queda activado sin políticas y `anon`/`authenticated` no tienen permisos (`002_permisos_supabase.sql`): la API pública no ve nada. El aviso "RLS Enabled No Policy" del panel es esperado.
 - Los certificados médicos se guardan en la base (fotos achicadas en el celular, PDF hasta 8 MB).
 
 ## Deploy en Easypanel
 
-1. Crear la base: un proyecto nuevo de Supabase (ej. `bb-control`, São Paulo) o un servicio Postgres en Easypanel.
-2. En Easypanel: app nueva desde GitHub `gruposarasas/MMC`, rama `main`, **Build path `/bb-control`**, con su `Dockerfile`.
-3. Cargar las variables de arriba. Puerto 3000. Healthcheck `/api/salud`.
-4. Dominio con HTTPS (Let's Encrypt), por ejemplo `control.brunobrown.cafe`.
-5. Entrar a `/ingresar`, cargar el dólar y el equipo, y generar la clave de cada persona en su ficha (el botón "Mandar por WhatsApp" arma el mensaje con el link a `/mi`).
+1. **Base:** proyecto `BB-CONTROL` de Supabase (SARA GROUP, São Paulo). Las migraciones `001` y `002` ya están aplicadas.
+2. En el proyecto `bb` de Easypanel, un servicio **App**.
+3. **Source:** GitHub `gruposarasas/MMC`, la rama, **Build path `/bb-control`**, build con **Dockerfile**.
+4. **Environment:** las tres variables de arriba. `DATABASE_URL` se copia de Supabase → **Connect** → **Session pooler** (usuario `postgres.lojzzhmlsocbamejedxy`, puerto 5432), con la contraseña de la base y `?sslmode=require` al final.
+5. **Domains:** `bb.saraimagineers.com` → puerto **80**, HTTPS (Let's Encrypt). Easypanel le pasa `PORT=80` al contenedor, igual que en MMC.
+6. Deploy. En los logs: `[migrar] base al día` y `Ready`. `https://bb.saraimagineers.com/api/salud` responde `{"ok":true}`.
+7. Entrar a `/ingresar`, cargar el dólar y el equipo, y generar la clave de cada persona en su ficha (el botón "Mandar por WhatsApp" arma el mensaje con el link a `/mi`).
+
+La app corre en **un solo contenedor**: los límites de intentos de ingreso se guardan en memoria.
 
 ## Desarrollo
 
