@@ -1,6 +1,6 @@
 # Cómo volver a armar la app para la próxima edición
 
-Guía para reutilizar la app del **Mundial de Café by Bruno Brown** en la 5ta edición o siguientes. La app de la 4ta edición (3 y 4 de octubre de 2026, Bodega Arizu) quedó guardada tal cual en el repositorio con la etiqueta de git **`edicion-2026`**. El informe con todos los resultados está en `docs/difusion/Mundial de Cafe - Informe de la app 4ta edicion.pdf`.
+Guía para reutilizar la app del **Mundial de Café by Bruno Brown** en la 5ta edición o siguientes. La app de la 4ta edición (3 y 4 de octubre de 2026, Bodega Arizu) quedó guardada tal cual en el repositorio: es el commit **`02af1d4`** de la rama `main` (8 de octubre de 2026). El informe con todos los resultados está en `docs/difusion/Mundial de Cafe - Informe de la app 4ta edicion.pdf`.
 
 > **Para hacerlo con Claude:** abrí una sesión de Claude Code sobre este repositorio y decile:
 > *"Leé docs/PROXIMA-EDICION.md y prepará la app para el Mundial de Café [año], que es el [días] en [lugar]."*
@@ -30,7 +30,7 @@ Guía para reutilizar la app del **Mundial de Café by Bruno Brown** en la 5ta e
 
 1. **Visitantes:** en `/admin` → Visitantes → **Descargar CSV**. Guardá el archivo en un lugar seguro: tiene datos personales (Ley 25.326), no lo subas al repositorio.
 2. **Base completa:** en Supabase → Database → Backups, o con la CLI: `supabase db dump --data-only -f respaldo-2026.sql` (pide la contraseña de la base).
-3. El código ya queda guardado en la etiqueta `edicion-2026`. Para volver a esa versión: `git checkout edicion-2026`.
+3. El código de 2026 queda en el commit `02af1d4`. Para volver a esa versión: `git checkout 02af1d4`.
 
 ### 2. Decidir dónde corre
 
