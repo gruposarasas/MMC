@@ -21,9 +21,11 @@ App de gestión de **Bruno Brown** (importadora de café): ventas, compras, gast
 | `/sueldos` | Administración | Un renglón por persona y mes: bruto, neto, extras, adelantos a descontar, a pagar y pagado. "Armar sueldos" crea el mes con el sueldo de referencia de cada uno. |
 | `/equipo` · `/equipo/[id]` | Administración | Fichas con todos los datos, cumpleaños (próximos y del año), vacaciones (días por antigüedad según la LCT), certificados médicos, uniforme, adelantos, sueldos y la clave de la app. Aprobar o rechazar los pedidos. |
 | `/costos` · `/costos/[id]` | Administración | Ingeniería de costos: insumos (en pesos o dólares), receta de cada producto con merma, costos variables, margen, markup y precio sugerido. Dólar de referencia. |
+| `/contabilidad` | Administración y contador | Obligaciones del mes de cada razón social (F.931, IVA e Ingresos Brutos): el contador carga monto, vencimiento, nota y archivos; administración las marca pagadas. Pestañas: **IVA estimado**, **Equipo** (ART o seguro y novedades del mes para sueldos) y **Accesos** (solo administración: claves del contador y razones sociales). |
+| `/contador` | Contador | Ingreso del contador con su mail y su clave. Ve solo Contabilidad. |
 | `/ajustes` | Administración | Rubros de compras y gastos (y su clase para el tablero), dólar y link de la app del equipo. |
 | `/mi` | Equipo | App de cada persona (DNI + clave de 6 números): pedir vacaciones, adelantos y uniforme, mandar certificados (foto o PDF), ver sus sueldos y actualizar sus datos. Se puede agregar a la pantalla de inicio. |
-| `/api/archivos/[id]` | Admin o dueño | Certificados médicos y fotos o PDF de facturas. |
+| `/api/archivos/[id]` | Admin, dueño o contador | Certificados médicos (la persona que lo subió), fotos o PDF de facturas y archivos de contabilidad (también el contador). Excel, CSV, TXT y ZIP se descargan. |
 | `/api/salud` | — | Healthcheck. |
 
 ## Cómo se calculan los números
@@ -70,6 +72,17 @@ En **Nueva compra** o **Nuevo gasto**, el botón **Leer foto o PDF** (en el celu
 - Si el pedido fuera rechazado por los filtros de seguridad del modelo, la API reintenta sola con el modelo alternativo recomendado (`fallbacks: "default"`).
 - Las facturas B, C y los tickets se cargan con el precio final (sin IVA discriminado). Las notas de crédito restan.
 
+## Contabilidad (el contador)
+
+- **Acceso:** en Contabilidad → Accesos, administración pone el nombre y el mail del contador (o de cada persona del estudio) y genera una **clave** (se muestra una sola vez, con botones para mandarla por mail o copiarla). El contador entra en `/contador`. Ve solo Contabilidad. "Nueva clave" corta las sesiones abiertas; "Quitar acceso" lo deja afuera.
+- **Obligaciones del mes:** por cada razón social, F.931 (cargas sociales), IVA e Ingresos Brutos. Abre en el **mes a liquidar** (el anterior). El contador carga monto, vencimiento y nota y sube archivos (PDF, Excel, CSV, TXT, ZIP o fotos, hasta 8 MB; se revisa el contenido, no solo la extensión). Estados: sin cargar, a pagar, vencida (en rojo) y pagada.
+- **Solo administración marca pagado.** Lo pagado no se cambia (ni sus archivos): primero hay que deshacer el pago. Todo queda en el **historial** de cada obligación (quién cargó, cambió, subió o pagó).
+- **F.931 e Ingresos Brutos pasan solos a Gastos** como un gasto del mes liquidado (rubros de clase "cargas" e "impuestos", proveedor ARCA o ATM Mendoza), a pagar con su vencimiento: entran en el KPI y en "Pagos que vencen". Si el contador cambia el monto, el gasto se actualiza; pagarlo en Gastos o en Contabilidad lo marca pagado en los dos lados. **No cargues el F.931 a mano en Gastos** para no duplicarlo.
+- **El IVA no va a Gastos** (el KPI es sin IVA), pero su vencimiento aparece en "Pagos que vencen" del KPI.
+- **IVA estimado:** IVA de las ventas (débito) menos IVA de compras y gastos (crédito) de cada mes, contra lo que declaró el contador; últimos 6 meses. Las percepciones de las facturas de compra se muestran aparte (no se restan: están juntas las de IVA y las de IIBB).
+- **Equipo:** ART o seguro de cada persona (lo elige administración; el contador lo ve) y las **novedades del mes** para liquidar sueldos: altas, bajas, vacaciones aprobadas y licencias médicas (días que caen en el mes) y adelantos a descontar. No muestra el motivo de los certificados.
+- **Razones sociales:** arranca con "Bruno Brown"; se pueden agregar otras con su CUIT en Accesos.
+
 ## Importar compras, gastos, productos, insumos y proveedores
 
 En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **planilla modelo** para bajar. Igual que en Ventas, la app reconoce las columnas solas y se pueden corregir antes de importar.
@@ -92,7 +105,7 @@ En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **pl
 ## Base de datos
 
 - Migraciones en `db/migraciones/*.sql`. **Se aplican solas al arrancar el contenedor** (`scripts/migrar.mjs`, que anota cada una en la tabla `_migraciones`); también con `npm run migrar`.
-- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `proveedores` (el nombre de cada comprobante se copia de acá con un trigger), `lecturas_factura` (lo leído de una foto hasta que se guarda; se limpia a los 7 días), `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
+- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `proveedores` (el nombre de cada comprobante se copia de acá con un trigger), `lecturas_factura` (lo leído de una foto hasta que se guarda; se limpia a los 7 días), `razones_sociales`, `contadores`, `contab_obligaciones`, `contab_archivos`, `contab_historial`, `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
 - Todo el acceso es desde el servidor. En Supabase, RLS queda activado sin políticas y `anon`/`authenticated` no tienen permisos (`002_permisos_supabase.sql`): la API pública no ve nada. El aviso "RLS Enabled No Policy" del panel es esperado.
 - Los certificados médicos y las fotos de facturas se guardan en la base (fotos achicadas en el celular, PDF hasta 8 MB).
 

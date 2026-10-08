@@ -5,9 +5,10 @@ import { redirect } from 'next/navigation';
 
 export const COOKIE_ADMIN = 'bb_a';
 export const COOKIE_EQUIPO = 'bb_e';
+export const COOKIE_CONTADOR = 'bb_c';
 
 const DIA = 24 * 60 * 60;
-const DURACION = { [COOKIE_ADMIN]: 7 * DIA, [COOKIE_EQUIPO]: 180 * DIA } as const;
+const DURACION = { [COOKIE_ADMIN]: 7 * DIA, [COOKIE_EQUIPO]: 180 * DIA, [COOKIE_CONTADOR]: 30 * DIA } as const;
 type Nombre = keyof typeof DURACION;
 
 function secreto() {
@@ -79,6 +80,13 @@ export async function empleadoSesion(): Promise<number | null> {
   const v = await leer(COOKIE_EQUIPO);
   const id = Number(v);
   return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+/** Clave del contador: 8 letras y números fáciles de leer (sin 0/o, 1/l/i), como "k7mp-3xra". */
+export function claveContador() {
+  const letras = 'abcdefghjkmnpqrstuvwxyz23456789';
+  const c = Array.from({ length: 8 }, () => letras[randomInt(0, letras.length)]).join('');
+  return `${c.slice(0, 4)}-${c.slice(4)}`;
 }
 
 /** Clave numérica de 6 dígitos para la app del equipo. */

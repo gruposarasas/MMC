@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { leerDolar } from '@/lib/ajustes';
 import { guardarArchivo } from '@/lib/archivos';
 import { db } from '@/lib/db';
-import { hoy } from '@/lib/formato';
+import { fecha, hoy } from '@/lib/formato';
 import { guardarItems, totalesItems, validarItems } from '@/lib/items';
 import { type Estado, entero, falla, fechaForm, intentar, numero, texto, tilde, volver } from '@/lib/form';
 import { ListaProveedores, limpiarCuit } from '@/lib/proveedores';
@@ -121,7 +121,15 @@ export async function borrarEgreso(f: FormData) {
 export async function marcarPagado(f: FormData) {
   await exigirAdmin();
   const id = entero(f, 'id');
-  if (id) await db()`update egresos set pagado = true, fecha_pago = ${hoy()}, vencimiento = null where id = ${id}`;
+  if (!id) return;
+  await db().begin(async (tx) => {
+    await tx`update egresos set pagado = true, fecha_pago = ${hoy()}, vencimiento = null where id = ${id}`;
+    // Si es el F.931 o los Ingresos Brutos que cargó el contador, también queda pagado en Contabilidad.
+    const [o] = await tx`update contab_obligaciones set pagado_el = ${hoy()}, pagado_por = 'Administración'
+                         where egreso_id = ${id} and pagado_el is null and monto is not null returning id`;
+    if (o) await tx`insert into contab_historial (obligacion_id, quien, que) values (${o.id as number}, 'Administración', ${`La marcó pagada desde Gastos el ${fecha(hoy())}`})`;
+  });
   revalidatePath('/compras');
   revalidatePath('/gastos');
+  revalidatePath('/contabilidad', 'layout');
 }

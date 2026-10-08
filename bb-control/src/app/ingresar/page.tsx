@@ -15,7 +15,7 @@ export default async function Ingresar() {
         <p>Administración de Bruno Brown.</p>
         <IngresoAdmin />
         <p style={{ marginTop: 22, fontSize: 14 }}>
-          ¿Sos del equipo? <a href="/mi">Entrá a tu app</a>
+          ¿Sos del equipo? <a href="/mi">Entrá a tu app</a> · ¿Sos el contador? <a href="/contador">Entrá acá</a>
         </p>
       </div>
     </div>

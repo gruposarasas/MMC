@@ -12,14 +12,16 @@ const ITEMS = [
   { href: '/sueldos', nombre: 'Sueldos', fig: FIGURAS.sueldos },
   { href: '/equipo', nombre: 'Equipo', fig: FIGURAS.equipo },
   { href: '/costos', nombre: 'Costos', fig: FIGURAS.costos },
+  { href: '/contabilidad', nombre: 'Contabilidad', fig: FIGURAS.contabilidad },
   { href: '/ajustes', nombre: 'Ajustes', fig: FIGURAS.ajustes },
 ];
 
-export function Nav({ pendientes }: { pendientes: number }) {
+/** El contador ve solo Contabilidad. */
+export function Nav({ pendientes, contador }: { pendientes: number; contador?: boolean }) {
   const ruta = usePathname();
   return (
     <nav className="nav" aria-label="Módulos">
-      {ITEMS.map((i) => {
+      {ITEMS.filter((i) => !contador || i.href === '/contabilidad').map((i) => {
         const on = ruta === i.href || ruta.startsWith(`${i.href}/`);
         return (
           <Link key={i.href} href={i.href} className={on ? 'on' : ''} aria-current={on ? 'page' : undefined}>

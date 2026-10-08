@@ -8,6 +8,7 @@ export const FIGURAS = {
   sueldos: '/img/ic_jarra.png',
   equipo: '/img/ic_flor.png',
   costos: '/img/ic_chemex.png',
+  contabilidad: '/img/ic_copa.png',
   ajustes: '/img/ic_reloj.png',
 } as const;
 export type Modulo = keyof typeof FIGURAS;

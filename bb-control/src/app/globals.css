@@ -359,3 +359,24 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 @keyframes girar{to{transform:rotate(360deg)}}
 .lector.leyendo img{animation:girar 2.4s linear infinite}
 @media (prefers-reduced-motion:reduce){.lector.leyendo img{animation:none}}
+
+/* ---------- contabilidad ---------- */
+.obligaciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px}
+.obligacion{background:var(--sup2);border:1px solid var(--linea);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.obligacion.vencida{border-color:var(--mal);box-shadow:inset 3px 0 0 var(--mal)}
+.obligacion.pagada{background:var(--bien-f);border-color:transparent}
+.ob-cab{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ob-cab b{font-size:15px}
+.ob-monto{font-size:24px;font-weight:800;letter-spacing:-.01em}
+.obligacion .form{grid-template-columns:1fr 1fr;gap:10px}
+.obligacion .form .ancho,.obligacion .form .form-pie,.obligacion .form .err,.obligacion .form .okmsg{grid-column:1/-1}
+.ob-archivos{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.ob-archivos li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px;min-width:0}
+.ob-archivos a{overflow-wrap:anywhere}
+.ob-acciones{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ob-editar summary,.ob-historial summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--vino)}
+.ob-editar[open] summary{margin-bottom:10px}
+.ob-historial ul{margin:8px 0 0;padding-left:16px;font-size:12.5px;color:var(--tinta2);display:grid;gap:3px}
+.obligacion .chico:not(.btn),.ob-archivos .chico{font-size:12.5px;color:var(--tinta2)}
+.chip-btn{border:1px solid var(--linea);background:var(--sup);border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;color:var(--tinta2);cursor:pointer}
+.chip-btn.on{background:var(--ciruela);border-color:var(--ciruela);color:var(--crema)}

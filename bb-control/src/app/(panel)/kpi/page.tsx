@@ -35,8 +35,15 @@ export default async function Kpi({ searchParams }: { searchParams: Promise<Para
         where e.fecha >= ${p.desde} and e.fecha < ${p.hasta} group by 1, 2 order by 3 desc limit 10`,
     pedidosPendientes(),
     cumpleanos(7),
-    sql`select id, tipo, proveedor, descripcion, total_ars, vencimiento from egresos
-        where not pagado and vencimiento is not null and vencimiento <= ${sumarDias(h, 7)} order by vencimiento limit 8`,
+    // Lo que vence en Compras y Gastos (el F.931 y los Ingresos Brutos del contador ya están ahí) y el IVA de Contabilidad.
+    sql`select id, tipo, proveedor, descripcion, total_ars, vencimiento, null mes from egresos
+        where not pagado and vencimiento is not null and vencimiento <= ${sumarDias(h, 7)}
+        union all
+        select -o.id, 'iva', 'IVA ' || to_char(o.mes, 'MM/YYYY') || case when (select count(*) from razones_sociales where activo) > 1 then ' · ' || r.nombre else '' end,
+               '', o.monto, o.vencimiento, to_char(o.mes, 'YYYY-MM')
+        from contab_obligaciones o join razones_sociales r on r.id = o.razon_id
+        where o.tipo = 'iva' and o.pagado_el is null and o.monto > 0 and o.vencimiento <= ${sumarDias(h, 7)}
+        order by vencimiento limit 8`,
     sql`select
           (select count(*) from ventas where fecha >= ${p.desde} and fecha < ${p.hasta}) ventas,
           (select count(*) from egresos where tipo = 'compra' and fecha >= ${p.desde} and fecha < ${p.hasta}) compras,
@@ -268,7 +275,10 @@ export default async function Kpi({ searchParams }: { searchParams: Promise<Para
               <div className="lista-mi">
                 {vencimientos.map((v) => (
                   <div key={v.id as number}>
-                    <Link href={`/${v.tipo === 'compra' ? 'compras' : 'gastos'}?estado=pendiente&p=${(v.vencimiento as string).slice(0, 4)}`} style={{ textDecoration: 'none' }}>
+                    <Link
+                      href={v.tipo === 'iva' ? `/contabilidad?p=${v.mes}` : `/${v.tipo === 'compra' ? 'compras' : 'gastos'}?estado=pendiente&p=${(v.vencimiento as string).slice(0, 4)}`}
+                      style={{ textDecoration: 'none' }}
+                    >
                       {(v.proveedor as string) || (v.descripcion as string)}
                       <small>{(v.vencimiento as string) < h ? 'Vencido el' : 'Vence el'} {fecha(v.vencimiento as string)}</small>
                     </Link>
