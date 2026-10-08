@@ -82,3 +82,7 @@ npm run dev
 ```
 
 `npm run lint` corre el chequeo de tipos.
+
+## Otras apps en este repo
+
+- **`gm-control/`**: GM-CONTROL, la app de gestión de Grupo Modesto (hecha a partir de BB-CONTROL). Es autónoma, con su propio `package.json`, `Dockerfile` y `README.md`; en Easypanel se publica con **Build path `/gm-control`**. El build de esta app (MMC) la ignora (`tsconfig.json` y `.dockerignore`).
