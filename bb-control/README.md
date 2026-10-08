@@ -15,14 +15,15 @@ App de gestión de **Bruno Brown** (importadora de café): ventas, compras, gast
 | `/ingresar` | Administración | Ingreso con `ADMIN_PASSWORD`. |
 | `/kpi` | Administración | Ventas − costos (compras) − gastos − sueldos = rentabilidad, con % sobre ventas, comparación con el mes anterior, "de cada $100", 12 meses, cashflow y acumulado, gastos por rubro y avisos (pagos que vencen, cumpleaños, pedidos del equipo, lo que falta cargar). Sin IVA o con IVA. Mes o año. |
 | `/ventas` | Administración | Ventas del mes en curso (o el que elijas): con IVA, sin IVA, IVA, notas de crédito, por día. Filtros por cliente, comprobante y con/sin IVA. **Importar Excel de Contabilium** (o `.csv`) y carga a mano. |
-| `/compras` | Administración | Mercadería. Se carga **como una factura**: proveedor, comprobante y varios productos, cada uno con cantidad, unidad, precio e IVA (autocompleta con lo ya comprado y con los insumos de Costos, y puede actualizar sus costos). También "solo el total". Pesos o dólares, pagado o a pagar con vencimiento. Por rubro, "qué se compró" y pendientes de pago. "Repetir" para cargar otra igual. **Importar Excel.** |
+| `/compras` | Administración | Mercadería. **Leer la factura con una foto o PDF** (completa todo el formulario) o cargarla **como una factura**: proveedor (de la lista), comprobante y varios productos, cada uno con cantidad, unidad, precio e IVA (autocompleta con lo ya comprado y con los insumos de Costos, y puede actualizar sus costos). También "solo el total". Pesos o dólares, pagado o a pagar con vencimiento. Por rubro, "qué se compró" y pendientes de pago. "Repetir" para cargar otra igual. **Importar Excel.** |
 | `/gastos` | Administración | Igual que compras, para lo que no es mercadería: alquiler, servicios, impuestos, F.931, inversiones… **Importar Excel.** |
+| `/proveedores` | Administración | Lista de proveedores de compras y gastos: CUIT, rubro habitual, contacto, teléfono, mail, CBU o alias. Cuánto se le compró en el año y link a sus comprobantes. Editar (el nombre cambia en todos sus comprobantes), desactivar, **unir repetidos** y **Importar Excel**. |
 | `/sueldos` | Administración | Un renglón por persona y mes: bruto, neto, extras, adelantos a descontar, a pagar y pagado. "Armar sueldos" crea el mes con el sueldo de referencia de cada uno. |
 | `/equipo` · `/equipo/[id]` | Administración | Fichas con todos los datos, cumpleaños (próximos y del año), vacaciones (días por antigüedad según la LCT), certificados médicos, uniforme, adelantos, sueldos y la clave de la app. Aprobar o rechazar los pedidos. |
 | `/costos` · `/costos/[id]` | Administración | Ingeniería de costos: insumos (en pesos o dólares), receta de cada producto con merma, costos variables, margen, markup y precio sugerido. Dólar de referencia. |
 | `/ajustes` | Administración | Rubros de compras y gastos (y su clase para el tablero), dólar y link de la app del equipo. |
 | `/mi` | Equipo | App de cada persona (DNI + clave de 6 números): pedir vacaciones, adelantos y uniforme, mandar certificados (foto o PDF), ver sus sueldos y actualizar sus datos. Se puede agregar a la pantalla de inicio. |
-| `/api/archivos/[id]` | Admin o dueño | Certificados médicos. |
+| `/api/archivos/[id]` | Admin o dueño | Certificados médicos y fotos o PDF de facturas. |
 | `/api/salud` | — | Healthcheck. |
 
 ## Cómo se calculan los números
@@ -52,13 +53,31 @@ Con plan Full o superior, Contabilium tiene API. En **Ajustes → Contabilium** 
 - Respeta el límite de pedidos de la API (~2 por segundo) y reintenta si Contabilium pide esperar.
 - Para pruebas o para Chile/Uruguay, `CONTABILIUM_URL` cambia la dirección de la API (por defecto `https://rest.contabilium.com`).
 
-## Importar compras, gastos, productos e insumos
+## Proveedores
 
-En Compras, Gastos y Costos hay un botón **Importar** con una **planilla modelo** para bajar. Igual que en Ventas, la app reconoce las columnas solas y se pueden corregir antes de importar.
+- En compras y gastos el proveedor **se elige de la lista** (buscando por nombre o CUIT). Si no está, **"+ Agregar proveedor nuevo"** lo suma a la lista al guardar (con CUIT opcional). Un nombre escrito sin elegirlo no se puede guardar. En compras es obligatorio; en gastos, opcional (por ejemplo, un impuesto).
+- Al elegirlo se completa su **rubro habitual**.
+- Un proveedor se reconoce por CUIT o por nombre, sin importar mayúsculas, acentos ni "S.A." o "SRL" al final. Al cambiarle el nombre o unir uno repetido, el nombre viejo queda guardado para reconocerlo en Excel viejos.
+- Al importar compras o gastos desde Excel, los proveedores que no estaban se agregan solos a la lista (y si traen CUIT y el de la lista no tenía, se lo completa).
+- Los proveedores que ya estaban escritos en compras y gastos pasaron a la lista automáticamente (`005_proveedores.sql`).
+
+## Leer facturas con una foto
+
+En **Nueva compra** o **Nuevo gasto**, el botón **Leer foto o PDF** (en el celular abre la cámara) lee el comprobante con Claude (la IA de Anthropic) y completa proveedor (lo busca en la lista por CUIT o nombre; si no está, queda como proveedor nuevo con su CUIT), comprobante, número, fecha, vencimiento de pago, moneda, renglones con cantidad, unidad, precio sin IVA y alícuota, percepciones y rubro. Muestra si el total cargado **coincide con el de la factura** y avisa lo que no se pudo leer bien. Nada se guarda hasta tocar **Guardar**.
+
+- La foto o el PDF quedan guardados con el comprobante (link **Factura** en la lista). También se puede adjuntar a mano al cargar o editar.
+- Necesita la variable `ANTHROPIC_API_KEY` (se saca en console.anthropic.com → API Keys, con crédito cargado). Cuesta alrededor de **US$ 0,03 a 0,10 por factura** (más si es un PDF de varias páginas).
+- Si el pedido fuera rechazado por los filtros de seguridad del modelo, la API reintenta sola con el modelo alternativo recomendado (`fallbacks: "default"`).
+- Las facturas B, C y los tickets se cargan con el precio final (sin IVA discriminado). Las notas de crédito restan.
+
+## Importar compras, gastos, productos, insumos y proveedores
+
+En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **planilla modelo** para bajar. Igual que en Ventas, la app reconoce las columnas solas y se pueden corregir antes de importar.
 
 - **Compras y gastos:** una fila por producto (las filas con el mismo número de comprobante forman una factura; sin número, las filas seguidas del mismo día y proveedor) o una fila por comprobante con sus totales (como el Excel de comprobantes recibidos de Contabilium o de ARCA). El rubro se busca por nombre; si no existe va al que elijas. Las notas de crédito restan, las anuladas y la fila de totales se saltean. Reimportar no duplica. Cada importación se puede deshacer.
 - **Productos (Costos):** nombre, presentación, categoría, precio sin IVA o precio final con IVA, IVA, costos variables y margen. Si ya existe (mismo nombre y presentación) se actualiza.
 - **Insumos (Costos):** nombre, categoría, unidad, moneda (pesos o dólares) y costo sin IVA. Si ya existe se actualiza el costo.
+- **Proveedores:** nombre, CUIT, rubro, contacto, teléfono, mail, CBU o alias y notas. Si ya existe (mismo CUIT o mismo nombre) se completan o actualizan sus datos; lo que viene vacío no borra nada.
 
 ## Variables de entorno
 
@@ -67,14 +86,15 @@ En Compras, Gastos y Costos hay un botón **Importar** con una **planilla modelo
 | `DATABASE_URL` | Conexión a Postgres. En Supabase: Project Settings → Database → Connection string → **Session pooler** (puerto 5432), con `?sslmode=require` al final. |
 | `ADMIN_PASSWORD` | Contraseña del panel de administración. Larga. |
 | `CONTABILIUM_EMAIL`, `CONTABILIUM_API_KEY` | Opcionales: credenciales de la API de Contabilium (si no, se cargan en Ajustes). |
+| `ANTHROPIC_API_KEY` | Para leer facturas con una foto. Sin ella, todo lo demás funciona y el botón avisa que falta. |
 | `SESSION_SECRET` | Firma de las cookies, 32 caracteres o más: `openssl rand -base64 48`. |
 
 ## Base de datos
 
 - Migraciones en `db/migraciones/*.sql`. **Se aplican solas al arrancar el contenedor** (`scripts/migrar.mjs`, que anota cada una en la tabla `_migraciones`); también con `npm run migrar`.
-- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
+- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `proveedores` (el nombre de cada comprobante se copia de acá con un trigger), `lecturas_factura` (lo leído de una foto hasta que se guarda; se limpia a los 7 días), `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
 - Todo el acceso es desde el servidor. En Supabase, RLS queda activado sin políticas y `anon`/`authenticated` no tienen permisos (`002_permisos_supabase.sql`): la API pública no ve nada. El aviso "RLS Enabled No Policy" del panel es esperado.
-- Los certificados médicos se guardan en la base (fotos achicadas en el celular, PDF hasta 8 MB).
+- Los certificados médicos y las fotos de facturas se guardan en la base (fotos achicadas en el celular, PDF hasta 8 MB).
 
 ## Deploy en Easypanel
 

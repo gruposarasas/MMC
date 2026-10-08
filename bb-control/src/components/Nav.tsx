@@ -8,6 +8,7 @@ const ITEMS = [
   { href: '/ventas', nombre: 'Ventas', fig: FIGURAS.ventas },
   { href: '/compras', nombre: 'Compras', fig: FIGURAS.compras },
   { href: '/gastos', nombre: 'Gastos', fig: FIGURAS.gastos },
+  { href: '/proveedores', nombre: 'Proveedores', fig: FIGURAS.proveedores },
   { href: '/sueldos', nombre: 'Sueldos', fig: FIGURAS.sueldos },
   { href: '/equipo', nombre: 'Equipo', fig: FIGURAS.equipo },
   { href: '/costos', nombre: 'Costos', fig: FIGURAS.costos },

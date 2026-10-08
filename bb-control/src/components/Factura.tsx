@@ -24,6 +24,7 @@ type Props = {
   moneda?: 'ARS' | 'USD';
   cotizacion?: number;
   dolar?: number | null;
+  totalFactura?: number; // el total que dice la factura leída, para controlar
 };
 
 /** Elegir entre cargar los productos de la factura o solo el total. */
@@ -177,6 +178,23 @@ function ItemsFactura(p: Props) {
         <span>Total <b>{moneda === 'USD' ? `US$ ${aTexto(total) || 0}` : pesos(total)}</b></span>
         {moneda === 'USD' && <span>En pesos <b>{num(cot) ? pesos(total * num(cot)) : 'falta la cotización'}</b></span>}
       </div>
+      {p.totalFactura != null && (
+        <ControlTotal total={total} factura={p.totalFactura} usd={moneda === 'USD'} />
+      )}
     </>
+  );
+}
+
+/** Compara lo cargado con el total impreso en la factura leída. */
+function ControlTotal({ total, factura, usd }: { total: number; factura: number; usd: boolean }) {
+  const fmt = (n: number) => (usd ? `US$ ${aTexto(redondear(n)) || 0}` : pesos(n));
+  const dif = redondear(total - factura);
+  const ok = Math.abs(dif) <= (usd ? 0.05 : 1);
+  return (
+    <div className={`ancho aviso ${ok ? 'ok' : 'mal'}`} role="status" style={{ margin: 0 }}>
+      {ok
+        ? `El total coincide con la factura (${fmt(factura)}).`
+        : `La factura dice ${fmt(factura)} y lo cargado da ${fmt(total)} (diferencia ${fmt(dif)}). Revisá precios, IVA o percepciones.`}
+    </div>
   );
 }

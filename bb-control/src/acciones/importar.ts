@@ -1,5 +1,5 @@
 'use server';
-// Importación desde Excel de compras, gastos, productos e insumos. El navegador lee el archivo;
+// Importación desde Excel de compras, gastos, productos, insumos y proveedores. El navegador lee el archivo;
 // acá se valida todo de nuevo antes de guardar.
 import { revalidatePath } from 'next/cache';
 import { leerDolar } from '@/lib/ajustes';
@@ -8,6 +8,7 @@ import { esFecha, hoy, redondear } from '@/lib/formato';
 import { ErrorForm, entero } from '@/lib/form';
 import { normalizar } from '@/lib/importar';
 import { guardarItems, totalesItems, validarItems } from '@/lib/items';
+import { ListaProveedores, limpiarCuit } from '@/lib/proveedores';
 import { exigirAdmin } from '@/lib/sesion';
 
 export type Resultado = { error?: string; nuevos?: number; actualizados?: number; detalle?: string; hasta?: string };
@@ -70,6 +71,7 @@ export async function importarEgresos(datos: {
       const unidades = [...new Set(items.map((x) => x.unidad))];
       return {
         items,
+        cuit,
         egreso: {
           tipo, fecha, rubro_id, proveedor, comprobante, numero,
           descripcion: items.length ? items[0].descripcion + (items.length > 1 ? ` y ${items.length - 1} más` : '') : s(c.notas, 300),
@@ -95,11 +97,19 @@ export async function importarEgresos(datos: {
         returning id`;
       let nuevos = 0;
       let costos = 0;
+      let proveedores = 0;
+      const lista = await ListaProveedores.cargar(tx);
       for (const f of filas) {
-        const e = { ...f.egreso, importacion_id: imp.id as number };
+        let proveedor_id: number | null = null;
+        if (f.egreso.proveedor) {
+          const p = await lista.buscarOCrear(tx, f.egreso.proveedor, f.cuit, f.egreso.rubro_id);
+          proveedor_id = p.id;
+          if (p.nuevo) proveedores++;
+        }
+        const e = { ...f.egreso, proveedor_id, importacion_id: imp.id as number };
         const [fila] = f.egreso.clave
           ? await tx`insert into egresos ${tx(e)} on conflict (clave) do update set
-              fecha = excluded.fecha, rubro_id = excluded.rubro_id, proveedor = excluded.proveedor, comprobante = excluded.comprobante,
+              fecha = excluded.fecha, rubro_id = excluded.rubro_id, proveedor = excluded.proveedor, proveedor_id = excluded.proveedor_id, comprobante = excluded.comprobante,
               numero = excluded.numero, descripcion = excluded.descripcion, cantidad = excluded.cantidad, unidad = excluded.unidad,
               moneda = excluded.moneda, cotizacion = excluded.cotizacion, neto = excluded.neto, iva_alicuota = excluded.iva_alicuota,
               iva = excluded.iva, otros = excluded.otros, importacion_id = excluded.importacion_id
@@ -111,14 +121,16 @@ export async function importarEgresos(datos: {
         });
       }
       await tx`update importaciones set nuevas = ${nuevos}, actualizadas = ${filas.length - nuevos} where id = ${imp.id}`;
-      return { nuevos, costos };
+      return { nuevos, costos, proveedores };
     });
     revalidatePath(tipo === 'compra' ? '/compras' : '/gastos');
     revalidatePath('/kpi');
+    if (r.proveedores) revalidatePath('/proveedores');
     if (r.costos) revalidatePath('/costos', 'layout');
     const detalle = [
       sinRubro ? `${sinRubro} con un rubro que no existe quedaron en "${rubroDefecto.nombre}"` : '',
       r.costos ? `se actualizó el costo de ${r.costos} insumos` : '',
+      r.proveedores ? `se ${r.proveedores === 1 ? 'agregó 1 proveedor nuevo' : `agregaron ${r.proveedores} proveedores nuevos`} a la lista` : '',
     ].filter(Boolean).join('; ');
     return { nuevos: r.nuevos, actualizados: filas.length - r.nuevos, detalle, hasta: fechas[fechas.length - 1] };
   } catch (e) {
@@ -195,6 +207,39 @@ export async function importarInsumos(datos: { archivo: string; filas: Record<st
   });
   revalidatePath('/costos', 'layout');
   return { nuevos: r, actualizados: lista.length - r };
+}
+
+export async function importarProveedores(datos: { archivo: string; filas: Record<string, unknown>[] }): Promise<Resultado> {
+  await exigirAdmin();
+  const lista = Array.isArray(datos?.filas) ? datos.filas.slice(0, 5000) : [];
+  if (!lista.length) return { error: 'No hay proveedores para importar.' };
+  const sql = db();
+  const r = await sql.begin(async (tx) => {
+    const rubros = new Map((await tx<{ id: number; nombre: string }[]>`select id, nombre from rubros order by tipo, orden`).map((x) => [normalizar(x.nombre), x.id]));
+    const provs = await ListaProveedores.cargar(tx);
+    let nuevos = 0;
+    let vistos = 0;
+    for (const p of lista) {
+      const nombre = s(p.nombre, 120).replace(/\s+/g, ' ');
+      if (!nombre) continue;
+      vistos++;
+      const cuitLimpio = limpiarCuit(p.cuit);
+      const cuit = cuitLimpio.length === 11 ? cuitLimpio : '';
+      const rubro_id = rubros.get(normalizar(p.rubro)) ?? null;
+      const { id, nuevo } = await provs.buscarOCrear(tx, nombre, cuit, rubro_id);
+      if (nuevo) nuevos++;
+      // Lo que vino en el Excel completa o actualiza; lo que vino vacío no borra nada.
+      const cambios = Object.fromEntries(
+        Object.entries({ contacto: s(p.contacto, 120), telefono: s(p.telefono, 60), email: s(p.email, 120), cbu: s(p.cbu, 60), notas: s(p.notas, 1000) }).filter(([, v]) => v),
+      ) as Record<string, string | number>;
+      if (rubro_id) cambios.rubro_id = rubro_id;
+      if (Object.keys(cambios).length) await tx`update proveedores set ${tx(cambios)} where id = ${id}`;
+    }
+    await tx`insert into importaciones (tipo, archivo, filas, nuevas, actualizadas) values ('proveedor', ${s(datos.archivo, 160) || 'archivo'}, ${lista.length}, ${nuevos}, ${vistos - nuevos})`;
+    return { nuevos, vistos };
+  });
+  revalidatePath('/proveedores');
+  return { nuevos: r.nuevos, actualizados: r.vistos - r.nuevos };
 }
 
 /** Deshace una importación de compras o gastos: borra los comprobantes que vinieron con ella. */

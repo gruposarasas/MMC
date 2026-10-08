@@ -10,11 +10,13 @@
     "migrar": "node scripts/migrar.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.0",
     "next": "15.5.27",
     "postgres": "^3.4.9",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "read-excel-file": "^9.3.10"
+    "read-excel-file": "^9.3.10",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^22",

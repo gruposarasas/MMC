@@ -2,13 +2,16 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { leerDolar } from '@/lib/ajustes';
+import { guardarArchivo } from '@/lib/archivos';
 import { db } from '@/lib/db';
 import { hoy } from '@/lib/formato';
 import { guardarItems, totalesItems, validarItems } from '@/lib/items';
 import { type Estado, entero, falla, fechaForm, intentar, numero, texto, tilde, volver } from '@/lib/form';
+import { ListaProveedores, limpiarCuit } from '@/lib/proveedores';
 import { exigirAdmin } from '@/lib/sesion';
 
 const ruta = (tipo: string) => (tipo === 'compra' ? '/compras' : '/gastos');
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function guardarEgreso(_: Estado, f: FormData): Promise<Estado> {
   await exigirAdmin();
@@ -40,7 +43,6 @@ export async function guardarEgreso(_: Estado, f: FormData): Promise<Estado> {
       tipo,
       fecha,
       rubro_id,
-      proveedor: texto(f, 'proveedor', 120),
       comprobante: texto(f, 'comprobante', 40),
       numero: texto(f, 'numero', 40),
       descripcion,
@@ -60,19 +62,45 @@ export async function guardarEgreso(_: Estado, f: FormData): Promise<Estado> {
       notas: texto(f, 'notas', 1000),
     };
     if (!e.neto && !e.iva && !e.otros) falla(porItems ? 'Poné los precios de los productos.' : 'Poné el importe.');
-    if (!e.proveedor && !e.descripcion) falla('Poné el proveedor o una descripción.');
+    // El proveedor se elige de la lista; uno nuevo se agrega a la lista al guardar.
+    const provId = entero(f, 'proveedor_id');
+    const provNuevo = texto(f, 'proveedor_nuevo', 120).replace(/\s+/g, ' ');
+    const provCuit = limpiarCuit(texto(f, 'proveedor_cuit', 20));
+    if (provNuevo && provCuit && provCuit.length !== 11) falla('El CUIT del proveedor nuevo tiene que tener 11 números.');
+    if (!provId && !provNuevo) {
+      if (tipo === 'compra') falla('Elegí el proveedor.');
+      if (!e.descripcion) falla('Elegí el proveedor o poné un detalle.');
+    }
+    // La foto o el PDF: el leído con la cámara o uno adjuntado a mano.
+    const leido = texto(f, 'archivo_id', 40);
+    if (leido && (!UUID.test(leido) || !(await sql`select 1 from lecturas_factura where archivo_id = ${leido} and tipo = ${tipo}`).length)) {
+      falla('No se encontró la foto de la factura. Leela de nuevo.');
+    }
+    const archivo_id = (await guardarArchivo(f, 'adjunto')) ?? (leido || null);
     const dolar = (await leerDolar())?.valor ?? null;
     await sql.begin(async (tx) => {
+      let proveedor_id: number | null = null;
+      if (provId) {
+        if (!(await tx`select 1 from proveedores where id = ${provId}`).length) falla('Elegí el proveedor de la lista.');
+        proveedor_id = provId;
+      } else if (provNuevo) {
+        proveedor_id = (await (await ListaProveedores.cargar(tx)).buscarOCrear(tx, provNuevo, provCuit, rubro_id)).id;
+      }
+      const datos = { ...e, proveedor_id, proveedor: '', ...(archivo_id ? { archivo_id } : {}) };
       let egresoId = id;
       if (id) {
-        const r = await tx`update egresos set ${tx(e)} where id = ${id} and tipo = ${tipo} returning id`;
-        if (!r.length) falla('No se encontró el comprobante.');
+        const [antes] = await tx`select archivo_id from egresos where id = ${id} and tipo = ${tipo} for update`;
+        if (!antes) falla('No se encontró el comprobante.');
+        await tx`update egresos set ${tx(datos)} where id = ${id}`;
+        if (archivo_id && antes.archivo_id && antes.archivo_id !== archivo_id) await tx`delete from archivos where id = ${antes.archivo_id as string}`;
       } else {
-        [{ id: egresoId }] = (await tx`insert into egresos ${tx(e)} returning id`) as unknown as { id: number }[];
+        [{ id: egresoId }] = (await tx`insert into egresos ${tx(datos)} returning id`) as unknown as { id: number }[];
       }
+      if (leido) await tx`delete from lecturas_factura where archivo_id = ${leido}`;
       await guardarItems(tx, egresoId!, items, { moneda, cotizacion: e.cotizacion, actualizarCostos: tilde(f, 'actualizar_costos'), dolar });
     });
     revalidatePath('/costos', 'layout');
+    if (provNuevo) revalidatePath('/proveedores');
     revalidatePath(ruta(tipo));
     redirect(volver(f, ruta(tipo)));
   });
@@ -81,7 +109,11 @@ export async function guardarEgreso(_: Estado, f: FormData): Promise<Estado> {
 export async function borrarEgreso(f: FormData) {
   await exigirAdmin();
   const id = entero(f, 'id');
-  if (id) await db()`delete from egresos where id = ${id}`;
+  if (id) {
+    const sql = db();
+    const [e] = await sql`delete from egresos where id = ${id} returning archivo_id`;
+    if (e?.archivo_id) await sql`delete from archivos where id = ${e.archivo_id as string}`;
+  }
   revalidatePath('/compras');
   revalidatePath('/gastos');
 }

@@ -3,7 +3,7 @@
 import { aNumero, redondear } from './formato';
 import { aFecha, type Celda, esNotaCredito, normalizar } from './importar';
 
-export type TipoImportacion = 'compra' | 'gasto' | 'producto' | 'insumo';
+export type TipoImportacion = 'compra' | 'gasto' | 'producto' | 'insumo' | 'proveedor';
 type Def = { id: string; nombre: string; re: RegExp; suma?: boolean };
 export type Esquema = { campos: Def[]; requiere: string[][]; modelo: string[][]; ayuda: string };
 
@@ -83,7 +83,27 @@ const INSUMO: Esquema = {
   ],
 };
 
-export const ESQUEMAS: Record<TipoImportacion, Esquema> = { compra: EGRESO, gasto: EGRESO, producto: PRODUCTO, insumo: INSUMO };
+const PROVEEDOR: Esquema = {
+  ayuda: 'Una fila por proveedor. Si ya existe (mismo CUIT o mismo nombre), se completan los datos que falten o cambien.',
+  campos: [
+    { id: 'nombre', nombre: 'Nombre o razón social', re: /^(nombre|proveedor|razon social|denominacion|empresa)$/ },
+    { id: 'cuit', nombre: 'CUIT', re: /^(cuit|cuil|nro doc|documento|cuit cuil)$/ },
+    { id: 'rubro', nombre: 'Rubro habitual', re: /^(rubro|categoria|tipo|cuenta)$/ },
+    { id: 'contacto', nombre: 'Contacto', re: /^(contacto|persona( de contacto)?|vendedor|responsable)$/ },
+    { id: 'telefono', nombre: 'Teléfono', re: /^(tel(efono)?|celular|whatsapp|movil)$/ },
+    { id: 'email', nombre: 'Mail', re: /^(e ?mail|mail|correo( electronico)?)$/ },
+    { id: 'cbu', nombre: 'CBU o alias', re: /^(cbu|cvu|alias|cbu alias|cbu o alias|datos bancarios)$/ },
+    { id: 'notas', nombre: 'Notas', re: /^(notas?|observaciones?|comentarios?)$/ },
+  ],
+  requiere: [['nombre']],
+  modelo: [
+    ['Nombre', 'CUIT', 'Rubro', 'Contacto', 'Teléfono', 'Mail', 'CBU o alias'],
+    ['Exportadora Santos', '30-12345678-9', 'Café verde (importación)', 'Juan Pérez', '261 555-1234', 'ventas@santos.com', 'santos.cafe.verde'],
+    ['Bolsas Cuyo SRL', '30-98765432-1', 'Packaging', 'María', '261 444-5678', '', ''],
+  ],
+};
+
+export const ESQUEMAS: Record<TipoImportacion, Esquema> = { compra: EGRESO, gasto: EGRESO, producto: PRODUCTO, insumo: INSUMO, proveedor: PROVEEDOR };
 
 export const adivinarCon = (e: Esquema, titulo: unknown) => {
   const h = normalizar(titulo);
@@ -334,6 +354,29 @@ export function convertirInsumos(filas: Celda[][], titulos: number, mapa: string
     out.push({
       fila: r + 1, nombre, categoria: txt(L.uno(f, 'categoria'), 60), unidad: txt(L.uno(f, 'unidad'), 15) || 'u',
       moneda: /^(usd|us|u ?s ?s?|dol|dolar(es)?)$/.test(m) || m.includes('dolar') ? 'USD' : 'ARS', costo: redondear(costo, 4), notas: txt(L.uno(f, 'notas'), 500),
+    });
+  }
+  return { filas: out, errores };
+}
+
+// ---------- proveedores ----------
+export type ProveedorImport = { fila: number; nombre: string; cuit: string; rubro: string; contacto: string; telefono: string; email: string; cbu: string; notas: string };
+export function convertirProveedores(filas: Celda[][], titulos: number, mapa: string[]) {
+  const L = lector(filas, titulos, mapa);
+  const out: ProveedorImport[] = [];
+  const errores: Aviso[] = [];
+  for (let r = titulos + 1; r < filas.length; r++) {
+    const f = filas[r] || [];
+    if (vacia(f)) continue;
+    const nombre = txt(L.uno(f, 'nombre'), 120).replace(/\s+/g, ' ');
+    if (!nombre) {
+      errores.push({ fila: r + 1, motivo: 'Sin nombre' });
+      continue;
+    }
+    const cuit = txt(L.uno(f, 'cuit'), 20).replace(/\D/g, '');
+    out.push({
+      fila: r + 1, nombre, cuit: cuit.length === 11 ? cuit : '', rubro: txt(L.uno(f, 'rubro'), 80), contacto: txt(L.uno(f, 'contacto'), 120),
+      telefono: txt(L.uno(f, 'telefono'), 60), email: txt(L.uno(f, 'email'), 120), cbu: txt(L.uno(f, 'cbu'), 60), notas: txt(L.uno(f, 'notas'), 500),
     });
   }
   return { filas: out, errores };

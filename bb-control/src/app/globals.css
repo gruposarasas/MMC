@@ -334,3 +334,28 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
   .factura-fila .sub{text-align:left}
   .factura-fila .ico{justify-self:end}
 }
+
+/* ---------- elegir proveedor ---------- */
+.combo{position:relative}
+.combo label{cursor:pointer}
+.combo-lista{position:absolute;left:0;top:100%;width:max(100%,300px);max-width:calc(100vw - 32px);z-index:30;margin:4px 0 0;padding:4px;list-style:none;background:#fff;border:1px solid var(--linea);border-radius:12px;box-shadow:0 12px 30px rgba(40,23,34,.18);max-height:264px;overflow:auto}
+.combo-lista li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:14.5px}
+.combo-lista li small{color:var(--tinta3);font-size:12px;white-space:nowrap}
+.combo-lista li[aria-selected=true]{background:var(--sup2);box-shadow:inset 3px 0 0 var(--vino)}
+.combo-lista .combo-nuevo{color:var(--vino);font-weight:600}
+.combo-alta{display:flex;flex-direction:column;gap:6px}
+.combo-alta .ayuda{color:var(--vino)!important;font-weight:600}
+
+/* ---------- leer factura con foto ---------- */
+.lector{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--ciruela);color:var(--crema);border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+.lector img{width:40px;height:40px;object-fit:contain;flex:none}
+.lector div{flex:1;min-width:200px}
+.lector b{display:block;font-size:15.5px}
+.lector p{margin:2px 0 0;font-size:13px;color:var(--arena2)}
+.lector .btn{background:var(--crema);color:var(--ciruela)}
+.lector .btn:hover{background:#fff}
+.lector .btn:disabled{opacity:.75}
+.lector .err{flex-basis:100%;margin:0;color:#F6C9CF}
+@keyframes girar{to{transform:rotate(360deg)}}
+.lector.leyendo img{animation:girar 2.4s linear infinite}
+@media (prefers-reduced-motion:reduce){.lector.leyendo img{animation:none}}
