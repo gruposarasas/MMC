@@ -314,3 +314,23 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
   .titulo{gap:12px}
   .titulo .fig{width:46px;height:46px;border-radius:12px;padding:7px}
 }
+
+/* ---------- factura con renglones ---------- */
+.modo-carga{display:inline-flex;gap:4px;background:var(--sup);border:1px solid var(--linea);border-radius:12px;padding:4px;justify-self:start}
+.modo-carga button{border:0;background:none;border-radius:9px;padding:7px 12px;font-size:13.5px;font-weight:600;color:var(--tinta2)}
+.modo-carga button.on{background:var(--ciruela);color:var(--crema)}
+.factura{background:var(--sup);border:1px solid var(--linea);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.factura-cab,.factura-fila{display:grid;grid-template-columns:minmax(150px,2.4fr) minmax(56px,.7fr) minmax(56px,.7fr) minmax(90px,1.1fr) minmax(80px,.8fr) minmax(90px,1fr) 30px;gap:6px;align-items:center}
+.factura-cab span{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--tinta3)}
+.factura-cab .der,.factura-fila .sub{text-align:right}
+.factura-fila input,.factura-fila select{width:100%;min-width:0;background:#fff;border:1.5px solid var(--linea);border-radius:8px;padding:8px 9px;font-size:14.5px}
+.factura-fila input:focus,.factura-fila select:focus{border-color:var(--vino);outline:none}
+.factura-fila .sub{font-weight:600;font-size:14px}
+.factura-pie{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+@media (max-width:720px){
+  .factura-cab{display:none}
+  .factura-fila{grid-template-columns:repeat(3,minmax(0,1fr));padding:8px 0;border-bottom:1px solid var(--linea2)}
+  .factura-fila input[data-desc]{grid-column:1/-1}
+  .factura-fila .sub{text-align:left}
+  .factura-fila .ico{justify-self:end}
+}

@@ -4,6 +4,7 @@ import { borrarInsumo, guardarInsumo } from '@/acciones/costos';
 import { BotonAccion, FormAccion } from '@/components/FormAccion';
 import { FormDolar } from '@/components/FormDolar';
 import { FormProducto, type Prod } from '@/components/FormProducto';
+import { Importador } from '@/components/Importador';
 import { Ventana } from '@/components/Ventana';
 import { calcular, costoUnitarioArs } from '@/lib/costos';
 import { datosCostos, estadoMargen } from '@/lib/datosCostos';
@@ -22,7 +23,7 @@ export default async function Costos({ searchParams }: { searchParams: Promise<P
     datosCostos(),
     db()<Prod[]>`select * from productos order by categoria, nombre`,
   ]);
-  const cerrar = url('/costos', sp, { nuevo: null, editar: null });
+  const cerrar = url('/costos', sp, { nuevo: null, editar: null, importar: null });
   const editar = Number(param(sp, 'editar')) || 0;
   const insumoEdit = editar ? insumos.find((i) => i.id === editar) : null;
   const nuevo = param(sp, 'nuevo');
@@ -35,6 +36,9 @@ export default async function Costos({ searchParams }: { searchParams: Promise<P
           Ingeniería de costos de cada producto: insumos, mermas, costos variables y margen.
         </Titulo>
         <div className="acciones">
+          <Link className="btn claro" href={url('/costos', sp, { importar: 1, nuevo: null, editar: null })} scroll={false}>
+            {ver === 'insumos' ? 'Importar insumos' : 'Importar productos'}
+          </Link>
           <Link className="btn vino" href={url('/costos', sp, { nuevo: 1 })} scroll={false}>
             {ver === 'insumos' ? '+ Nuevo insumo' : '+ Nuevo producto'}
           </Link>
@@ -157,6 +161,12 @@ export default async function Costos({ searchParams }: { searchParams: Promise<P
             <label className="campo"><span>Costo por unidad <em>(sin IVA)</em></span><input name="costo" inputMode="decimal" defaultValue={aTexto(insumoEdit?.costo)} required /></label>
             <label className="campo ancho"><span>Notas</span><input name="notas" defaultValue={insumoEdit?.notas} /></label>
           </FormAccion>
+        </Ventana>
+      )}
+
+      {param(sp, 'importar') && (
+        <Ventana titulo={ver === 'insumos' ? 'Importar insumos desde Excel' : 'Importar productos desde Excel'} cerrar={cerrar} ancha>
+          <Importador tipo={ver === 'insumos' ? 'insumo' : 'producto'} destino={ver === 'insumos' ? '/costos?ver=insumos' : '/costos'} />
         </Ventana>
       )}
 

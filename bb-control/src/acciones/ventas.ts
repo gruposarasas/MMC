@@ -52,6 +52,8 @@ export async function borrarImportacion(f: FormData) {
   const id = entero(f, 'id');
   if (!id) return;
   await db().begin(async (sql) => {
+    const [imp] = await sql`select tipo from importaciones where id = ${id}`;
+    if (imp?.tipo !== 'venta') return;
     await sql`delete from ventas where importacion_id = ${id}`;
     await sql`delete from importaciones where id = ${id}`;
   });

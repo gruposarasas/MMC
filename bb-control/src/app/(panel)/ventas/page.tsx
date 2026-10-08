@@ -41,7 +41,7 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
     p.tipo === 'mes'
       ? sql`select fecha as clave, sum(total) total, sum(neto) neto from ventas where ${filtro} group by 1 order by 1`
       : sql`select to_char(fecha, 'YYYY-MM') as clave, sum(total) total, sum(neto) neto from ventas where ${filtro} group by 1 order by 1`,
-    sql`select * from importaciones order by id desc limit 8`,
+    sql`select * from importaciones where tipo = 'venta' order by id desc limit 8`,
   ]);
 
   const base = '/ventas';

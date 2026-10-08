@@ -15,8 +15,8 @@ App de gestión de **Bruno Brown** (importadora de café): ventas, compras, gast
 | `/ingresar` | Administración | Ingreso con `ADMIN_PASSWORD`. |
 | `/kpi` | Administración | Ventas − costos (compras) − gastos − sueldos = rentabilidad, con % sobre ventas, comparación con el mes anterior, "de cada $100", 12 meses, cashflow y acumulado, gastos por rubro y avisos (pagos que vencen, cumpleaños, pedidos del equipo, lo que falta cargar). Sin IVA o con IVA. Mes o año. |
 | `/ventas` | Administración | Ventas del mes en curso (o el que elijas): con IVA, sin IVA, IVA, notas de crédito, por día. Filtros por cliente, comprobante y con/sin IVA. **Importar Excel de Contabilium** (o `.csv`) y carga a mano. |
-| `/compras` | Administración | Mercadería: fecha, rubro, proveedor, comprobante, cantidad, neto, IVA, percepciones, total, pesos o dólares, pagado o a pagar con vencimiento. Por rubro y pendientes de pago. "Repetir" para cargar otra igual. |
-| `/gastos` | Administración | Igual que compras, para lo que no es mercadería: alquiler, servicios, impuestos, F.931, inversiones… |
+| `/compras` | Administración | Mercadería. Se carga **como una factura**: proveedor, comprobante y varios productos, cada uno con cantidad, unidad, precio e IVA (autocompleta con lo ya comprado y con los insumos de Costos, y puede actualizar sus costos). También "solo el total". Pesos o dólares, pagado o a pagar con vencimiento. Por rubro, "qué se compró" y pendientes de pago. "Repetir" para cargar otra igual. **Importar Excel.** |
+| `/gastos` | Administración | Igual que compras, para lo que no es mercadería: alquiler, servicios, impuestos, F.931, inversiones… **Importar Excel.** |
 | `/sueldos` | Administración | Un renglón por persona y mes: bruto, neto, extras, adelantos a descontar, a pagar y pagado. "Armar sueldos" crea el mes con el sueldo de referencia de cada uno. |
 | `/equipo` · `/equipo/[id]` | Administración | Fichas con todos los datos, cumpleaños (próximos y del año), vacaciones (días por antigüedad según la LCT), certificados médicos, uniforme, adelantos, sueldos y la clave de la app. Aprobar o rechazar los pedidos. |
 | `/costos` · `/costos/[id]` | Administración | Ingeniería de costos: insumos (en pesos o dólares), receta de cada producto con merma, costos variables, margen, markup y precio sugerido. Dólar de referencia. |
@@ -43,6 +43,14 @@ App de gestión de **Bruno Brown** (importadora de café): ventas, compras, gast
 
 También sirve el Excel de "Mis comprobantes" de ARCA.
 
+## Importar compras, gastos, productos e insumos
+
+En Compras, Gastos y Costos hay un botón **Importar** con una **planilla modelo** para bajar. Igual que en Ventas, la app reconoce las columnas solas y se pueden corregir antes de importar.
+
+- **Compras y gastos:** una fila por producto (las filas con el mismo número de comprobante forman una factura; sin número, las filas seguidas del mismo día y proveedor) o una fila por comprobante con sus totales (como el Excel de comprobantes recibidos de Contabilium o de ARCA). El rubro se busca por nombre; si no existe va al que elijas. Las notas de crédito restan, las anuladas y la fila de totales se saltean. Reimportar no duplica. Cada importación se puede deshacer.
+- **Productos (Costos):** nombre, presentación, categoría, precio sin IVA o precio final con IVA, IVA, costos variables y margen. Si ya existe (mismo nombre y presentación) se actualiza.
+- **Insumos (Costos):** nombre, categoría, unidad, moneda (pesos o dólares) y costo sin IVA. Si ya existe se actualiza el costo.
+
 ## Variables de entorno
 
 | Variable | Qué es |
@@ -54,13 +62,13 @@ También sirve el Excel de "Mis comprobantes" de ARCA.
 ## Base de datos
 
 - Migraciones en `db/migraciones/*.sql`. **Se aplican solas al arrancar el contenedor** (`scripts/migrar.mjs`, que anota cada una en la tabla `_migraciones`); también con `npm run migrar`.
-- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
+- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
 - Todo el acceso es desde el servidor. En Supabase, RLS queda activado sin políticas y `anon`/`authenticated` no tienen permisos (`002_permisos_supabase.sql`): la API pública no ve nada. El aviso "RLS Enabled No Policy" del panel es esperado.
 - Los certificados médicos se guardan en la base (fotos achicadas en el celular, PDF hasta 8 MB).
 
 ## Deploy en Easypanel
 
-1. **Base:** proyecto `BB-CONTROL` de Supabase (SARA GROUP, São Paulo). Las migraciones `001` y `002` ya están aplicadas.
+1. **Base:** proyecto `BB-CONTROL` de Supabase (SARA GROUP, São Paulo). Las migraciones `001` a `003` ya están aplicadas.
 2. En el proyecto `bb` de Easypanel, un servicio **App**.
 3. **Source:** GitHub `gruposarasas/MMC`, la rama, **Build path `/bb-control`**, build con **Dockerfile**.
 4. **Environment:** las tres variables de arriba. `DATABASE_URL` se copia de Supabase → **Connect** → **Session pooler** (usuario `postgres.lojzzhmlsocbamejedxy`, puerto 5432), con la contraseña de la base y `?sslmode=require` al final.
