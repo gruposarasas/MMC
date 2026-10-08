@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Mundial de Café · Informe de la app</title><link rel="stylesheet" href="estilos.css">
+<style>
+.sec{font-size:8.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--arena);display:block;margin-bottom:1mm}
+.hoja{padding:16mm 16mm 22mm}
+.cab{margin-bottom:6mm}
+h2{font-size:19pt}
+.tapa{padding:26mm 20mm}
+.tapa h1{font-size:42pt}
+.tapa .datos{margin-bottom:74mm}
+.ed{display:inline-block;background:var(--vino);color:var(--crema);border-radius:99px;padding:1mm 5mm;font-weight:700;font-size:11pt;letter-spacing:.06em;margin-top:30mm;align-self:flex-start}
+.tapa .kicker{margin-top:6mm}
+.lgs{position:absolute;left:20mm;bottom:58mm;display:flex;align-items:center;gap:6mm}
+.lgs img{height:12mm;width:auto}.lgs i{width:1px;height:10mm;background:rgba(243,233,220,.3)}
+.pie{left:16mm;right:16mm;bottom:7mm;align-items:center}
+.pie .lg{display:flex;align-items:center;gap:4mm}.pie .lg img{height:8mm;width:auto}.pie .lg i{width:1px;height:6mm;background:var(--linea)}
+.grande{background:var(--plum);color:var(--crema);border-radius:5mm;padding:8mm 10mm;display:flex;align-items:center;gap:8mm;margin:2mm 0 5mm;position:relative;overflow:hidden}
+.grande .n{font-size:54pt;font-weight:800;color:var(--arena);line-height:.9}
+.grande .d{font-size:13pt;line-height:1.3}.grande .d b{display:block;font-size:16pt}
+.grande img{position:absolute;right:-8mm;top:-6mm;width:52mm;opacity:.14}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}
+.stat{background:#fff;border-radius:4mm;padding:5mm;border-top:1.6mm solid var(--arena)}
+.stat .n{font-size:26pt;font-weight:800;color:var(--vino);line-height:1}
+.stat .d{font-size:9pt;margin-top:2mm;color:rgba(40,23,34,.75)}.stat .d b{display:block;color:var(--plum);font-size:10.5pt}
+.stat.v{background:var(--vino);border-top-color:var(--plum)}.stat.v .n{color:#fff}.stat.v .d,.stat.v .d b{color:var(--crema)}
+.caja{background:#fff;border-radius:4mm;padding:5mm 6mm}
+.caja h3{font-size:10.5pt;color:var(--vino);margin-bottom:3mm}
+.mini{font-size:8.5pt;color:rgba(40,23,34,.62);margin:3mm 0 0}
+.hb .r{display:grid;grid-template-columns:30mm 1fr;align-items:center;gap:3mm;margin-bottom:1.6mm;font-size:9pt}
+.hb .k{line-height:1.15}.hb .k small{color:rgba(40,23,34,.55);font-size:7.5pt}
+.hb .t{display:flex;align-items:center;gap:2mm}
+.hb .b{height:5mm;background:var(--vino);border-radius:0 1.2mm 1.2mm 0;min-width:.6mm}
+.hb em{font-style:normal;font-weight:700;font-size:9pt;color:var(--plum)}
+.hb.eda .r{grid-template-columns:14mm 1fr}
+.hb.st .r{grid-template-columns:44mm 1fr;margin-bottom:.6mm;font-size:8.6pt}.hb.st .b{height:3.4mm}
+.hb.st .r:first-child .b{background:var(--plum)}
+.vb{display:flex;align-items:flex-end;gap:1.2mm;height:36mm;border-bottom:1px solid var(--linea);padding-top:5mm}
+.vb .c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.vb .b{width:100%;background:var(--vino);border-radius:1.2mm 1.2mm 0 0;position:relative;min-height:.4mm}
+.vb .b em{position:absolute;top:-4.6mm;left:50%;transform:translateX(-50%);font-style:normal;font-weight:700;font-size:8pt}
+.vb span{font-size:7.5pt;color:rgba(40,23,34,.6);margin-top:1mm;height:3.5mm}
+.split{display:flex;gap:2px;border-radius:3mm;overflow:hidden;margin-bottom:2mm}
+.split div{padding:4mm 3mm;color:var(--crema);font-size:8.5pt;background:var(--vino)}
+.split div+div{background:var(--plum)}
+.split b{display:block;font-size:18pt;color:#fff;line-height:1.1}
+table.t{font-size:8.6pt;margin:1mm 0 2mm}
+table.t td{padding:1.4mm 2mm}
+table.t th.n,table.t td.n{text-align:right}
+table.rk tr.pasa td{background:rgba(194,162,123,.18)}
+table.rk tr.pasa td:first-child{box-shadow:inset 1.2mm 0 0 var(--vino)}
+.gan{display:flex;align-items:center;gap:4mm;background:var(--plum);color:var(--crema);border-radius:3.5mm;padding:3mm 5mm;margin:1mm 0 3mm}
+.gan img{width:10mm;border-radius:2mm}
+.gan span{display:block;font-size:8pt;color:var(--arena2);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.gan b{font-size:15pt;color:var(--arena)}
+.final{display:grid;grid-template-columns:1fr auto 1fr;gap:5mm;align-items:center;margin:2mm 0 3mm}
+.jug{background:#fff;border-radius:4mm;padding:4mm;text-align:center}
+.jug .r{font-size:8pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(40,23,34,.55)}
+.jug .nom{font-size:15pt;font-weight:800;line-height:1.15;margin-top:1mm}
+.jug .pt{font-size:20pt;font-weight:800;color:var(--vino);line-height:1.1}
+.jug.gan2{background:var(--vino)}.jug.gan2 .r{color:var(--arena2)}.jug.gan2 .nom,.jug.gan2 .pt{color:#fff}
+.jug.gan2 img{width:11mm;border-radius:2mm}
+.vs{font-size:15pt;font-weight:800;color:var(--arena)}
+.podio{display:flex;gap:4mm;margin-bottom:3mm}
+.podio div{flex:1;background:#fff;border-radius:3mm;padding:2.5mm 4mm;font-size:10pt;font-weight:600}
+.podio b{color:var(--vino);margin-right:2mm}.podio small{color:rgba(40,23,34,.55);font-weight:400;margin-left:1mm}
+h3.tt{font-size:10.5pt;color:var(--vino);margin:4mm 0 1mm}
+ol.sor{margin:0;padding-left:5mm}ol.sor li{margin-bottom:2mm;font-size:10.5pt}ol.sor span{color:rgba(40,23,34,.55);font-size:9pt;margin-left:2mm}
+table.rk{font-size:8.2pt;margin:0}
+table.rk td{padding:.75mm 2mm;line-height:1.3}
+table.rk th{padding:1.2mm 2mm}
+.jug{padding:3mm}.jug .nom{font-size:13pt}.jug .pt{font-size:17pt}.jug.gan2 img{width:8mm}
+.final{margin:1mm 0 2mm}.podio{margin-bottom:1mm}.podio div{padding:1.8mm 4mm}
+h3.tt{margin:3mm 0 .5mm}
+</style></head><body>
+<!--BODY-->
+</body></html>
