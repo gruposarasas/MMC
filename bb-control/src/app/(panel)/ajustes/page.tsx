@@ -1,6 +1,10 @@
 import { Titulo } from '@/components/Titulo';
 import { headers } from 'next/headers';
 import { guardarRubro } from '@/acciones/ajustes';
+import { configurarContabilium, desconectarContabilium } from '@/acciones/contabilium';
+import { ConectarContabilium } from '@/components/Contabilium';
+import { BotonAccion } from '@/components/FormAccion';
+import { credenciales, leerConfig, leerEstado } from '@/lib/contabilium';
 import { FormAccion } from '@/components/FormAccion';
 import { FormDolar } from '@/components/FormDolar';
 import { leerDolar } from '@/lib/ajustes';
@@ -17,10 +21,13 @@ const CLASES: Record<string, string> = {
 };
 
 export default async function Ajustes() {
-  const [rubros, dolar, h] = await Promise.all([
+  const [rubros, dolar, h, cred, estado, config] = await Promise.all([
     db()<Rubro[]>`select r.*, (select count(*) from egresos e where e.rubro_id = r.id)::int usos from rubros r order by tipo, orden, nombre`,
     leerDolar(),
     headers(),
+    credenciales(),
+    leerEstado(),
+    leerConfig(),
   ]);
   const host = h.get('x-forwarded-host') ?? h.get('host') ?? '';
   const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
@@ -81,6 +88,38 @@ export default async function Ajustes() {
           <p className="sub">Se usa para los costos de insumos en dólares y como sugerencia al cargar compras en dólares.</p>
           <FormDolar dolar={dolar} />
         </div>
+      </div>
+      <div className="caja">
+        <div className="caja-cab">
+          <div>
+            <h2>Contabilium</h2>
+            <p className="sub" style={{ margin: 0 }}>
+              Conecta la API para traer las ventas solas. Los datos están en Contabilium → Mi cuenta → Configuración → API → Credenciales (plan Full o superior).
+            </p>
+          </div>
+          {cred ? <span className="chip bien">Conectado</span> : <span className="chip">Sin conectar</span>}
+        </div>
+        {estado && (
+          <div className={`aviso ${estado.ok ? 'ok' : 'mal'}`}>
+            Última sincronización ({new Date(estado.fecha).toLocaleString('es-AR', { timeZone: 'America/Argentina/Mendoza', dateStyle: 'short', timeStyle: 'short' })}): {estado.mensaje}
+          </div>
+        )}
+        {cred?.origen === 'entorno' ? (
+          <p className="sub">Configurado con las variables CONTABILIUM_EMAIL y CONTABILIUM_API_KEY del servidor ({cred.email}).</p>
+        ) : (
+          <ConectarContabilium email={cred?.email ?? ''} tieneClave={!!cred} />
+        )}
+        {cred && (
+          <div className="acciones" style={{ marginTop: 12, justifyContent: 'space-between' }}>
+            <form action={configurarContabilium} className="acciones">
+              <label className="casilla"><input type="checkbox" name="auto" defaultChecked={config.auto} /> Traer las ventas solas cada 6 horas (últimos 35 días)</label>
+              <button className="btn chico claro">Guardar</button>
+            </form>
+            {cred.origen === 'ajustes' && (
+              <BotonAccion accion={desconectarContabilium} campos={{}} className="btn chico claro" confirmar="¿Desconectar Contabilium? Las ventas ya traídas quedan.">Desconectar</BotonAccion>
+            )}
+          </div>
+        )}
       </div>
       <div className="grilla2">
         <Lista tipo="compra" />

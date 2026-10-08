@@ -249,7 +249,31 @@ export function leerCsv(texto: string): Celda[][] {
 }
 
 /** Clave para no duplicar al reimportar el mismo comprobante. */
+/**
+ * Tipo de comprobante en código corto, para que "Factura A", "FCA", "FC A" o "1 - Factura A"
+ * (Excel de Contabilium, de ARCA o la API) sean el mismo comprobante.
+ */
+export function tipoCanonico(texto: string) {
+  const t = normalizar(texto).replace(/^\d+ ?-? ?/, '');
+  const m = t.match(/^(fce|fc|nc|nd|n ?c|n ?d) ?([abcem])?$/);
+  if (m) return m[1].replace(' ', '').toUpperCase() + (m[2]?.toUpperCase() ?? '');
+  const letra = t.match(/ ([abcem])$/)?.[1]?.toUpperCase() ?? '';
+  const fce = /credito electronica/.test(t);
+  if (/^factura( de credito electronica( mipyme)?)?( [abcem])?$/.test(t)) return (fce ? 'FCE' : 'FC') + letra;
+  if (/^nota( de)? credito( de credito electronica( mipyme)?)?( [abcem])?$/.test(t)) return 'NC' + letra;
+  if (/^nota( de)? debito( de credito electronica( mipyme)?)?( [abcem])?$/.test(t)) return 'ND' + letra;
+  return t;
+}
+
+/** Nombre para mostrar a partir del código de Contabilium (FCA → Factura A). */
+export function nombreComprobante(codigo: string) {
+  const m = codigo.trim().toUpperCase().match(/^(FCE|FC|NC|ND)\s*([ABCEM])?$/);
+  if (!m) return codigo.trim();
+  const base = { FCE: 'Factura de crédito electrónica', FC: 'Factura', NC: 'Nota de crédito', ND: 'Nota de débito' }[m[1] as 'FC'];
+  return m[2] ? `${base} ${m[2]}` : base;
+}
+
 export function claveVenta(v: Pick<FilaVenta, 'fecha' | 'comprobante' | 'numero' | 'cliente' | 'total'>) {
-  const c = normalizar(v.comprobante);
+  const c = tipoCanonico(v.comprobante);
   return v.numero ? `${c}|${normalizar(v.numero)}` : `${v.fecha}|${c}|${normalizar(v.cliente)}|${v.total}`;
 }

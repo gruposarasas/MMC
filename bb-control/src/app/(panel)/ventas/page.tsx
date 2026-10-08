@@ -11,6 +11,9 @@ import { db } from '@/lib/db';
 import { fecha, fechaCorta, hoy, periodo, pesos, numero, sumarDias } from '@/lib/formato';
 import { type Params, param, url } from '@/lib/url';
 import { ImportarVentas } from './ImportarVentas';
+import { traerVentasContabilium } from '@/acciones/contabilium';
+import { BotonContabilium } from '@/components/Contabilium';
+import { credenciales, leerEstado } from '@/lib/contabilium';
 
 export const metadata = { title: 'Ventas · BB-CONTROL' };
 
@@ -44,6 +47,7 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
     sql`select * from importaciones where tipo = 'venta' order by id desc limit 8`,
   ]);
 
+  const [cred, estadoSync] = await Promise.all([credenciales(), leerEstado()]);
   const base = '/ventas';
   const cerrar = url(base, sp, { editar: null, nuevo: null, importar: null });
   const editar = param(sp, 'editar');
@@ -75,10 +79,22 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
         </Titulo>
         <div className="acciones">
           <SelectorPeriodo base={base} params={sp} p={p} />
-          <Link className="btn vino" href={url(base, sp, { importar: 1 })} scroll={false}>Importar Excel</Link>
+          {cred && <BotonContabilium accion={traerVentasContabilium} campos={{ p: p.valor }} texto={`Traer de Contabilium`} cargando="Trayendo ventas…" clase="btn vino" />}
+          <Link className={cred ? 'btn claro' : 'btn vino'} href={url(base, sp, { importar: 1 })} scroll={false}>Importar Excel</Link>
           <Link className="btn claro" href={url(base, sp, { nuevo: 1 })} scroll={false}>+ Venta a mano</Link>
         </div>
       </div>
+
+      {cred && estadoSync && (
+        <p className="sub" style={{ margin: '-8px 0 14px', fontSize: 13, color: estadoSync.ok ? 'var(--tinta3)' : 'var(--mal)' }}>
+          Contabilium: {estadoSync.mensaje} ({new Date(estadoSync.fecha).toLocaleString('es-AR', { timeZone: 'America/Argentina/Mendoza', dateStyle: 'short', timeStyle: 'short' })})
+        </p>
+      )}
+      {!cred && (
+        <p className="sub" style={{ margin: '-8px 0 14px', fontSize: 13 }}>
+          ¿Querés que las ventas se carguen solas? <Link href="/ajustes" className="link">Conectá Contabilium</Link>.
+        </p>
+      )}
 
       <div className="tiles">
         <Tile titulo="Total con IVA" valor={pesos(tot.total, 0)} oscuro sub={p.tipo === 'mes' ? <>{ant.etiqueta}: {pesos(totAnt.total, 0)}</> : undefined}>

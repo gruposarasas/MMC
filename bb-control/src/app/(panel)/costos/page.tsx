@@ -5,6 +5,9 @@ import { BotonAccion, FormAccion } from '@/components/FormAccion';
 import { FormDolar } from '@/components/FormDolar';
 import { FormProducto, type Prod } from '@/components/FormProducto';
 import { Importador } from '@/components/Importador';
+import { traerProductosContabilium } from '@/acciones/contabilium';
+import { BotonContabilium } from '@/components/Contabilium';
+import { credenciales } from '@/lib/contabilium';
 import { Ventana } from '@/components/Ventana';
 import { calcular, costoUnitarioArs } from '@/lib/costos';
 import { datosCostos, estadoMargen } from '@/lib/datosCostos';
@@ -19,9 +22,10 @@ const UNIDADES = ['kg', 'g', 'l', 'ml', 'u'];
 export default async function Costos({ searchParams }: { searchParams: Promise<Params> }) {
   const sp = await searchParams;
   const ver = param(sp, 'ver') === 'insumos' ? 'insumos' : 'productos';
-  const [{ insumos, mapa, receta, dolar }, productos] = await Promise.all([
+  const [{ insumos, mapa, receta, dolar }, productos, cred] = await Promise.all([
     datosCostos(),
     db()<Prod[]>`select * from productos order by categoria, nombre`,
+    credenciales(),
   ]);
   const cerrar = url('/costos', sp, { nuevo: null, editar: null, importar: null });
   const editar = Number(param(sp, 'editar')) || 0;
@@ -36,6 +40,7 @@ export default async function Costos({ searchParams }: { searchParams: Promise<P
           Ingeniería de costos de cada producto: insumos, mermas, costos variables y margen.
         </Titulo>
         <div className="acciones">
+          {cred && ver === 'productos' && <BotonContabilium accion={traerProductosContabilium} texto="Traer productos de Contabilium" cargando="Trayendo productos…" />}
           <Link className="btn claro" href={url('/costos', sp, { importar: 1, nuevo: null, editar: null })} scroll={false}>
             {ver === 'insumos' ? 'Importar insumos' : 'Importar productos'}
           </Link>

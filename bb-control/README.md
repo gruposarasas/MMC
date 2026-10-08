@@ -43,6 +43,15 @@ App de gestión de **Bruno Brown** (importadora de café): ventas, compras, gast
 
 También sirve el Excel de "Mis comprobantes" de ARCA.
 
+## Contabilium (API)
+
+Con plan Full o superior, Contabilium tiene API. En **Ajustes → Contabilium** se cargan el email de la API y la API Key (Contabilium → Mi cuenta → Configuración → API → Credenciales). Se guardan **cifradas** en la base (con `SESSION_SECRET`); también se pueden poner como variables `CONTABILIUM_EMAIL` y `CONTABILIUM_API_KEY`. "Guardar y probar" muestra tres ventas de ejemplo para compararlas con Contabilium.
+
+- **Ventas:** botón **Traer de Contabilium** (trae el mes o el año que estás mirando) y, si está activado, **sincronización automática cada 6 horas** de los últimos 35 días. Usa `/api/comprobantes/search` en tramos de 7 días. Cuenta facturas, notas de débito y notas de crédito (en negativo); deja afuera cotizaciones, remitos y presupuestos. Neto e IVA salen de los renglones del comprobante; las percepciones son la diferencia con el total. Una factura que ya estaba importada por Excel se actualiza, no se duplica (misma clave tipo + número: "Factura A", "FCA" o "1 - Factura A" son lo mismo).
+- **Productos:** en Costos, **Traer productos de Contabilium** crea o actualiza los productos con su rubro, precio sin IVA e IVA (`/api/conceptos/search`).
+- Respeta el límite de pedidos de la API (~2 por segundo) y reintenta si Contabilium pide esperar.
+- Para pruebas o para Chile/Uruguay, `CONTABILIUM_URL` cambia la dirección de la API (por defecto `https://rest.contabilium.com`).
+
 ## Importar compras, gastos, productos e insumos
 
 En Compras, Gastos y Costos hay un botón **Importar** con una **planilla modelo** para bajar. Igual que en Ventas, la app reconoce las columnas solas y se pueden corregir antes de importar.
@@ -57,6 +66,7 @@ En Compras, Gastos y Costos hay un botón **Importar** con una **planilla modelo
 |---|---|
 | `DATABASE_URL` | Conexión a Postgres. En Supabase: Project Settings → Database → Connection string → **Session pooler** (puerto 5432), con `?sslmode=require` al final. |
 | `ADMIN_PASSWORD` | Contraseña del panel de administración. Larga. |
+| `CONTABILIUM_EMAIL`, `CONTABILIUM_API_KEY` | Opcionales: credenciales de la API de Contabilium (si no, se cargan en Ajustes). |
 | `SESSION_SECRET` | Firma de las cookies, 32 caracteres o más: `openssl rand -base64 48`. |
 
 ## Base de datos
@@ -92,7 +102,7 @@ npm run dev
 
 ## Próximos pasos (automatizar de a poco)
 
-- Traer las ventas directo de la API de Contabilium (en vez del Excel).
+- Compras desde Contabilium, cuando su API publique los comprobantes de compra.
 - Cargar compras desde las facturas recibidas (ARCA / Contabilium).
 - Avisos por WhatsApp: cumpleaños, pedidos aprobados, vencimientos.
 - Cashflow por fecha de cobro y de pago, con saldo de bancos.
