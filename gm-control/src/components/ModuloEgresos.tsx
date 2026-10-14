@@ -111,7 +111,24 @@ export async function ModuloEgresos({ tipo, sp }: { tipo: 'compra' | 'gasto'; sp
     : null;
   const pre = lectura ? await prellenar(lectura.datos, tipo, rubros.filter((r) => r.activo), dolar?.valor ?? null) : null;
   const totalRubros = porRubro.reduce((a, r) => a + Number(r.total), 0);
+  // Sin ANTHROPIC_API_KEY no se leen fotos: se sube el comprobante y se completa a mano.
+  const conLector = !!process.env.ANTHROPIC_API_KEY;
   const filtrado = !!(q || rubro || estado || prov);
+  const adjunto = (
+    <label className="campo ancho">
+      <span>
+        {editando?.archivo_id ? 'Cambiar la foto o el PDF del comprobante' : 'Foto o PDF del comprobante'} <em>(opcional)</em>
+      </span>
+      <ArchivoInput name="adjunto" />
+      {editando?.archivo_id ? (
+        <span className="ayuda">
+          Ya tiene uno adjunto: <a href={`/api/archivos/${editando.archivo_id}`} target="_blank" rel="noopener">verlo</a>.
+        </span>
+      ) : (
+        !conLector && <span className="ayuda">Sacale una foto o subí el PDF y completá los datos abajo: queda guardado con {tipo === 'compra' ? 'la compra' : 'el gasto'}.</span>
+      )}
+    </label>
+  );
 
   return (
     <>
@@ -311,7 +328,7 @@ export async function ModuloEgresos({ tipo, sp }: { tipo: 'compra' | 'gasto'; sp
 
       {abierto && (
         <Ventana titulo={editando ? `Editar ${T.singular}` : copiando ? `Repetir ${T.singular}` : T.nuevo.replace('+ ', '')} cerrar={cerrar} ancha>
-          {!v && (
+          {!v && conLector && (
             <LectorFactura
               key={lectura?.id ?? 'nueva'}
               tipo={tipo}
@@ -333,6 +350,7 @@ export async function ModuloEgresos({ tipo, sp }: { tipo: 'compra' | 'gasto'; sp
             <input type="hidden" name="volver" value={cerrar} />
             {editando && <input type="hidden" name="id" value={editando.id} />}
             {lectura?.archivo_id && <input type="hidden" name="archivo_id" value={lectura.archivo_id} />}
+            {!conLector && adjunto}
             <label className="campo">
               <span>Fecha</span>
               <input type="date" name="fecha" defaultValue={editando?.fecha ?? pre?.fecha ?? hoy()} required />
@@ -393,19 +411,7 @@ export async function ModuloEgresos({ tipo, sp }: { tipo: 'compra' | 'gasto'; sp
               <span>Notas</span>
               <textarea name="notas" defaultValue={v?.notas} />
             </label>
-            {!lectura && (
-              <label className="campo ancho">
-                <span>
-                  {editando?.archivo_id ? 'Cambiar la foto o el PDF de la factura' : 'Foto o PDF de la factura'} <em>(opcional)</em>
-                </span>
-                <ArchivoInput name="adjunto" />
-                {editando?.archivo_id && (
-                  <span className="ayuda">
-                    Ya tiene una adjunta: <a href={`/api/archivos/${editando.archivo_id}`} target="_blank" rel="noopener">verla</a>.
-                  </span>
-                )}
-              </label>
-            )}
+            {conLector && !lectura && adjunto}
           </FormAccion>
         </Ventana>
       )}

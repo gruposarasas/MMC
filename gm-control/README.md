@@ -1,6 +1,6 @@
 # GM-CONTROL · Grupo Modesto
 
-App de gestión de **Grupo Modesto** (fábrica mayorista de panificados, pastas y pastelería de Mendoza, con las marcas Modesto, Bastante y La Social): ventas, compras, gastos, sueldos, equipo, costos y KPI mensuales, con un cashflow permanente. Se carga a mano o con planillas, y de a poco se automatiza.
+App de gestión de **Grupo Modesto**: los números de **Modesto SA** (CUIT 30-71793001-7), la fábrica mayorista de panificados, pastas y pastelería de Mendoza que abastece a las marcas Modesto, Bastante y La Social. Los KPI son solo de Modesto SA. Ventas, compras, gastos, sueldos, equipo, costos y KPI mensuales, con un cashflow permanente. Se carga a mano o con planillas, y de a poco se automatiza.
 
 - **Producción:** https://gm.saraimagineers.com (equipo: https://gm.saraimagineers.com/mi). Dominio propuesto: confirmarlo antes del deploy.
 - **Stack:** Next.js 15 (App Router, TypeScript) · Postgres en Supabase (proyecto propio, São Paulo) con `postgres` · Docker en Easypanel.
@@ -15,7 +15,7 @@ App de gestión de **Grupo Modesto** (fábrica mayorista de panificados, pastas 
 | `/ingresar` | Administración | Ingreso con `ADMIN_PASSWORD`. |
 | `/kpi` | Administración | Ventas − costos (compras) − gastos − sueldos = rentabilidad, con % sobre ventas, comparación con el mes anterior, "de cada $100", 12 meses, cashflow y acumulado, gastos por rubro y avisos (pagos que vencen, cumpleaños, pedidos del equipo, lo que falta cargar). Sin IVA o con IVA. Mes o año. |
 | `/ventas` | Administración | Ventas del mes en curso (o el que elijas): con IVA, sin IVA, IVA, notas de crédito, por día. Filtros por cliente, comprobante y con/sin IVA. **Importar Excel de Contabilium** (o `.csv`) y carga a mano. |
-| `/compras` | Administración | Mercadería. **Leer la factura con una foto o PDF** (completa todo el formulario) o cargarla **como una factura**: proveedor (de la lista), comprobante y varios productos, cada uno con cantidad, unidad, precio e IVA (autocompleta con lo ya comprado y con los insumos de Costos, y puede actualizar sus costos). También "solo el total". Pesos o dólares, pagado o a pagar con vencimiento. Por rubro, "qué se compró" y pendientes de pago. "Repetir" para cargar otra igual. **Importar Excel.** |
+| `/compras` | Administración | Mercadería. Se sube el **comprobante (foto o PDF)** y se carga a mano **como una factura**: proveedor (de la lista), comprobante y varios productos, cada uno con cantidad, unidad, precio e IVA (autocompleta con lo ya comprado y con los insumos de Costos, y puede actualizar sus costos). También "solo el total". Pesos o dólares, pagado o a pagar con vencimiento. Por rubro, "qué se compró" y pendientes de pago. "Repetir" para cargar otra igual. **Importar Excel.** |
 | `/gastos` | Administración | Igual que compras, para lo que no es mercadería: alquiler, servicios, impuestos, F.931, inversiones… **Importar Excel.** |
 | `/proveedores` | Administración | Lista de proveedores de compras y gastos: CUIT, rubro habitual, contacto, teléfono, mail, CBU o alias. Cuánto se le compró en el año y link a sus comprobantes. Editar (el nombre cambia en todos sus comprobantes), desactivar, **unir repetidos** y **Importar Excel**. |
 | `/sueldos` | Administración | Un renglón por persona y mes: bruto, neto, extras, adelantos a descontar, a pagar y pagado. "Armar sueldos" crea el mes con el sueldo de referencia de cada uno. |
@@ -63,9 +63,11 @@ Con plan Full o superior, Contabilium tiene API. En **Ajustes → Contabilium** 
 - Al importar compras o gastos desde Excel, los proveedores que no estaban se agregan solos a la lista (y si traen CUIT y el de la lista no tenía, se lo completa).
 - Los proveedores que ya estaban escritos en compras y gastos pasaron a la lista automáticamente (`005_proveedores.sql`).
 
-## Leer facturas con una foto
+## Leer facturas con una foto (apagado)
 
-En **Nueva compra** o **Nuevo gasto**, el botón **Leer foto o PDF** (en el celular abre la cámara) lee el comprobante con Claude (la IA de Anthropic) y completa proveedor (lo busca en la lista por CUIT o nombre; si no está, queda como proveedor nuevo con su CUIT), comprobante, número, fecha, vencimiento de pago, moneda, renglones con cantidad, unidad, precio sin IVA y alícuota, percepciones y rubro. Muestra si el total cargado **coincide con el de la factura** y avisa lo que no se pudo leer bien. Nada se guarda hasta tocar **Guardar**.
+**Por ahora no se usa:** sin `ANTHROPIC_API_KEY` el botón no aparece. En **Nueva compra** y **Nuevo gasto** el primer campo es **Foto o PDF del comprobante** (en el celular abre la cámara o los archivos): se sube y el gerente completa los datos a mano. El comprobante queda guardado con la compra (link **Factura** en la lista).
+
+Si más adelante se activa (poniendo la variable), en **Nueva compra** o **Nuevo gasto**, el botón **Leer foto o PDF** (en el celular abre la cámara) lee el comprobante con Claude (la IA de Anthropic) y completa proveedor (lo busca en la lista por CUIT o nombre; si no está, queda como proveedor nuevo con su CUIT), comprobante, número, fecha, vencimiento de pago, moneda, renglones con cantidad, unidad, precio sin IVA y alícuota, percepciones y rubro. Muestra si el total cargado **coincide con el de la factura** y avisa lo que no se pudo leer bien. Nada se guarda hasta tocar **Guardar**.
 
 - La foto o el PDF quedan guardados con el comprobante (link **Factura** en la lista). También se puede adjuntar a mano al cargar o editar.
 - Necesita la variable `ANTHROPIC_API_KEY` (se saca en console.anthropic.com → API Keys, con crédito cargado). Cuesta alrededor de **US$ 0,03 a 0,10 por factura** (más si es un PDF de varias páginas).
@@ -81,7 +83,7 @@ En **Nueva compra** o **Nuevo gasto**, el botón **Leer foto o PDF** (en el celu
 - **El IVA no va a Gastos** (el KPI es sin IVA), pero su vencimiento aparece en "Pagos que vencen" del KPI.
 - **IVA estimado:** IVA de las ventas (débito) menos IVA de compras y gastos (crédito) de cada mes, contra lo que declaró el contador; últimos 6 meses. Las percepciones de las facturas de compra se muestran aparte (no se restan: están juntas las de IVA y las de IIBB).
 - **Equipo:** ART o seguro de cada persona (lo elige administración; el contador lo ve) y las **novedades del mes** para liquidar sueldos: altas, bajas, vacaciones aprobadas y licencias médicas (días que caen en el mes) y adelantos a descontar. No muestra el motivo de los certificados.
-- **Razones sociales:** arranca con "Grupo Modesto" (sin CUIT); se le carga el CUIT y se agregan las demás (fábrica, franquicias, cada marca) en Accesos.
+- **Razones sociales:** arranca con **Modesto SA** (CUIT 30-71793001-7). Se pueden agregar otras con su CUIT en Accesos.
 
 ## Importar compras, gastos, productos, insumos y proveedores
 
@@ -99,7 +101,7 @@ En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **pl
 | `DATABASE_URL` | Conexión a Postgres. En Supabase: Project Settings → Database → Connection string → **Session pooler** (puerto 5432), con `?sslmode=require` al final. |
 | `ADMIN_PASSWORD` | Contraseña del panel de administración. Larga. |
 | `CONTABILIUM_EMAIL`, `CONTABILIUM_API_KEY` | Opcionales: credenciales de la API de Contabilium (si no, se cargan en Ajustes). |
-| `ANTHROPIC_API_KEY` | Para leer facturas con una foto. Sin ella, todo lo demás funciona y el botón avisa que falta. |
+| `ANTHROPIC_API_KEY` | Opcional, **hoy sin usar**: activa la lectura de facturas con una foto. Sin ella, el botón no aparece y el comprobante se sube y se completa a mano. |
 | `SESSION_SECRET` | Firma de las cookies, 32 caracteres o más: `openssl rand -base64 48`. |
 
 ## Base de datos

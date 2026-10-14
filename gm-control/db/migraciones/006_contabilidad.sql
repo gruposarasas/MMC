@@ -8,7 +8,7 @@ create table razones_sociales (
   orden int not null default 0,
   activo boolean not null default true
 );
-insert into razones_sociales (nombre) values ('Grupo Modesto');
+insert into razones_sociales (nombre, cuit) values ('Modesto SA', '30717930017');
 
 -- Acceso del contador (o de cada persona del estudio): mail y clave. Entra solo a Contabilidad.
 create table contadores (

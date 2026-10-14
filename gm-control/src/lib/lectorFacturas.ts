@@ -30,11 +30,11 @@ export const FacturaLeida = z.object({
 });
 export type FacturaLeida = z.infer<typeof FacturaLeida>;
 
-const INSTRUCCIONES = `Sos el administrativo de Grupo Modesto, una fábrica mayorista de panificados, pastas, pastelería y
-producción de Mendoza (Argentina), con sus marcas Modesto (casa de café), Bastante (café) y La Social (pizzería de barrio).
+const INSTRUCCIONES = `Sos el administrativo de Modesto SA (Grupo Modesto), la fábrica mayorista de panificados, pastas,
+pastelería y producción de Mendoza (Argentina) que abastece a las marcas Modesto, Bastante y La Social.
 Te pasan la foto o el PDF de un comprobante de compra o de gasto. Leelo y devolvé sus datos.
 
-- Grupo Modesto (o la razón social del grupo que figure como cliente) es quien COMPRA (el receptor): el proveedor es quien emite el comprobante.
+- Modesto SA (CUIT 30-71793001-7) es quien COMPRA (el receptor): el proveedor es quien emite el comprobante.
 - Los importes van como números, sin símbolo ni separador de miles (1.234,56 → 1234.56).
 - En facturas A: precio unitario sin IVA y la alícuota de cada renglón.
 - En facturas B, C, tickets y recibos el IVA no se discrimina: alícuota 0 y el precio final.
