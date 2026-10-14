@@ -2,6 +2,7 @@
 
 App de gestión de **Grupo Modesto**. Los números y los KPI son solo de **Modesto SA** (CUIT 30-71793001-7), la fábrica mayorista de panificados, pastas, pastelería y producción de Mendoza que abastece a las marcas Modesto (casa de café), Bastante (café) y La Social (pizzería de barrio). Datos financieros al día y un cashflow permanente para ver los KPI. Simple, mobile-friendly, carga manual primero y automatización de a poco.
 
+- **Producción:** https://gm.saraimagineers.com (equipo: `/mi`, contador: `/contador`).
 - **Idioma:** español rioplatense con voseo. **Zona horaria:** `America/Argentina/Mendoza`.
 - **Diseño:** identidad de Grupo Modesto (marrón `#45302D`, crema `#F8F4EC`, topo `#9B837B`, terracota `#B4482E` de acento, Nunito Sans, el isotipo de curvas de nivel, figuras de trazo y la guarda de las tres historias). Gráficos con la paleta validada en `globals.css` (`--s-*`).
 - **Ventas:** salen de **Contabilium** (Excel o API).

@@ -2,7 +2,7 @@
 
 App de gestión de **Grupo Modesto**: los números de **Modesto SA** (CUIT 30-71793001-7), la fábrica mayorista de panificados, pastas y pastelería de Mendoza que abastece a las marcas Modesto, Bastante y La Social. Los KPI son solo de Modesto SA. Ventas, compras, gastos, sueldos, equipo, costos y KPI mensuales, con un cashflow permanente. Se carga a mano o con planillas, y de a poco se automatiza.
 
-- **Producción:** https://gm.saraimagineers.com (equipo: https://gm.saraimagineers.com/mi). Dominio propuesto: confirmarlo antes del deploy.
+- **Producción:** https://gm.saraimagineers.com (equipo: https://gm.saraimagineers.com/mi).
 - **Stack:** Next.js 15 (App Router, TypeScript) · Postgres en Supabase (proyecto propio, São Paulo) con `postgres` · Docker en Easypanel.
 - **Diseño:** identidad de Grupo Modesto (del PDF de marca): marrón `#45302D`, crema `#F8F4EC`, topo `#9B837B` y terracota `#B4482E` de acento; Nunito Sans; el isotipo de curvas de nivel (`public/gm-crema.png`), el logo "Grupo Modesto · Donde nacen tres historias" (`public/img/grupo-modesto-*.png`), figuras de trazo por módulo y la guarda con las tres historias (Modesto, Bastante y La Social) en `public/img`.
 - **Origen:** hecha a partir de BB-CONTROL (Bruno Brown), con el mismo código.
