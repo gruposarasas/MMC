@@ -3,7 +3,7 @@
 App de gestión de **Grupo Modesto**: los números de **Modesto SA** (CUIT 30-71793001-7), la fábrica mayorista de panificados, pastas y pastelería de Mendoza que abastece a las marcas Modesto, Bastante y La Social. Los KPI son solo de Modesto SA. Ventas, compras, gastos, sueldos, equipo, costos y KPI mensuales, con un cashflow permanente. Se carga a mano o con planillas, y de a poco se automatiza.
 
 - **Producción:** https://gm.saraimagineers.com (equipo: https://gm.saraimagineers.com/mi).
-- **Stack:** Next.js 15 (App Router, TypeScript) · Postgres en Supabase (proyecto propio, São Paulo) con `postgres` · Docker en Easypanel.
+- **Stack:** Next.js 15 (App Router, TypeScript) · Postgres en Supabase (proyecto **GM-CONTROL**, São Paulo) con `postgres` · Docker en Easypanel (proyecto **`gm`**).
 - **Diseño:** identidad de Grupo Modesto (del PDF de marca): marrón `#45302D`, crema `#F8F4EC`, topo `#9B837B` y terracota `#B4482E` de acento; Nunito Sans; el isotipo de curvas de nivel (`public/gm-crema.png`), el logo "Grupo Modesto · Donde nacen tres historias" (`public/img/grupo-modesto-*.png`), figuras de trazo por módulo y la guarda con las tres historias (Modesto, Bastante y La Social) en `public/img`.
 - **Origen:** hecha a partir de BB-CONTROL (Bruno Brown), con el mismo código.
 
@@ -114,7 +114,7 @@ En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **pl
 ## Deploy en Easypanel
 
 1. **Base:** un proyecto de Supabase (São Paulo). Las migraciones se aplican solas al arrancar el contenedor.
-2. En un proyecto de Easypanel, un servicio **App**.
+2. En el proyecto **`gm`** de Easypanel, un servicio **App**.
 3. **Source:** GitHub, el repo y la rama, build con **Dockerfile**. **Build path `/gm-control`** mientras la app viva en esa carpeta del repo MMC (`/` si se pasa a un repo propio).
 4. **Environment:** las tres variables de arriba. `DATABASE_URL` se copia de Supabase → **Connect** → **Session pooler** (usuario `postgres.<ref-del-proyecto>`, puerto 5432), con la contraseña de la base y `?sslmode=require` al final.
 5. **Domains:** `gm.saraimagineers.com` → puerto **80**, HTTPS (Let's Encrypt). Easypanel le pasa `PORT=80` al contenedor.

@@ -8,5 +8,6 @@ App de gestión de **Grupo Modesto**. Los números y los KPI son solo de **Modes
 - **Ventas:** salen de **Contabilium** (Excel o API).
 - **Compras y gastos:** se sube el comprobante (foto o PDF) y el gerente completa la factura a mano. La lectura con IA está apagada: el botón aparece solo si hay `ANTHROPIC_API_KEY`.
 - **Módulos:** Ventas · Compras (mercadería, por rubro, como factura o leyendo la foto) · Gastos · Proveedores · Sueldos · Equipo (con la app `/mi` de cada persona) · Costos · Contabilidad (el contador entra en `/contador`) · KPI (ventas − costos − gastos − sueldos = rentabilidad, con porcentajes).
+- **Infraestructura:** Supabase, proyecto **GM-CONTROL** (São Paulo). Easypanel, proyecto **`gm`**.
 - La app vive en la carpeta `gm-control/` del repo MMC (Easypanel: build path `/gm-control`). Es autónoma: se puede pasar a un repo propio copiando la carpeta.
 - Hecha a partir de BB-CONTROL (Bruno Brown). Estado, cálculos y deploy: ver `README.md`.
