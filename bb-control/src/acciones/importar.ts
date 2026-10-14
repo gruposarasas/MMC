@@ -242,6 +242,126 @@ export async function importarProveedores(datos: { archivo: string; filas: Recor
   return { nuevos: r.nuevos, actualizados: r.vistos - r.nuevos };
 }
 
+export async function importarEcheqs(datos: { archivo: string; sentido: string; cuenta: number; filas: Record<string, unknown>[] }): Promise<Resultado> {
+  await exigirAdmin();
+  const lista = Array.isArray(datos?.filas) ? datos.filas.slice(0, 5000) : [];
+  if (!lista.length) return { error: 'No hay echeqs para importar.' };
+  const sentido = datos.sentido === 'recibido' ? 'recibido' : 'emitido';
+  const sql = db();
+  const cuenta = Number(datos.cuenta) ? (await sql`select id from cuentas_banco where id = ${Number(datos.cuenta)}`)[0]?.id as number | undefined : undefined;
+  const ESTADOS = ['pendiente', 'pagado', 'anulado', 'rechazado'];
+  try {
+    const r = await sql.begin(async (tx) => {
+      const provs = await ListaProveedores.cargar(tx);
+      const [imp] = await tx`insert into importaciones (tipo, archivo, filas) values ('echeq', ${s(datos.archivo, 160) || 'archivo'}, ${lista.length}) returning id`;
+      let nuevos = 0;
+      let vistos = 0;
+      let vinculadas = 0;
+      for (const [i, e] of lista.entries()) {
+        const pago = s(e.pago, 10);
+        const monto = n(e.monto);
+        if (!esFecha(pago) || !monto || monto <= 0) throw new ErrorForm(`Fila ${Number(e.fila) || i + 1}: falta la fecha de pago o el monto.`);
+        const emision = s(e.emision, 10);
+        const numero = s(e.numero, 40);
+        const banco = s(e.banco, 60);
+        const tercero = s(e.tercero, 120);
+        const cuit = limpiarCuit(e.cuit);
+        // Al beneficiario de un emitido se lo busca en la lista de proveedores (no se crea).
+        const prov = sentido === 'emitido' && (tercero || cuit) ? provs.buscar(tercero, cuit) : null;
+        const fila = {
+          sentido, cuenta_id: cuenta ?? null, numero, banco, proveedor_id: prov?.id ?? null, tercero, cuit,
+          emision: esFecha(emision) ? emision : null, pago, moneda: 'ARS', monto: redondear(monto),
+          estado: ESTADOS.includes(String(e.estado)) ? String(e.estado) : 'pendiente', notas: s(e.notas, 300),
+          clave: numero ? `${sentido}|${cuenta ?? normalizar(banco)}|${normalizar(numero)}` : `${sentido}|${pago}|${redondear(monto)}|${normalizar(tercero || cuit)}`,
+          importacion_id: imp.id as number,
+        };
+        const [x] = await tx`insert into echeqs ${tx({ ...fila, cerrado_el: fila.estado === 'pendiente' ? null : hoy() })}
+          on conflict (clave) do update set pago = excluded.pago, monto = excluded.monto, emision = coalesce(excluded.emision, echeqs.emision),
+            tercero = excluded.tercero, cuit = excluded.cuit, proveedor_id = coalesce(echeqs.proveedor_id, excluded.proveedor_id),
+            estado = case when excluded.estado = 'pendiente' then echeqs.estado else excluded.estado end,
+            cerrado_el = case when excluded.estado = 'pendiente' or echeqs.estado = excluded.estado then echeqs.cerrado_el else excluded.cerrado_el end,
+            importacion_id = excluded.importacion_id
+          returning id, estado, proveedor_id, (xmax = 0) nuevo`;
+        vistos++;
+        if (x.nuevo) nuevos++;
+        // Si paga una factura sin pagar del mismo proveedor y por el mismo monto, queda vinculada y pagada.
+        if (sentido === 'emitido' && x.proveedor_id && (x.estado === 'pendiente' || x.estado === 'pagado')
+          && !(await tx`select 1 from echeq_egresos where echeq_id = ${x.id as number}`).length) {
+          const facturas = await tx`select id from egresos where proveedor_id = ${x.proveedor_id as number} and not pagado
+                                    and abs(total_ars - ${redondear(monto)}) <= 1 limit 2`;
+          if (facturas.length === 1) {
+            await tx`insert into echeq_egresos (echeq_id, egreso_id) values (${x.id as number}, ${facturas[0].id as number})`;
+            await tx`update egresos set pagado = true, fecha_pago = ${pago}, vencimiento = null, medio_pago = 'Cheque / Echeq' where id = ${facturas[0].id as number}`;
+            vinculadas++;
+          }
+        }
+      }
+      await tx`update importaciones set nuevas = ${nuevos}, actualizadas = ${vistos - nuevos} where id = ${imp.id}`;
+      return { nuevos, vistos, vinculadas };
+    });
+    revalidatePath('/banco', 'layout');
+    revalidatePath('/kpi');
+    if (r.vinculadas) {
+      revalidatePath('/compras');
+      revalidatePath('/gastos');
+    }
+    return {
+      nuevos: r.nuevos, actualizados: r.vistos - r.nuevos,
+      detalle: r.vinculadas ? `${r.vinculadas === 1 ? 'se marcó pagada 1 factura' : `se marcaron pagadas ${r.vinculadas} facturas`} que coincide${r.vinculadas === 1 ? '' : 'n'} en proveedor y monto` : '',
+    };
+  } catch (e) {
+    if (e instanceof ErrorForm) return { error: e.message };
+    throw e;
+  }
+}
+
+export async function importarActivos(datos: { archivo: string; categoria: string; moneda: string; filas: Record<string, unknown>[] }): Promise<Resultado> {
+  await exigirAdmin();
+  const lista = Array.isArray(datos?.filas) ? datos.filas.slice(0, 5000) : [];
+  if (!lista.length) return { error: 'No hay activos para importar.' };
+  const CATS = ['maquina', 'molinillo', 'tostadora', 'vehiculo', 'equipo', 'otro'];
+  const ESTADOS = ['cliente', 'deposito', 'uso', 'reparacion', 'baja'];
+  const categoriaDefecto = CATS.includes(datos.categoria) ? datos.categoria : 'maquina';
+  const monedaDefecto = datos.moneda === 'ARS' ? 'ARS' : 'USD';
+  const sql = db();
+  const r = await sql.begin(async (tx) => {
+    let nuevos = 0;
+    let vistos = 0;
+    for (const a of lista) {
+      const descripcion = s(a.descripcion, 160);
+      if (!descripcion) continue;
+      vistos++;
+      const categoria = CATS.includes(String(a.categoria)) ? String(a.categoria) : categoriaDefecto;
+      const numero = s(a.numero, 60);
+      const cliente = s(a.cliente, 120);
+      const instalada = s(a.instalada, 10);
+      const valor = n(a.valor);
+      const costo = n(a.costo);
+      const fila = {
+        categoria, numero, descripcion, marca: s(a.marca, 60), modelo: s(a.modelo, 60), cliente, ubicacion: s(a.ubicacion, 160),
+        estado: ESTADOS.includes(String(a.estado)) ? String(a.estado) : cliente ? 'cliente' : ['vehiculo', 'tostadora'].includes(categoria) ? 'uso' : 'deposito',
+        instalada: esFecha(instalada) ? instalada : null, moneda: a.moneda === 'ARS' || a.moneda === 'USD' ? String(a.moneda) : monedaDefecto,
+        valor_estimado: valor != null && valor >= 0 ? redondear(valor) : null, costo_mercaderia: costo != null && costo >= 0 ? redondear(costo) : null,
+        notas: s(a.notas, 1000),
+        clave: numero ? `${categoria}|${normalizar(numero)}` : `${categoria}|${normalizar(descripcion)}|${normalizar(cliente)}|sn`,
+      };
+      // Lo que no vino en el Excel no se pisa.
+      const [x] = await tx`insert into activos ${tx(fila)} on conflict (clave) do update set
+          descripcion = excluded.descripcion, marca = coalesce(nullif(excluded.marca, ''), activos.marca), modelo = coalesce(nullif(excluded.modelo, ''), activos.modelo),
+          cliente = case when excluded.cliente <> '' then excluded.cliente else activos.cliente end,
+          ubicacion = coalesce(nullif(excluded.ubicacion, ''), activos.ubicacion), estado = excluded.estado,
+          instalada = coalesce(excluded.instalada, activos.instalada), valor_estimado = coalesce(excluded.valor_estimado, activos.valor_estimado),
+          costo_mercaderia = coalesce(excluded.costo_mercaderia, activos.costo_mercaderia), notas = coalesce(nullif(excluded.notas, ''), activos.notas)
+        returning (xmax = 0) nuevo`;
+      if (x.nuevo) nuevos++;
+    }
+    await tx`insert into importaciones (tipo, archivo, filas, nuevas, actualizadas) values ('activo', ${s(datos.archivo, 160) || 'archivo'}, ${lista.length}, ${nuevos}, ${vistos - nuevos})`;
+    return { nuevos, vistos };
+  });
+  revalidatePath('/activos', 'layout');
+  return { nuevos: r.nuevos, actualizados: r.vistos - r.nuevos };
+}
+
 /** Deshace una importación de compras o gastos: borra los comprobantes que vinieron con ella. */
 export async function deshacerImportacionEgresos(f: FormData) {
   await exigirAdmin();

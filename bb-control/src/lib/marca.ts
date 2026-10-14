@@ -5,6 +5,8 @@ export const FIGURAS = {
   compras: '/img/ic_grano.png',
   gastos: '/img/ic_ondas.png',
   proveedores: '/img/ic_planta.png',
+  banco: '/img/ic_estrella.png',
+  activos: '/img/ic_maquina.png',
   sueldos: '/img/ic_jarra.png',
   equipo: '/img/ic_flor.png',
   costos: '/img/ic_chemex.png',

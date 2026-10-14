@@ -1,18 +1,18 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { importarEgresos, importarInsumos, importarProductos, importarProveedores, type Resultado } from '@/acciones/importar';
+import { importarActivos, importarEcheqs, importarEgresos, importarInsumos, importarProductos, importarProveedores, type Resultado } from '@/acciones/importar';
 import { dolares, fecha, numero, pesos } from '@/lib/formato';
 import {
-  adivinarCon, convertirEgresos, convertirInsumos, convertirProductos, convertirProveedores, ESQUEMAS, filaTitulosCon, planillaModelo, totalesComprobante, type TipoImportacion,
+  adivinarCon, convertirActivos, convertirEcheqs, convertirEgresos, convertirInsumos, convertirProductos, convertirProveedores, ESQUEMAS, filaTitulosCon, planillaModelo, totalesComprobante, type TipoImportacion,
 } from '@/lib/esquemas';
 import type { Celda } from '@/lib/importar';
 import { leerArchivo } from '@/lib/leerArchivo';
 import { formatoCuit } from '@/lib/proveedores';
 
-const NOMBRES: Record<TipoImportacion, string> = { compra: 'compras', gasto: 'gastos', producto: 'productos', insumo: 'insumos', proveedor: 'proveedores' };
+const NOMBRES: Record<TipoImportacion, string> = { compra: 'compras', gasto: 'gastos', producto: 'productos', insumo: 'insumos', proveedor: 'proveedores', echeq: 'echeqs', activo: 'activos' };
 
-export function Importador({ tipo, rubros = [], dolar = null, destino }: { tipo: TipoImportacion; rubros?: { id: number; nombre: string }[]; dolar?: number | null; destino: string }) {
+export function Importador({ tipo, rubros = [], dolar = null, destino, cuentas = [] }: { tipo: TipoImportacion; rubros?: { id: number; nombre: string }[]; dolar?: number | null; destino: string; cuentas?: { id: number; nombre: string }[] }) {
   const router = useRouter();
   const esquema = ESQUEMAS[tipo];
   const esEgreso = tipo === 'compra' || tipo === 'gasto';
@@ -28,6 +28,10 @@ export function Importador({ tipo, rubros = [], dolar = null, destino }: { tipo:
   const [pagado, setPagado] = useState(true);
   const [alicuota, setAlicuota] = useState(21);
   const [actualizarCostos, setActualizarCostos] = useState(true);
+  const [sentido, setSentido] = useState<'emitido' | 'recibido'>('emitido');
+  const [cuenta, setCuenta] = useState(cuentas[0]?.id ?? 0);
+  const [categoria, setCategoria] = useState('maquina');
+  const [monedaActivo, setMonedaActivo] = useState<'USD' | 'ARS'>('USD');
 
   async function elegir(f: File | undefined) {
     setError('');
@@ -55,6 +59,8 @@ export function Importador({ tipo, rubros = [], dolar = null, destino }: { tipo:
     if (esEgreso) return { tipo: 'egreso' as const, ...convertirEgresos(filas, titulos, mapa, { alicuota, dolar }) };
     if (tipo === 'producto') return { tipo: 'producto' as const, ...convertirProductos(filas, titulos, mapa), salteadas: [] };
     if (tipo === 'proveedor') return { tipo: 'proveedor' as const, ...convertirProveedores(filas, titulos, mapa), salteadas: [] };
+    if (tipo === 'echeq') return { tipo: 'echeq' as const, ...convertirEcheqs(filas, titulos, mapa), salteadas: [] };
+    if (tipo === 'activo') return { tipo: 'activo' as const, ...convertirActivos(filas, titulos, mapa), salteadas: [] };
     return { tipo: 'insumo' as const, ...convertirInsumos(filas, titulos, mapa), salteadas: [] };
   }, [filas, titulos, mapa, alicuota, dolar, esEgreso, tipo]);
 
@@ -70,6 +76,8 @@ export function Importador({ tipo, rubros = [], dolar = null, destino }: { tipo:
       if (res.tipo === 'egreso') r = await importarEgresos({ tipo: tipo as 'compra' | 'gasto', archivo, rubroDefecto: rubro, pagado, actualizarCostos, comprobantes: res.comprobantes });
       else if (res.tipo === 'producto') r = await importarProductos({ archivo, filas: res.filas });
       else if (res.tipo === 'proveedor') r = await importarProveedores({ archivo, filas: res.filas });
+      else if (res.tipo === 'echeq') r = await importarEcheqs({ archivo, sentido, cuenta, filas: res.filas });
+      else if (res.tipo === 'activo') r = await importarActivos({ archivo, categoria, moneda: monedaActivo, filas: res.filas });
       else r = await importarInsumos({ archivo, filas: res.filas });
       if (r.error) setError(r.error);
       else {
@@ -187,6 +195,47 @@ export function Importador({ tipo, rubros = [], dolar = null, destino }: { tipo:
             </div>
           )}
 
+          {tipo === 'echeq' && (
+            <div className="form" style={{ marginBottom: 14 }}>
+              <label className="campo">
+                <span>Son echeqs</span>
+                <select value={sentido} onChange={(e) => setSentido(e.target.value as 'emitido' | 'recibido')}>
+                  <option value="emitido">Emitidos (los pagamos nosotros)</option>
+                  <option value="recibido">Recibidos (los cobramos)</option>
+                </select>
+              </label>
+              <label className="campo">
+                <span>Cuenta</span>
+                <select value={cuenta} onChange={(e) => setCuenta(Number(e.target.value))}>
+                  <option value={0}>Sin cuenta</option>
+                  {cuentas.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              </label>
+            </div>
+          )}
+
+          {tipo === 'activo' && (
+            <div className="form" style={{ marginBottom: 14 }}>
+              <label className="campo">
+                <span>Tipo si la fila no lo dice</span>
+                <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+                  <option value="maquina">Máquina de café</option>
+                  <option value="molinillo">Molinillo</option>
+                  <option value="tostadora">Tostadora</option>
+                  <option value="vehiculo">Vehículo</option>
+                  <option value="equipo">Otro equipo</option>
+                </select>
+              </label>
+              <label className="campo">
+                <span>Moneda de los valores si la fila no la dice</span>
+                <select value={monedaActivo} onChange={(e) => setMonedaActivo(e.target.value as 'USD' | 'ARS')}>
+                  <option value="USD">Dólares</option>
+                  <option value="ARS">Pesos</option>
+                </select>
+              </label>
+            </div>
+          )}
+
           {falta ? (
             <div className="aviso">{falta}</div>
           ) : (
@@ -213,6 +262,18 @@ export function Importador({ tipo, rubros = [], dolar = null, destino }: { tipo:
                 <Vista
                   titulos={['Proveedor', 'Rubro', 'Contacto', 'CUIT']}
                   filas={res.filas.map((p) => [p.nombre, p.rubro, [p.contacto, p.telefono, p.email].filter(Boolean).join(' · '), formatoCuit(p.cuit) || '—'])}
+                />
+              )}
+              {res.tipo === 'echeq' && (
+                <Vista
+                  titulos={['Pago', 'Beneficiario / librador', 'Número', 'Estado', 'Monto']}
+                  filas={res.filas.map((e) => [fecha(e.pago), e.tercero || e.cuit || '—', e.numero || '—', e.estado, pesos(e.monto)])}
+                />
+              )}
+              {res.tipo === 'activo' && (
+                <Vista
+                  titulos={['Equipo', 'Serie', 'Tipo', 'Cliente', 'Valor']}
+                  filas={res.filas.map((a) => [`${a.descripcion}${a.marca ? ` · ${a.marca}` : ''}`, a.numero || '—', a.categoria || categoria, a.cliente || '—', a.valor != null ? `${a.moneda || monedaActivo} ${a.valor}` : '—'])}
                 />
               )}
               {res.tipo === 'insumo' && (

@@ -35,15 +35,24 @@ export default async function Kpi({ searchParams }: { searchParams: Promise<Para
         where e.fecha >= ${p.desde} and e.fecha < ${p.hasta} group by 1, 2 order by 3 desc limit 10`,
     pedidosPendientes(),
     cumpleanos(7),
-    // Lo que vence en Compras y Gastos (el F.931 y los Ingresos Brutos del contador ya están ahí) y el IVA de Contabilidad.
-    sql`select id, tipo, proveedor, descripcion, total_ars, vencimiento, null mes from egresos
-        where not pagado and vencimiento is not null and vencimiento <= ${sumarDias(h, 7)}
+    // Lo que vence en los próximos 7 días: facturas (el F.931 y los IIBB del contador ya están ahí), IVA, echeqs emitidos y cuotas.
+    sql`select 'e' || id clave, coalesce(nullif(proveedor, ''), descripcion) nombre, total_ars, vencimiento,
+               '/' || case when tipo = 'compra' then 'compras' else 'gastos' end || '?estado=pendiente&p=' || to_char(vencimiento, 'YYYY') href
+        from egresos where not pagado and vencimiento is not null and vencimiento <= ${sumarDias(h, 7)}
         union all
-        select -o.id, 'iva', 'IVA ' || to_char(o.mes, 'MM/YYYY') || case when (select count(*) from razones_sociales where activo) > 1 then ' · ' || r.nombre else '' end,
-               '', o.monto, o.vencimiento, to_char(o.mes, 'YYYY-MM')
+        select 'o' || o.id, 'IVA ' || to_char(o.mes, 'MM/YYYY') || case when (select count(*) from razones_sociales where activo) > 1 then ' · ' || r.nombre else '' end,
+               o.monto, o.vencimiento, '/contabilidad?p=' || to_char(o.mes, 'YYYY-MM')
         from contab_obligaciones o join razones_sociales r on r.id = o.razon_id
         where o.tipo = 'iva' and o.pagado_el is null and o.monto > 0 and o.vencimiento <= ${sumarDias(h, 7)}
-        order by vencimiento limit 8`,
+        union all
+        select 'q' || e.id, 'Echeq a ' || coalesce(p.nombre, nullif(e.tercero, ''), 'sin nombre'), e.monto, e.pago, '/banco/echeqs'
+        from echeqs e left join proveedores p on p.id = e.proveedor_id
+        where e.sentido = 'emitido' and e.estado = 'pendiente' and e.moneda = 'ARS' and e.pago <= ${sumarDias(h, 7)}
+        union all
+        select 'c' || c.id, p.nombre || ' · cuota ' || c.numero, c.total, c.vencimiento, '/banco/deudas/' || p.id
+        from pasivo_cuotas c join pasivos p on p.id = c.pasivo_id
+        where c.pagada_el is null and p.activo and p.moneda = 'ARS' and c.vencimiento <= ${sumarDias(h, 7)}
+        order by vencimiento limit 10`,
     sql`select
           (select count(*) from ventas where fecha >= ${p.desde} and fecha < ${p.hasta}) ventas,
           (select count(*) from egresos where tipo = 'compra' and fecha >= ${p.desde} and fecha < ${p.hasta}) compras,
@@ -274,12 +283,9 @@ export default async function Kpi({ searchParams }: { searchParams: Promise<Para
               <b style={{ fontSize: 14 }}>Pagos que vencen</b>
               <div className="lista-mi">
                 {vencimientos.map((v) => (
-                  <div key={v.id as number}>
-                    <Link
-                      href={v.tipo === 'iva' ? `/contabilidad?p=${v.mes}` : `/${v.tipo === 'compra' ? 'compras' : 'gastos'}?estado=pendiente&p=${(v.vencimiento as string).slice(0, 4)}`}
-                      style={{ textDecoration: 'none' }}
-                    >
-                      {(v.proveedor as string) || (v.descripcion as string)}
+                  <div key={v.clave as string}>
+                    <Link href={v.href as string} style={{ textDecoration: 'none' }}>
+                      {v.nombre as string}
                       <small>{(v.vencimiento as string) < h ? 'Vencido el' : 'Vence el'} {fecha(v.vencimiento as string)}</small>
                     </Link>
                     <span className={`num ${(v.vencimiento as string) < h ? 'chip mal' : ''}`}>{pesos(v.total_ars as number, 0)}</span>

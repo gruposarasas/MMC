@@ -18,6 +18,8 @@ App de gestión de **Bruno Brown** (importadora de café): ventas, compras, gast
 | `/compras` | Administración | Mercadería. **Leer la factura con una foto o PDF** (completa todo el formulario) o cargarla **como una factura**: proveedor (de la lista), comprobante y varios productos, cada uno con cantidad, unidad, precio e IVA (autocompleta con lo ya comprado y con los insumos de Costos, y puede actualizar sus costos). También "solo el total". Pesos o dólares, pagado o a pagar con vencimiento. Por rubro, "qué se compró" y pendientes de pago. "Repetir" para cargar otra igual. **Importar Excel.** |
 | `/gastos` | Administración | Igual que compras, para lo que no es mercadería: alquiler, servicios, impuestos, F.931, inversiones… **Importar Excel.** |
 | `/proveedores` | Administración | Lista de proveedores de compras y gastos: CUIT, rubro habitual, contacto, teléfono, mail, CBU o alias. Cuánto se le compró en el año y link a sus comprobantes. Editar (el nombre cambia en todos sus comprobantes), desactivar, **unir repetidos** y **Importar Excel**. |
+| `/banco` | Administración | **Planificación** de los próximos 12 meses: echeqs, cuotas, facturas a pagar, impuestos, gastos fijos y sueldos, mes por mes, con lo vencido, el saldo en bancos y el saldo proyectado. Pestañas **Echeqs**, **Préstamos y deudas** (`/banco/deudas/[id]` con sus cuotas) y **Gastos fijos**. |
+| `/activos` | Administración | Máquinas instaladas en clientes, molinillos, tostadoras, vehículos y otros equipos: n° de serie, marca, modelo, cliente, costo y valor estimado. Por cliente. **Importar Excel.** Pestaña **Importaciones y costos** (`/activos/importaciones`). |
 | `/sueldos` | Administración | Un renglón por persona y mes: bruto, neto, extras, adelantos a descontar, a pagar y pagado. "Armar sueldos" crea el mes con el sueldo de referencia de cada uno. |
 | `/equipo` · `/equipo/[id]` | Administración | Fichas con todos los datos, cumpleaños (próximos y del año), vacaciones (días por antigüedad según la LCT), certificados médicos, uniforme, adelantos, sueldos y la clave de la app. Aprobar o rechazar los pedidos. |
 | `/costos` · `/costos/[id]` | Administración | Ingeniería de costos: insumos (en pesos o dólares), receta de cada producto con merma, costos variables, margen, markup y precio sugerido. Dólar de referencia. |
@@ -83,6 +85,29 @@ En **Nueva compra** o **Nuevo gasto**, el botón **Leer foto o PDF** (en el celu
 - **Equipo:** ART o seguro de cada persona (lo elige administración; el contador lo ve) y las **novedades del mes** para liquidar sueldos: altas, bajas, vacaciones aprobadas y licencias médicas (días que caen en el mes) y adelantos a descontar. No muestra el motivo de los certificados.
 - **Razones sociales:** arranca con "Bruno Brown"; se pueden agregar otras con su CUIT en Accesos.
 
+## Banco (planificación de pagos)
+
+- **Qué entra en la planificación** (próximos 12 meses, desde el mes en curso):
+  - **Echeqs** emitidos pendientes, por su fecha de pago (los recibidos suman como "a cobrar").
+  - **Cuotas** sin pagar de préstamos, planes de pago, leasing y otras deudas.
+  - **Facturas a pagar** de Compras y Gastos (por vencimiento, o por fecha si no tienen).
+  - **Impuestos:** lo que cargó el contador sin pagar y, para los meses que todavía no cargó, una estimación con lo último que cargó de cada uno (F.931, IVA e IIBB).
+  - **Gastos fijos** de cada mes, hasta que se cargan en Gastos (con rubro y proveedor, el mes cargado deja de proyectarse).
+  - **Sueldos:** los de cada mes se pagan a principio del siguiente; si el mes está armado en Sueldos, lo que falta pagar; si no, el sueldo neto de referencia del equipo. **Aguinaldo** en junio y diciembre (medio sueldo neto).
+- Lo que tiene fecha pasada y no está pagado aparece como **vencido**. Lo estimado está marcado.
+- **Saldo proyectado:** saldo cargado de las cuentas − lo vencido − lo de cada mes + echeqs a cobrar. No cuenta las ventas que vienen: muestra cuánto hay que vender o cobrar para cubrir lo comprometido.
+- **Echeqs:** a mano o importando el listado del home banking (Excel o CSV; se reconocen número, fechas, beneficiario, CUIT, importe y estado). Reimportar no duplica. Un echeq emitido puede marcar las **facturas que paga**: quedan pagadas con la fecha del echeq y medio "Cheque / Echeq"; si se anula o se borra, vuelven a pendientes. Al importar, si un echeq coincide con una sola factura sin pagar del mismo proveedor y monto, se vincula solo.
+- **Préstamos y deudas:** el cronograma se arma solo (francés, alemán, cuota fija informada o un solo pago), con IVA sobre intereses opcional y seguro por cuota. Cada cuota se puede corregir para que quede igual al cronograma del banco. Al pagar una cuota, si el préstamo tiene rubro, **el interés, el IVA y los gastos van a Gastos** (el capital no es gasto); al deshacer el pago, se borra.
+- **Gastos fijos:** sugiere los que se repiten en Gastos (mismo proveedor y rubro en 2 de los últimos 3 meses).
+- El KPI suma a "Pagos que vencen" los echeqs y las cuotas de los próximos 7 días.
+
+## Activos
+
+- **Equipos:** tipo (máquina de café, molinillo, tostadora, vehículo, otro), n° de serie o patente (no se repite), descripción, marca, modelo, dónde está (instalada en un cliente, depósito, uso propio, reparación, baja), cliente, dirección y fecha de instalación, valor estimado y costo. Vista por cliente.
+- **Costo con importación:** cada importación tiene la mercadería total (en dólares o pesos, con el dólar de la importación), las **unidades importadas** y sus gastos, cada uno en su moneda: **transporte**, **gastos de importación** (derechos, tasas, aduana), **despachante** y otros. **Costo de un equipo = mercadería por unidad + (gastos ÷ unidades importadas)**. La mercadería por unidad es la del equipo o, si se deja vacía, el promedio de la importación.
+- Sin importación (compra local), el costo es lo que se carga (mercadería + otros costos) al dólar de hoy si está en dólares. El valor estimado en dólares se pasa a pesos con el dólar de referencia.
+- **Importar Excel** con tipo, serie, descripción, marca, modelo, cliente, dirección, fecha de instalación, valor estimado, costo y moneda.
+
 ## Importar compras, gastos, productos, insumos y proveedores
 
 En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **planilla modelo** para bajar. Igual que en Ventas, la app reconoce las columnas solas y se pueden corregir antes de importar.
@@ -91,6 +116,7 @@ En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **pl
 - **Productos (Costos):** nombre, presentación, categoría, precio sin IVA o precio final con IVA, IVA, costos variables y margen. Si ya existe (mismo nombre y presentación) se actualiza.
 - **Insumos (Costos):** nombre, categoría, unidad, moneda (pesos o dólares) y costo sin IVA. Si ya existe se actualiza el costo.
 - **Proveedores:** nombre, CUIT, rubro, contacto, teléfono, mail, CBU o alias y notas. Si ya existe (mismo CUIT o mismo nombre) se completan o actualizan sus datos; lo que viene vacío no borra nada.
+- **Echeqs (Banco)** y **activos**: ver arriba.
 
 ## Variables de entorno
 
@@ -105,7 +131,7 @@ En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **pl
 ## Base de datos
 
 - Migraciones en `db/migraciones/*.sql`. **Se aplican solas al arrancar el contenedor** (`scripts/migrar.mjs`, que anota cada una en la tabla `_migraciones`); también con `npm run migrar`.
-- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `proveedores` (el nombre de cada comprobante se copia de acá con un trigger), `lecturas_factura` (lo leído de una foto hasta que se guarda; se limpia a los 7 días), `razones_sociales`, `contadores`, `contab_obligaciones`, `contab_archivos`, `contab_historial`, `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
+- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `proveedores` (el nombre de cada comprobante se copia de acá con un trigger), `lecturas_factura` (lo leído de una foto hasta que se guarda; se limpia a los 7 días), `razones_sociales`, `contadores`, `contab_obligaciones`, `contab_archivos`, `contab_historial`, `cuentas_banco`, `echeqs`, `echeq_egresos`, `pasivos`, `pasivo_cuotas`, `fijos`, `activo_importaciones`, `activos`, `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
 - Todo el acceso es desde el servidor. En Supabase, RLS queda activado sin políticas y `anon`/`authenticated` no tienen permisos (`002_permisos_supabase.sql`): la API pública no ve nada. El aviso "RLS Enabled No Policy" del panel es esperado.
 - Los certificados médicos y las fotos de facturas se guardan en la base (fotos achicadas en el celular, PDF hasta 8 MB).
 

@@ -3,7 +3,7 @@
 import { aNumero, redondear } from './formato';
 import { aFecha, type Celda, esNotaCredito, normalizar } from './importar';
 
-export type TipoImportacion = 'compra' | 'gasto' | 'producto' | 'insumo' | 'proveedor';
+export type TipoImportacion = 'compra' | 'gasto' | 'producto' | 'insumo' | 'proveedor' | 'echeq' | 'activo';
 type Def = { id: string; nombre: string; re: RegExp; suma?: boolean };
 export type Esquema = { campos: Def[]; requiere: string[][]; modelo: string[][]; ayuda: string };
 
@@ -103,7 +103,56 @@ const PROVEEDOR: Esquema = {
   ],
 };
 
-export const ESQUEMAS: Record<TipoImportacion, Esquema> = { compra: EGRESO, gasto: EGRESO, producto: PRODUCTO, insumo: INSUMO, proveedor: PROVEEDOR };
+const ECHEQ: Esquema = {
+  ayuda: 'Una fila por echeq, como el listado que exporta el home banking (emitidos o recibidos). Los anulados o rechazados quedan registrados pero no se cuentan.',
+  campos: [
+    { id: 'numero', nombre: 'Número', re: /^(n(ro|umero)?( de)?( cheque| echeq| cheq)?|cheque( n(ro|umero))?|id( echeq| cheque)?|numero( de)? cheque|nro cheque)$/ },
+    { id: 'emision', nombre: 'Fecha de emisión', re: /^(fecha( de)? emision|emision|f ?emision|fecha( de)? libramiento)$/ },
+    { id: 'pago', nombre: 'Fecha de pago', re: /^(fecha( de)? (pago|cobro|vencimiento|deposito|acreditacion)|vencimiento|fecha|f ?pago|pago|fecha pago)$/ },
+    { id: 'monto', nombre: 'Monto', re: /^(monto|importe|valor|importe( del)? (cheque|echeq)|monto( del)? (cheque|echeq))$/ },
+    { id: 'tercero', nombre: 'Beneficiario / librador', re: /^(beneficiario|librador|razon social|denominacion|nombre|emisor|tenedor|cliente|proveedor|a la orden de)( (beneficiario|librador|emisor))?$/ },
+    { id: 'cuit', nombre: 'CUIT', re: /^(cuit|cuil|cuit cuil|nro doc|documento)( (del )?(beneficiario|librador|emisor))?$/ },
+    { id: 'estado', nombre: 'Estado', re: /^(estado|situacion|status)( (del )?(cheque|echeq))?$/ },
+    { id: 'banco', nombre: 'Banco', re: /^(banco|entidad|banco (emisor|librador|girado))$/ },
+    { id: 'notas', nombre: 'Notas', re: /^(notas?|observaciones?|motivo|concepto|referencia|caracter)$/ },
+  ],
+  requiere: [['pago', 'monto']],
+  modelo: [
+    ['Número', 'Fecha de emisión', 'Fecha de pago', 'Beneficiario', 'CUIT', 'Monto', 'Estado'],
+    ['00012345', '01/10/2026', '30/11/2026', 'Exportadora Santos', '30-12345678-9', '1.250.000,00', 'Emitido'],
+    ['00012346', '01/10/2026', '30/12/2026', 'Bolsas Cuyo', '30-98765432-1', '480.000,00', 'Emitido'],
+  ],
+};
+
+const ACTIVO: Esquema = {
+  ayuda: 'Una fila por equipo. Si ya existe uno con el mismo tipo y número de serie, se actualiza.',
+  campos: [
+    { id: 'categoria', nombre: 'Tipo (máquina, molinillo, tostadora, vehículo)', re: /^(tipo|categoria|clase|rubro)( de)?( equipo| activo)?$/ },
+    { id: 'numero', nombre: 'N° de serie / patente', re: /^(n(ro|umero|°)?( de)? ?(serie|inventario|equipo)?|serie|nro serie|numero de serie|s ?n|patente|dominio|inventario|codigo)$/ },
+    { id: 'descripcion', nombre: 'Descripción', re: /^(descripcion|equipo|maquina|producto|articulo|detalle|nombre)$/ },
+    { id: 'marca', nombre: 'Marca', re: /^marca$/ },
+    { id: 'modelo', nombre: 'Modelo', re: /^modelo$/ },
+    { id: 'cliente', nombre: 'Cliente (dónde está)', re: /^(cliente|instalad[ao]( en)?|comodato|razon social|local)$/ },
+    { id: 'ubicacion', nombre: 'Dirección', re: /^(ubicacion|direccion|domicilio|localidad)$/ },
+    { id: 'estado', nombre: 'Estado', re: /^(estado|situacion)$/ },
+    { id: 'instalada', nombre: 'Fecha de instalación', re: /^(fecha( de)? (instalacion|entrega|alta)|instalacion|instalada el|entrega)$/ },
+    { id: 'valor', nombre: 'Valor estimado', re: /^(valor( estimado| de mercado| actual)?|valuacion|precio( de)? mercado)$/ },
+    { id: 'costo', nombre: 'Costo', re: /^(costo( unitario| de compra| mercaderia)?|precio( de)? compra|fob)$/ },
+    { id: 'moneda', nombre: 'Moneda', re: /^moneda$/ },
+    { id: 'notas', nombre: 'Notas', re: /^(notas?|observaciones?|comentarios?)$/ },
+  ],
+  requiere: [['descripcion']],
+  modelo: [
+    ['Tipo', 'N° de serie', 'Descripción', 'Marca', 'Modelo', 'Cliente', 'Dirección', 'Fecha de instalación', 'Valor estimado', 'Moneda'],
+    ['Máquina', 'LM12345', 'Máquina espresso 2 grupos', 'La Marzocco', 'Linea PB', 'Café Central', 'San Martín 1200, Mendoza', '15/03/2026', '18000', 'USD'],
+    ['Molinillo', 'MZ-889', 'Molinillo a demanda', 'Mazzer', 'Super Jolly', 'Café Central', 'San Martín 1200, Mendoza', '15/03/2026', '1800', 'USD'],
+    ['Vehículo', 'AF123BC', 'Camioneta de reparto', 'Toyota', 'Hilux', '', '', '', '35000', 'USD'],
+  ],
+};
+
+export const ESQUEMAS: Record<TipoImportacion, Esquema> = {
+  compra: EGRESO, gasto: EGRESO, producto: PRODUCTO, insumo: INSUMO, proveedor: PROVEEDOR, echeq: ECHEQ, activo: ACTIVO,
+};
 
 export const adivinarCon = (e: Esquema, titulo: unknown) => {
   const h = normalizar(titulo);
@@ -377,6 +426,87 @@ export function convertirProveedores(filas: Celda[][], titulos: number, mapa: st
     out.push({
       fila: r + 1, nombre, cuit: cuit.length === 11 ? cuit : '', rubro: txt(L.uno(f, 'rubro'), 80), contacto: txt(L.uno(f, 'contacto'), 120),
       telefono: txt(L.uno(f, 'telefono'), 60), email: txt(L.uno(f, 'email'), 120), cbu: txt(L.uno(f, 'cbu'), 60), notas: txt(L.uno(f, 'notas'), 500),
+    });
+  }
+  return { filas: out, errores };
+}
+
+// ---------- echeqs ----------
+export type EcheqImport = { fila: number; numero: string; emision: string | null; pago: string; monto: number; tercero: string; cuit: string; estado: 'pendiente' | 'pagado' | 'anulado' | 'rechazado'; banco: string; notas: string };
+/** "Pagado", "Cobrado", "Acreditado" → pagado; "Anulado", "Repudiado", "Devuelto" → anulado; "Rechazado" → rechazado; lo demás, pendiente. */
+export function estadoEcheqDe(v: unknown): EcheqImport['estado'] {
+  const t = normalizar(v);
+  if (/rechaz/.test(t)) return 'rechazado';
+  if (/(anulad|repudiad|devuelt|cancelad|caducad)/.test(t)) return 'anulado';
+  if (/(pagad|cobrad|acreditad|debitad|depositad)/.test(t)) return 'pagado';
+  return 'pendiente';
+}
+export function convertirEcheqs(filas: Celda[][], titulos: number, mapa: string[]) {
+  const L = lector(filas, titulos, mapa);
+  const out: EcheqImport[] = [];
+  const errores: Aviso[] = [];
+  for (let r = titulos + 1; r < filas.length; r++) {
+    const f = filas[r] || [];
+    if (vacia(f)) continue;
+    const pago = aFecha(L.uno(f, 'pago') as Celda);
+    const monto = num(L.uno(f, 'monto') as Celda);
+    if (!pago || monto == null || monto === 0) {
+      errores.push({ fila: r + 1, motivo: !pago ? 'Sin fecha de pago (¿fila de totales?)' : 'Sin monto' });
+      continue;
+    }
+    out.push({
+      fila: r + 1, numero: txt(L.uno(f, 'numero'), 40), emision: aFecha(L.uno(f, 'emision') as Celda), pago, monto: redondear(Math.abs(monto)),
+      tercero: txt(L.uno(f, 'tercero'), 120), cuit: txt(L.uno(f, 'cuit'), 20).replace(/\D/g, ''), estado: estadoEcheqDe(L.uno(f, 'estado')),
+      banco: txt(L.uno(f, 'banco'), 60), notas: txt(L.uno(f, 'notas'), 300),
+    });
+  }
+  return { filas: out, errores };
+}
+
+// ---------- activos ----------
+export type ActivoImport = {
+  fila: number; categoria: string; numero: string; descripcion: string; marca: string; modelo: string; cliente: string; ubicacion: string;
+  estado: string; instalada: string | null; valor: number | null; costo: number | null; moneda: 'ARS' | 'USD' | ''; notas: string;
+};
+/** Tipo de activo a partir de un texto. Con `estricto` (para adivinar por la descripción), sin coincidencia devuelve vacío. */
+export function categoriaActivoDe(v: unknown, estricto = false): string {
+  const t = normalizar(v);
+  if (!t) return '';
+  if (/(molin|molino|grinder)/.test(t)) return 'molinillo';
+  if (/tostad/.test(t)) return 'tostadora';
+  if (/(camionet|auto|vehicul|utilitari|furgon|moto|camion|pick)/.test(t)) return 'vehiculo';
+  if (/(maquina|cafetera|espresso|express)/.test(t)) return 'maquina';
+  if (estricto) return '';
+  return /otro/.test(t) ? 'otro' : 'equipo';
+}
+export function estadoActivoDe(v: unknown, cliente: string): string {
+  const t = normalizar(v);
+  if (/(baja|vendid|robad)/.test(t)) return 'baja';
+  if (/(repar|servicio tecnico|taller)/.test(t)) return 'reparacion';
+  if (/(deposito|stock|guardad)/.test(t)) return 'deposito';
+  if (/(uso|propi|local)/.test(t)) return 'uso';
+  return cliente ? 'cliente' : t ? 'deposito' : '';
+}
+export function convertirActivos(filas: Celda[][], titulos: number, mapa: string[]) {
+  const L = lector(filas, titulos, mapa);
+  const out: ActivoImport[] = [];
+  const errores: Aviso[] = [];
+  for (let r = titulos + 1; r < filas.length; r++) {
+    const f = filas[r] || [];
+    if (vacia(f)) continue;
+    const descripcion = txt(L.uno(f, 'descripcion'), 160);
+    if (!descripcion) {
+      errores.push({ fila: r + 1, motivo: 'Sin descripción' });
+      continue;
+    }
+    const cliente = txt(L.uno(f, 'cliente'), 120);
+    const m = normalizar(L.uno(f, 'moneda'));
+    out.push({
+      fila: r + 1, categoria: categoriaActivoDe(L.uno(f, 'categoria')) || categoriaActivoDe(descripcion, true), numero: txt(L.uno(f, 'numero'), 60),
+      descripcion, marca: txt(L.uno(f, 'marca'), 60), modelo: txt(L.uno(f, 'modelo'), 60), cliente, ubicacion: txt(L.uno(f, 'ubicacion'), 160),
+      estado: estadoActivoDe(L.uno(f, 'estado'), cliente), instalada: aFecha(L.uno(f, 'instalada') as Celda),
+      valor: num(L.uno(f, 'valor') as Celda), costo: num(L.uno(f, 'costo') as Celda),
+      moneda: !m ? '' : /^(usd|us|u ?s ?s?|dol|dolar(es)?)$/.test(m) || m.includes('dolar') ? 'USD' : 'ARS', notas: txt(L.uno(f, 'notas'), 500),
     });
   }
   return { filas: out, errores };

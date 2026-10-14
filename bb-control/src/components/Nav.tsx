@@ -9,6 +9,8 @@ const ITEMS = [
   { href: '/compras', nombre: 'Compras', fig: FIGURAS.compras },
   { href: '/gastos', nombre: 'Gastos', fig: FIGURAS.gastos },
   { href: '/proveedores', nombre: 'Proveedores', fig: FIGURAS.proveedores },
+  { href: '/banco', nombre: 'Banco', fig: FIGURAS.banco },
+  { href: '/activos', nombre: 'Activos', fig: FIGURAS.activos },
   { href: '/sueldos', nombre: 'Sueldos', fig: FIGURAS.sueldos },
   { href: '/equipo', nombre: 'Equipo', fig: FIGURAS.equipo },
   { href: '/costos', nombre: 'Costos', fig: FIGURAS.costos },

@@ -9,7 +9,9 @@ type Nuevo = { nombre: string; cuit: string };
  * Proveedor de una compra o gasto: se elige de la lista. Si no está, se agrega uno nuevo
  * (queda en la lista al guardar). Escribir un nombre suelto no alcanza.
  */
-export function ElegirProveedor({ opciones, id, nuevo, requerido }: { opciones: OpcionProveedor[]; id?: number | null; nuevo?: Nuevo | null; requerido?: boolean }) {
+export function ElegirProveedor({ opciones, id, nuevo, requerido, etiqueta = 'Proveedor', onCambio }: {
+  opciones: OpcionProveedor[]; id?: number | null; nuevo?: Nuevo | null; requerido?: boolean; etiqueta?: string; onCambio?: (id: number | null) => void;
+}) {
   const inicial = id ? (opciones.find((o) => o.id === id) ?? null) : null;
   const [elegido, setElegido] = useState<OpcionProveedor | null>(inicial);
   const [alta, setAlta] = useState<Nuevo | null>(inicial ? null : (nuevo ?? null));
@@ -37,6 +39,8 @@ export function ElegirProveedor({ opciones, id, nuevo, requerido }: { opciones: 
     const msg = elegido || alta ? '' : texto.trim() ? 'Elegí el proveedor de la lista o tocá "Agregar proveedor nuevo".' : requerido ? 'Elegí el proveedor.' : '';
     input.current?.setCustomValidity(msg);
   }, [elegido, alta, texto, requerido]);
+
+  useEffect(() => onCambio?.(elegido?.id ?? null), [elegido, onCambio]);
 
   useEffect(() => {
     const fuera = (e: PointerEvent) => !caja.current?.contains(e.target as Node) && setAbierto(false);
@@ -78,7 +82,7 @@ export function ElegirProveedor({ opciones, id, nuevo, requerido }: { opciones: 
   return (
     <div className="campo combo" ref={caja}>
       <span>
-        <label htmlFor={`${idLista}-in`}>Proveedor</label> {!requerido && <em>(opcional)</em>}
+        <label htmlFor={`${idLista}-in`}>{etiqueta}</label> {!requerido && <em>(opcional)</em>}
       </span>
       <input
         id={`${idLista}-in`}
