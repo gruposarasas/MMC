@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { guardarAjuste } from '@/lib/ajustes';
 import { db } from '@/lib/db';
 import { fecha, hoy, pesos } from '@/lib/formato';
-import { actualizarDolar } from '@/lib/dolar';
+import { actualizarDolar, aplicarAEgresos } from '@/lib/dolar';
 import { type Estado, entero, falla, intentar, numero, texto, tilde, volver } from '@/lib/form';
 import { exigirAdmin } from '@/lib/sesion';
 
@@ -24,6 +24,7 @@ export async function guardarDolar(_: Estado, f: FormData): Promise<Estado> {
     }
     const valor = numero(f, 'dolar', { requerido: 'Poné la cotización.', min: 1, dec: 2 });
     await guardarAjuste('dolar', { valor, fecha: hoy(), fuente: 'manual', actualizado: new Date().toISOString(), auto: false });
+    await aplicarAEgresos(valor);
     revalidar();
     return { ok: 'Cotización guardada. Queda fija hasta que vuelvas a activar el dólar BNA automático.' };
   });

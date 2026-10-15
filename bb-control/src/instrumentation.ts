@@ -31,8 +31,15 @@ export async function register() {
       console.error('[dolar] no se pudo actualizar', e);
     }
   };
-  setTimeout(() => {
-    dolar();
+  setTimeout(async () => {
+    await dolar();
     setInterval(dolar, 30 * 60 * 1000).unref();
+    try {
+      const { completarHistorial } = await import('./lib/dolar');
+      const n = await completarHistorial();
+      if (n) console.log(`[dolar] historial: ${n} días`);
+    } catch (e) {
+      console.error('[dolar] no se pudo traer el historial', e instanceof Error ? e.message : e);
+    }
   }, 10 * 1000).unref();
 }

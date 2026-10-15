@@ -91,7 +91,9 @@ En **Nueva compra** o **Nuevo gasto**, el botón **Leer foto o PDF** (en el celu
 - Arriba a la derecha de toda la administración se ve chiquito: **Dólar BNA $ 1.475 ▲ 1,7 %** (contra el día anterior; al pasar el mouse, compra, venta y hora). Lleva a Ajustes.
 - En **Ajustes → Dólar de referencia** (o en Costos) se puede pasar a un **dólar fijo** cargado a mano, o volver al automático con "Actualizar ahora".
 - **Costo de reposición:** todo lo cargado en dólares se pasa a pesos con el dólar del día, así que los costos se actualizan solos: insumos y productos de **Costos** (costo, margen y precio sugerido), **Activos** (columna "Reposición hoy": el costo en dólares, con los gastos de importación pasados a dólares al cambio de la importación, por el dólar de hoy) y las **importaciones** (costo por unidad hoy). El costo histórico (al dólar de la importación) se sigue viendo al lado.
-- Para pruebas, `DOLAR_URL` y `DOLAR_BNA_URL` cambian de dónde se trae.
+- **Compras y gastos en dólares:** al elegir Dólares, por defecto va el **dólar BNA**. Mientras está sin pagar, el monto en pesos se actualiza solo con el BNA de cada día (y con eso el KPI, lo pendiente y la planificación de Banco); al marcarla pagada queda fijo el del día del pago. Si se carga ya pagada, usa el BNA de la fecha de pago. Se puede destildar y poner un dólar fijo. Al importar un Excel en dólares sin columna de cotización, y al leer una factura con foto que no informa el tipo de cambio, también va el BNA. En la lista se ve "a 1.475 BNA hoy" (sin pagar) o "a 1.500 BNA" (pagada).
+- **Historial:** la primera vez se trae el historial del dólar oficial (api.argentinadatos.com) para tener el BNA de cualquier fecha pasada.
+- Para pruebas, `DOLAR_URL`, `DOLAR_BNA_URL` y `DOLAR_HISTORIA_URL` cambian de dónde se trae.
 
 ## Banco (planificación de pagos)
 

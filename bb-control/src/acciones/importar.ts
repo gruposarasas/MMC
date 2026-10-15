@@ -3,6 +3,7 @@
 // acá se valida todo de nuevo antes de guardar.
 import { revalidatePath } from 'next/cache';
 import { leerDolar } from '@/lib/ajustes';
+import { dolarDe } from '@/lib/dolar';
 import { db } from '@/lib/db';
 import { esFecha, hoy, redondear } from '@/lib/formato';
 import { ErrorForm, entero } from '@/lib/form';
@@ -18,7 +19,7 @@ const n = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) && Math.a
 
 type ComprobanteIn = {
   fila?: number; fecha?: string; vencimiento?: string | null; proveedor?: string; cuit?: string; comprobante?: string; numero?: string;
-  rubro?: string; moneda?: string; cotizacion?: number; pagado?: boolean | null; notas?: string; items?: unknown[]; neto?: number; iva?: number; otros?: number;
+  rubro?: string; moneda?: string; cotizacion?: number; cotizacionAuto?: boolean; pagado?: boolean | null; notas?: string; items?: unknown[]; neto?: number; iva?: number; otros?: number;
 };
 
 export async function importarEgresos(datos: {
@@ -44,12 +45,20 @@ export async function importarEgresos(datos: {
   try {
     // Validación completa antes de tocar la base.
     let sinRubro = 0;
-    const filas = lista.map((c, i) => {
+    // El dólar BNA de cada fecha, una sola consulta por fecha.
+    const memo = new Map<string, Promise<number | null>>();
+    const dolarDel = (f: string) => {
+      if (!memo.has(f)) memo.set(f, dolarDe(f));
+      return memo.get(f)!;
+    };
+    const filas = await Promise.all(lista.map(async (c, i) => {
       const fila = Number(c?.fila) || i + 1;
       const fecha = s(c?.fecha, 10);
       if (!esFecha(fecha)) throw new ErrorForm(`Fila ${fila}: la fecha no es válida.`);
       const moneda = c.moneda === 'USD' ? 'USD' : 'ARS';
-      const cotizacion = moneda === 'USD' ? n(c.cotizacion) : 1;
+      const cotizacionAuto = moneda === 'USD' && c.cotizacionAuto === true;
+      const pagadoFila = typeof c.pagado === 'boolean' ? c.pagado : !!datos.pagado;
+      const cotizacion = moneda !== 'USD' ? 1 : cotizacionAuto ? ((await dolarDel(pagadoFila ? fecha : hoy())) ?? n(c.cotizacion)) : n(c.cotizacion);
       if (!cotizacion || cotizacion <= 0) throw new ErrorForm(`Fila ${fila}: falta la cotización del dólar.`);
       const items = validarItems(c.items);
       const t = items.length ? totalesItems(items) : { neto: n(c.neto), iva: n(c.iva), alicuota: 0 };
@@ -77,7 +86,7 @@ export async function importarEgresos(datos: {
           descripcion: items.length ? items[0].descripcion + (items.length > 1 ? ` y ${items.length - 1} más` : '') : s(c.notas, 300),
           cantidad: items.length && unidades.length === 1 && unidades[0] ? redondear(items.reduce((a, x) => a + x.cantidad, 0), 3) : null,
           unidad: items.length && unidades.length === 1 ? unidades[0] : '',
-          moneda, cotizacion, neto: t.neto, iva_alicuota: t.alicuota, iva: t.iva, otros: redondear(otros),
+          moneda, cotizacion, cotizacion_auto: cotizacionAuto, neto: t.neto, iva_alicuota: t.alicuota, iva: t.iva, otros: redondear(otros),
           pagado, fecha_pago: pagado ? fecha : null, vencimiento: !pagado && esFecha(vencimiento) ? vencimiento : null,
           medio_pago: '', notas: items.length ? s(c.notas, 1000) : '',
           // Sin número, la clave usa fecha, proveedor y total: reimportar el mismo archivo no duplica.
@@ -86,7 +95,7 @@ export async function importarEgresos(datos: {
             : `${tipo}|${fecha}|${normalizar(cuit || proveedor)}|${normalizar(comprobante)}|sn|${redondear(t.neto + t.iva + otros)}`,
         },
       };
-    });
+    }));
 
     const fechas = filas.map((f) => f.egreso.fecha).sort();
     const total = redondear(filas.reduce((a, f) => a + (f.egreso.neto + f.egreso.iva + f.egreso.otros) * f.egreso.cotizacion, 0));
@@ -111,7 +120,7 @@ export async function importarEgresos(datos: {
           ? await tx`insert into egresos ${tx(e)} on conflict (clave) do update set
               fecha = excluded.fecha, rubro_id = excluded.rubro_id, proveedor = excluded.proveedor, proveedor_id = excluded.proveedor_id, comprobante = excluded.comprobante,
               numero = excluded.numero, descripcion = excluded.descripcion, cantidad = excluded.cantidad, unidad = excluded.unidad,
-              moneda = excluded.moneda, cotizacion = excluded.cotizacion, neto = excluded.neto, iva_alicuota = excluded.iva_alicuota,
+              moneda = excluded.moneda, cotizacion = excluded.cotizacion, cotizacion_auto = excluded.cotizacion_auto, neto = excluded.neto, iva_alicuota = excluded.iva_alicuota,
               iva = excluded.iva, otros = excluded.otros, importacion_id = excluded.importacion_id
             returning id, (xmax = 0) nuevo`
           : await tx`insert into egresos ${tx(e)} returning id, true nuevo`;
@@ -291,7 +300,8 @@ export async function importarEcheqs(datos: { archivo: string; sentido: string; 
                                     and abs(total_ars - ${redondear(monto)}) <= 1 limit 2`;
           if (facturas.length === 1) {
             await tx`insert into echeq_egresos (echeq_id, egreso_id) values (${x.id as number}, ${facturas[0].id as number})`;
-            await tx`update egresos set pagado = true, fecha_pago = ${pago}, vencimiento = null, medio_pago = 'Cheque / Echeq' where id = ${facturas[0].id as number}`;
+            await tx`update egresos set pagado = true, fecha_pago = ${pago}, vencimiento = null, medio_pago = 'Cheque / Echeq',
+                     cotizacion = case when moneda = 'USD' and cotizacion_auto then coalesce((select (valor->>'valor')::numeric from ajustes where clave = 'dolar'), cotizacion) else cotizacion end where id = ${facturas[0].id as number}`;
             vinculadas++;
           }
         }

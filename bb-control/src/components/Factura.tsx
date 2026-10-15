@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import { CamposImportes } from '@/components/CamposImportes';
+import { CotizacionDolar } from '@/components/CotizacionDolar';
 import { aNumero, aTexto, pesos, redondear } from '@/lib/formato';
 
 export type ItemForm = { descripcion: string; cantidad: number; unidad: string; precio: number; alicuota: number };
@@ -23,6 +24,7 @@ type Props = {
   otros?: number;
   moneda?: 'ARS' | 'USD';
   cotizacion?: number;
+  cotizacionAuto?: boolean; // dólar BNA automático (por defecto, en las nuevas)
   dolar?: number | null;
   totalFactura?: number; // el total que dice la factura leída, para controlar
 };
@@ -44,7 +46,7 @@ export function ImportesEgreso(p: Props) {
       {modo === 'items' ? (
         <ItemsFactura {...p} />
       ) : (
-        <CamposImportes conMoneda moneda={p.moneda} cotizacion={p.cotizacion} dolar={p.dolar} neto={p.neto} alicuota={p.alicuota ?? p.alicuotaDefecto} iva={p.iva} otros={p.otros} />
+        <CamposImportes conMoneda moneda={p.moneda} cotizacion={p.cotizacion} cotizacionAuto={p.cotizacionAuto} dolar={p.dolar} neto={p.neto} alicuota={p.alicuota ?? p.alicuotaDefecto} iva={p.iva} otros={p.otros} />
       )}
     </>
   );
@@ -57,7 +59,9 @@ function ItemsFactura(p: Props) {
       : [filaVacia(p.alicuotaDefecto)],
   );
   const [moneda, setMoneda] = useState<'ARS' | 'USD'>(p.moneda ?? 'ARS');
-  const [cot, setCot] = useState(aTexto(p.moneda === 'USD' ? p.cotizacion : (p.dolar ?? undefined)));
+  const [cotManual, setCot] = useState(aTexto(p.moneda === 'USD' ? p.cotizacion : (p.dolar ?? undefined)));
+  const [auto, setAuto] = useState(p.cotizacionAuto ?? true);
+  const cot = auto ? aTexto(p.dolar ?? undefined) : cotManual;
   const [otros, setOtros] = useState(aTexto(p.otros));
   const [conIva, setConIva] = useState(false);
   const tabla = useRef<HTMLDivElement>(null);
@@ -117,10 +121,7 @@ function ItemsFactura(p: Props) {
         </select>
       </label>
       {moneda === 'USD' ? (
-        <label className="campo">
-          <span>Cotización del dólar</span>
-          <input name="cotizacion" inputMode="decimal" value={cot} onChange={(e) => setCot(e.target.value)} required />
-        </label>
+        <CotizacionDolar auto={auto} setAuto={setAuto} cot={cotManual} setCot={setCot} dolar={p.dolar} />
       ) : (
         <input type="hidden" name="cotizacion" value="1" />
       )}

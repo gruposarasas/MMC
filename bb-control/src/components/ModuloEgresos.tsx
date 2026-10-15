@@ -25,7 +25,7 @@ type Egreso = {
   id: number; fecha: string; rubro_id: number; rubro: string; proveedor: string; comprobante: string; numero: string; descripcion: string;
   cantidad: number | null; unidad: string; moneda: 'ARS' | 'USD'; cotizacion: number; neto: number; iva_alicuota: number; iva: number; otros: number;
   total: number; neto_ars: number; iva_ars: number; total_ars: number; pagado: boolean; fecha_pago: string | null; vencimiento: string | null; medio_pago: string; notas: string;
-  proveedor_id: number | null; archivo_id: string | null;
+  proveedor_id: number | null; archivo_id: string | null; cotizacion_auto: boolean;
 };
 type Lectura = { id: string; datos: FacturaLeida; archivo_id: string | null };
 const ALICUOTAS = [0, 10.5, 21, 27];
@@ -233,7 +233,11 @@ export async function ModuloEgresos({ tipo, sp }: { tipo: 'compra' | 'gasto'; sp
                 <td className="der num">{pesos(e.iva_ars)}</td>
                 <td className="der num principal">
                   {pesos(e.total_ars)}
-                  {e.moneda === 'USD' && <div className="chico">{dolares(e.total)} a {numero(e.cotizacion, 2)}</div>}
+                  {e.moneda === 'USD' && (
+                    <div className="chico" title={e.cotizacion_auto ? (e.pagado ? 'Dólar BNA del día del pago' : 'Dólar BNA de hoy: se actualiza hasta que se paga') : 'Dólar fijo'}>
+                      {dolares(e.total)} a {numero(e.cotizacion, 2)}{e.cotizacion_auto ? (e.pagado ? ' BNA' : ' BNA hoy') : ''}
+                    </div>
+                  )}
                 </td>
                 <td>
                   {e.pagado ? (
@@ -372,6 +376,7 @@ export async function ModuloEgresos({ tipo, sp }: { tipo: 'compra' | 'gasto'; sp
               alicuotaDefecto={21}
               moneda={v?.moneda ?? pre?.moneda}
               cotizacion={v?.cotizacion ?? pre?.cotizacion}
+              cotizacionAuto={v ? (v.moneda === 'USD' ? v.cotizacion_auto : true) : (pre?.cotizacionAuto ?? true)}
               dolar={dolar?.valor}
               neto={v?.neto}
               alicuota={v ? v.iva_alicuota : 21}
@@ -434,6 +439,8 @@ async function prellenar(L: FacturaLeida, tipo: 'compra' | 'gasto', rubros: { id
     numero: L.numero.trim().slice(0, 40),
     moneda: L.moneda,
     cotizacion: L.moneda === 'USD' ? (L.cotizacion > 0 ? L.cotizacion : (dolar ?? undefined)) : undefined,
+    // Si la factura no informa el tipo de cambio, va el dólar BNA.
+    cotizacionAuto: !(L.cotizacion > 0),
     items: L.renglones.map((r) => ({
       descripcion: r.descripcion.trim().slice(0, 200) || 'Sin detalle',
       cantidad: r.cantidad > 0 ? redondear(r.cantidad, 3) : 1,

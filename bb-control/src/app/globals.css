@@ -431,3 +431,6 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 .dolar-bna .baja{color:var(--bien);font-weight:600}
 .dolar-bna .viejo{color:var(--alerta)}
 .dolar-bna:hover{border-color:var(--linea)}
+.cot-bna{background:#fff;border:1.5px solid var(--linea);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--tinta2)}
+.cot-bna b{color:var(--tinta);font-size:15px}
+.cot-casilla{font-size:12.5px;font-weight:500;color:var(--tinta2);align-items:flex-start}

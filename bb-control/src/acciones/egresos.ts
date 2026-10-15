@@ -5,6 +5,7 @@ import { leerDolar } from '@/lib/ajustes';
 import { guardarArchivo } from '@/lib/archivos';
 import { db } from '@/lib/db';
 import { fecha, hoy } from '@/lib/formato';
+import { dolarDe } from '@/lib/dolar';
 import { guardarItems, totalesItems, validarItems } from '@/lib/items';
 import { type Estado, entero, falla, fechaForm, intentar, numero, texto, tilde, volver } from '@/lib/form';
 import { ListaProveedores, limpiarCuit } from '@/lib/proveedores';
@@ -25,6 +26,12 @@ export async function guardarEgreso(_: Estado, f: FormData): Promise<Estado> {
     const moneda = texto(f, 'moneda') === 'USD' ? 'USD' : 'ARS';
     const fecha = fechaForm(f, 'fecha', 'Poné la fecha.')!;
     const pagado = tilde(f, 'pagado');
+    const fechaPago = pagado ? (fechaForm(f, 'fecha_pago') ?? fecha) : null;
+    // En dólares con dólar BNA: sin pagar, el de hoy (y se actualiza solo); pagada, el del día del pago.
+    const cotAuto = moneda === 'USD' && tilde(f, 'cotizacion_auto');
+    const cotizacion = moneda !== 'USD' ? 1
+      : cotAuto ? ((await dolarDe(fechaPago ?? hoy())) ?? falla('No hay dólar cargado: activá el dólar BNA en Ajustes o poné la cotización a mano.'))
+      : numero(f, 'cotizacion', { requerido: 'Poné la cotización del dólar.', min: 0.0001, dec: 4 });
     const porItems = texto(f, 'modo') === 'items';
     let items: ReturnType<typeof validarItems> = [];
     if (porItems) {
@@ -50,13 +57,14 @@ export async function guardarEgreso(_: Estado, f: FormData): Promise<Estado> {
       cantidad: porItems && unidades.length === 1 && unidades[0] ? items.reduce((a, i) => a + i.cantidad, 0) : null,
       unidad: porItems && unidades.length === 1 ? unidades[0] : '',
       moneda,
-      cotizacion: moneda === 'USD' ? numero(f, 'cotizacion', { requerido: 'Poné la cotización del dólar.', min: 0.0001, dec: 4 }) : 1,
+      cotizacion,
+      cotizacion_auto: cotAuto,
       neto: porItems ? t.neto : numero(f, 'neto'),
       iva_alicuota: porItems ? t.alicuota : numero(f, 'iva_alicuota', { min: 0, max: 100 }),
       iva: porItems ? t.iva : numero(f, 'iva'),
       otros: numero(f, 'otros'),
       pagado,
-      fecha_pago: pagado ? (fechaForm(f, 'fecha_pago') ?? fecha) : null,
+      fecha_pago: fechaPago,
       vencimiento: pagado ? null : fechaForm(f, 'vencimiento'),
       medio_pago: texto(f, 'medio_pago', 40),
       notas: texto(f, 'notas', 1000),
@@ -123,7 +131,11 @@ export async function marcarPagado(f: FormData) {
   const id = entero(f, 'id');
   if (!id) return;
   await db().begin(async (tx) => {
-    await tx`update egresos set pagado = true, fecha_pago = ${hoy()}, vencimiento = null where id = ${id}`;
+    // Si está en dólares con dólar BNA, queda el dólar de hoy (el del día del pago).
+    const dolarHoy = await dolarDe(hoy());
+    await tx`update egresos set pagado = true, fecha_pago = ${hoy()}, vencimiento = null,
+             cotizacion = case when moneda = 'USD' and cotizacion_auto and ${dolarHoy ?? 0}::numeric > 0 then ${dolarHoy ?? 0}::numeric else cotizacion end
+             where id = ${id}`;
     // Si es el F.931 o los Ingresos Brutos que cargó el contador, también queda pagado en Contabilidad.
     const [o] = await tx`update contab_obligaciones set pagado_el = ${hoy()}, pagado_por = 'Administración'
                          where egreso_id = ${id} and pagado_el is null and monto is not null returning id`;

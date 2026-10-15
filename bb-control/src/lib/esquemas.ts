@@ -236,6 +236,7 @@ export type ComprobanteImport = {
   rubro: string;
   moneda: 'ARS' | 'USD';
   cotizacion: number;
+  cotizacionAuto: boolean;
   pagado: boolean | null;
   notas: string;
   items: ItemImport[];
@@ -276,6 +277,8 @@ export function convertirEgresos(filas: Celda[][], titulos: number, mapa: string
     // "U$S" queda como "u s" después de normalizar.
     const moneda: 'ARS' | 'USD' = /^(usd|us|u ?s ?s?|dol|dolar(es)?)$/.test(monedaTxt) || monedaTxt.includes('dolar') ? 'USD' : 'ARS';
     let cotizacion = 1;
+    // Sin cotización en el Excel, va el dólar BNA (el del día del pago, o el de hoy si está sin pagar).
+    const cotizacionAuto = moneda === 'USD' && num(L.uno(f, 'cotizacion') as Celda) == null;
     if (moneda === 'USD') {
       const c = num(L.uno(f, 'cotizacion') as Celda) ?? opc.dolar;
       if (!c || c <= 0) {
@@ -320,7 +323,7 @@ export function convertirEgresos(filas: Celda[][], titulos: number, mapa: string
     if (!g) {
       g = {
         fila: n, fecha, vencimiento: aFecha(L.uno(f, 'vencimiento') as Celda), proveedor, cuit, comprobante, numero,
-        rubro: txt(L.uno(f, 'rubro'), 80), moneda, cotizacion, pagado: siNo(L.uno(f, 'pagado') as Celda), notas: txt(L.uno(f, 'notas'), 300),
+        rubro: txt(L.uno(f, 'rubro'), 80), moneda, cotizacion, cotizacionAuto, pagado: siNo(L.uno(f, 'pagado') as Celda), notas: txt(L.uno(f, 'notas'), 300),
         items: [], neto: 0, iva: 0, otros: 0, otrosVistos: [],
       };
       grupos.set(clave, g);

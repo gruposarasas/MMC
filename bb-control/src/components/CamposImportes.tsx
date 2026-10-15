@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { CotizacionDolar } from '@/components/CotizacionDolar';
 import { aNumero, aTexto, pesos, redondear } from '@/lib/formato';
 
 const ALICUOTAS = [21, 10.5, 27, 0];
@@ -13,6 +14,7 @@ type Props = {
   conMoneda?: boolean;
   moneda?: 'ARS' | 'USD';
   cotizacion?: number;
+  cotizacionAuto?: boolean;
   dolar?: number | null;
   etiquetaOtros?: string;
 };
@@ -24,7 +26,9 @@ export function CamposImportes(p: Props) {
   const [iva, setIva] = useState(aTexto(p.iva));
   const [otros, setOtros] = useState(aTexto(p.otros));
   const [moneda, setMoneda] = useState(p.moneda ?? 'ARS');
-  const [cot, setCot] = useState(aTexto(p.moneda === 'USD' ? p.cotizacion : (p.dolar ?? undefined)));
+  const [cotManual, setCot] = useState(aTexto(p.moneda === 'USD' ? p.cotizacion : (p.dolar ?? undefined)));
+  const [auto, setAuto] = useState(p.cotizacionAuto ?? true);
+  const cot = auto ? aTexto(p.dolar ?? undefined) : cotManual;
   const num = (s: string) => aNumero(s) ?? 0;
   const total = redondear(num(neto) + num(iva) + num(otros));
   const [totalTxt, setTotalTxt] = useState<string | null>(null);
@@ -63,10 +67,7 @@ export function CamposImportes(p: Props) {
             </select>
           </label>
           {moneda === 'USD' ? (
-            <label className="campo">
-              <span>Cotización del dólar</span>
-              <input name="cotizacion" inputMode="decimal" value={cot} onChange={(e) => setCot(e.target.value)} required />
-            </label>
+            <CotizacionDolar auto={auto} setAuto={setAuto} cot={cotManual} setCot={setCot} dolar={p.dolar} />
           ) : (
             <input type="hidden" name="cotizacion" value="1" />
           )}

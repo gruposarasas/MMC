@@ -7,6 +7,7 @@ import { aNumero, hoy } from './formato';
 export type Cotizacion = { compra: number | null; venta: number; fecha: string; fuente: 'BNA' };
 const URL_API = () => process.env.DOLAR_URL || 'https://dolarapi.com/v1/dolares/oficial';
 const URL_BNA = () => process.env.DOLAR_BNA_URL || 'https://www.bna.com.ar/Personas';
+const URL_HISTORIA = () => process.env.DOLAR_HISTORIA_URL || 'https://api.argentinadatos.com/v1/cotizaciones/dolares/oficial';
 
 const razonable = (c: Cotizacion) => c.venta > 10 && c.venta < 1_000_000 && (c.compra == null || (c.compra > 0 && c.compra <= c.venta));
 
@@ -54,6 +55,7 @@ export async function actualizarDolar(forzar = false): Promise<{ ok: boolean; do
     await guardarAjuste('dolar', dolar);
     await db()`insert into dolar_historial (fecha, compra, venta, fuente) values (${c.fecha}, ${c.compra}, ${c.venta}, ${c.fuente})
                on conflict (fecha) do update set compra = excluded.compra, venta = excluded.venta, fuente = excluded.fuente, actualizado = now()`;
+    await aplicarAEgresos(c.venta);
     return { ok: true, dolar };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
@@ -67,4 +69,35 @@ export async function dolarDelDia() {
   const [ant] = await db()`select fecha, venta from dolar_historial where fecha < ${dolar.fecha} order by fecha desc limit 1`;
   const anterior = ant ? Number(ant.venta) : null;
   return { ...dolar, anterior, variacion: anterior ? ((dolar.valor - anterior) / anterior) * 100 : null, fechaAnterior: (ant?.fecha as string) ?? null };
+}
+
+/** Las compras y gastos en dólares con dólar BNA que todavía no se pagaron pasan al dólar de hoy. */
+export async function aplicarAEgresos(valor: number) {
+  if (!(valor > 0)) return 0;
+  const r = await db()`update egresos set cotizacion = ${valor} where moneda = 'USD' and cotizacion_auto and not pagado and cotizacion <> ${valor}`;
+  return r.count;
+}
+
+/** Dólar BNA (venta) de una fecha: el último del historial hasta ese día; si no hay, el de referencia de hoy. */
+export async function dolarDe(fecha: string): Promise<number | null> {
+  const [h] = await db()`select venta from dolar_historial where fecha <= ${fecha} order by fecha desc limit 1`;
+  if (h && fecha < hoy()) return Number(h.venta);
+  return (await leerDolar())?.valor ?? (h ? Number(h.venta) : null);
+}
+
+/** La primera vez, trae el historial del dólar oficial (BNA) para tener la cotización de cualquier fecha pasada. */
+export async function completarHistorial() {
+  const [{ n }] = await db()`select count(*)::int n from dolar_historial`;
+  if ((n as number) > 200) return 0;
+  const r = await fetch(URL_HISTORIA(), { signal: AbortSignal.timeout(30_000), cache: 'no-store' });
+  if (!r.ok) throw new Error(`historial respondió ${r.status}`);
+  const lista = (await r.json()) as { compra?: number; venta?: number; fecha?: string }[];
+  const filas = (Array.isArray(lista) ? lista : [])
+    .map((x) => ({ fecha: String(x.fecha ?? '').slice(0, 10).replace(/\//g, '-'), compra: Number(x.compra) || null, venta: Number(x.venta), fuente: 'BNA' }))
+    .filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x.fecha) && x.venta > 0);
+  const sql = db();
+  for (let i = 0; i < filas.length; i += 1000) {
+    await sql`insert into dolar_historial ${sql(filas.slice(i, i + 1000))} on conflict (fecha) do nothing`;
+  }
+  return filas.length;
 }

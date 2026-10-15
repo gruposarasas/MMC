@@ -108,7 +108,8 @@ export async function guardarEcheq(_: Estado, f: FormData): Promise<Estado> {
         const ids = validos.map((v) => v.id as number);
         for (const eg of ids) await tx`insert into echeq_egresos (echeq_id, egreso_id) values (${echeqId!}, ${eg}) on conflict do nothing`;
         if (ids.length)
-          await tx`update egresos set pagado = true, fecha_pago = ${pago}, vencimiento = null, medio_pago = 'Cheque / Echeq' where id in ${tx(ids)}`;
+          await tx`update egresos set pagado = true, fecha_pago = ${pago}, vencimiento = null, medio_pago = 'Cheque / Echeq',
+                   cotizacion = case when moneda = 'USD' and cotizacion_auto then coalesce((select (valor->>'valor')::numeric from ajustes where clave = 'dolar'), cotizacion) else cotizacion end where id in ${tx(ids)}`;
       }
     });
     listo('/compras', '/gastos');
