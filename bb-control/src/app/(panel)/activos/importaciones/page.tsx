@@ -6,7 +6,7 @@ import { TabsActivos } from '@/components/TabsActivos';
 import { Tile } from '@/components/Tile';
 import { Titulo } from '@/components/Titulo';
 import { Ventana } from '@/components/Ventana';
-import { costoActivo, GASTOS_IMPORTACION, gastosImportacion, type Importacion, SINGULAR } from '@/lib/activos';
+import { GASTOS_IMPORTACION, gastosImportacion, type Importacion, reposicionActivo, SINGULAR } from '@/lib/activos';
 import { leerDolar } from '@/lib/ajustes';
 import { db } from '@/lib/db';
 import { dolares, fecha, numero, pesos } from '@/lib/formato';
@@ -79,6 +79,9 @@ export default async function Importaciones({ searchParams }: { searchParams: Pr
                   <tfoot>
                     <tr><td>Gastos ÷ {l.unidades} unidades</td><td /><td className="der num">{pesos(g.porUnidad)}</td></tr>
                     <tr><td>Costo por unidad (promedio)</td><td className="der num">{l.moneda === 'USD' ? dolares(g.costoUnidadPesos / Number(l.cotizacion)) : ''}</td><td className="der num">{pesos(g.costoUnidadPesos)}</td></tr>
+                    {l.moneda === 'USD' && dolar && (
+                      <tr><td>Reposición hoy (dólar BNA {numero(dolar, 2)})</td><td /><td className="der num principal">{pesos((g.costoUnidadPesos / Number(l.cotizacion)) * dolar)}</td></tr>
+                    )}
                   </tfoot>
                 </table>
               </div>
@@ -87,13 +90,13 @@ export default async function Importaciones({ searchParams }: { searchParams: Pr
                 {delLote.length ? (
                   <div className="lista-mi">
                     {delLote.map((a) => {
-                      const c = costoActivo(a, l, dolar);
+                      const rep = reposicionActivo(a, l, dolar);
                       return (
                         <div key={a.id}>
                           <Link href={`/activos?editar=${a.id}`} style={{ textDecoration: 'none' }}>
                             {a.descripcion}<small>{[SINGULAR[a.categoria], a.numero && `N° ${a.numero}`, a.cliente].filter(Boolean).join(' · ')}</small>
                           </Link>
-                          <span className="num" style={{ fontSize: 13 }}>{pesos(c.total, 0)}</span>
+                          <span className="num" style={{ fontSize: 13 }} title="Costo de reposición al dólar de hoy">{rep != null ? pesos(rep, 0) : '—'}</span>
                         </div>
                       );
                     })}

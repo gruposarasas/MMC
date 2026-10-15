@@ -12,5 +12,6 @@ export async function guardarAjuste(clave: string, valor: unknown) {
             on conflict (clave) do update set valor = excluded.valor, actualizado = now()`;
 }
 
-export type Dolar = { valor: number; fecha: string };
+/** Dólar de referencia: el de venta del BNA (automático) o uno cargado a mano. */
+export type Dolar = { valor: number; fecha: string; compra?: number | null; fuente?: 'BNA' | 'manual'; actualizado?: string; auto?: boolean };
 export const leerDolar = () => leerAjuste<Dolar>('dolar');

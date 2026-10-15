@@ -7,7 +7,7 @@ import { TabsActivos } from '@/components/TabsActivos';
 import { Tile } from '@/components/Tile';
 import { Titulo } from '@/components/Titulo';
 import { Ventana } from '@/components/Ventana';
-import { CATEGORIAS_ACTIVO, costoActivo, ESTADOS_ACTIVO, type Importacion, SINGULAR } from '@/lib/activos';
+import { CATEGORIAS_ACTIVO, costoActivo, ESTADOS_ACTIVO, type Importacion, reposicionActivo, SINGULAR } from '@/lib/activos';
 import { leerDolar } from '@/lib/ajustes';
 import { db } from '@/lib/db';
 import { dolares, fecha, numero, pesos } from '@/lib/formato';
@@ -34,9 +34,10 @@ export default async function Activos({ searchParams }: { searchParams: Promise<
   const dolar = dolarAj?.valor ?? null;
   const lotes = new Map(importaciones.map((l) => [l.id, l]));
   const conCosto = todos.map((a) => {
-    const c = costoActivo(a, a.importacion_id ? lotes.get(a.importacion_id) : null, dolar);
+    const lote = a.importacion_id ? lotes.get(a.importacion_id) : null;
+    const c = costoActivo(a, lote, dolar);
     const valor = a.valor_estimado == null ? null : Number(a.valor_estimado) * (a.moneda === 'USD' ? (dolar ?? 0) : 1);
-    return { ...a, costo: c, valor };
+    return { ...a, costo: c, valor, reposicion: reposicionActivo(a, lote, dolar) };
   });
   const vigentes = conCosto.filter((a) => a.estado !== 'baja');
   const lista = conCosto
@@ -46,6 +47,7 @@ export default async function Activos({ searchParams }: { searchParams: Promise<
     .filter((a) => !q || [a.descripcion, a.marca, a.modelo, a.numero, a.cliente, a.ubicacion].some((x) => x.toLowerCase().includes(q)));
   const valorTotal = vigentes.reduce((s, a) => s + (a.valor ?? 0), 0);
   const costoTotal = vigentes.reduce((s, a) => s + a.costo.total, 0);
+  const reposicionTotal = vigentes.reduce((s, a) => s + (a.reposicion ?? 0), 0);
   const enClientes = vigentes.filter((a) => a.estado === 'cliente');
   const porCliente = [...enClientes.reduce((m, a) => {
     const k = a.cliente.trim();
@@ -79,7 +81,7 @@ export default async function Activos({ searchParams }: { searchParams: Promise<
 
       <div className="tiles">
         <Tile titulo="Valor estimado" valor={pesos(valorTotal, 0)} oscuro sub={dolar ? `${dolares(valorTotal / dolar)} al dólar de hoy` : sinValor ? `${sinValor} sin valor cargado` : undefined} />
-        <Tile titulo="Costo" valor={pesos(costoTotal, 0)} sub={sinCosto ? `${sinCosto} sin costo cargado` : 'Mercadería + importación'} />
+        <Tile titulo="Costo de reposición" valor={pesos(reposicionTotal, 0)} sub={`Al dólar BNA de hoy · histórico ${pesos(costoTotal, 0)}${sinCosto ? ` · ${sinCosto} sin costo` : ''}`} />
         <Tile titulo="En clientes" valor={numero(enClientes.length)} sub={`${porCliente.length} clientes · ${enClientes.filter((a) => a.categoria === 'maquina').length} máquinas`} />
         <Tile titulo="Activos" valor={numero(vigentes.length)} sub={(Object.keys(CATEGORIAS_ACTIVO) as (keyof typeof CATEGORIAS_ACTIVO)[]).map((k) => {
           const n = vigentes.filter((a) => a.categoria === k).length;
@@ -112,7 +114,7 @@ export default async function Activos({ searchParams }: { searchParams: Promise<
       <div className="grilla-activos">
         <div className="tabla-env">
           <table className="t">
-            <thead><tr><th>Equipo</th><th>Dónde</th><th className="der">Costo</th><th className="der">Valor estimado</th><th><span className="sr">Acciones</span></th></tr></thead>
+            <thead><tr><th>Equipo</th><th>Dónde</th><th className="der">Costo histórico</th><th className="der">Reposición hoy</th><th className="der">Valor estimado</th><th><span className="sr">Acciones</span></th></tr></thead>
             <tbody>
               {lista.map((a) => (
                 <tr key={a.id}>
@@ -131,6 +133,10 @@ export default async function Activos({ searchParams }: { searchParams: Promise<
                     {a.costo.completo && a.importacion && <div className="chico" title={a.importacion}>incl. {pesos(a.costo.gastos, 0)} de importación</div>}
                   </td>
                   <td className="der num principal">
+                    {a.reposicion != null ? pesos(a.reposicion, 0) : '—'}
+                    {a.reposicion != null && a.costo.dolares != null && (a.moneda === 'USD' || a.importacion) ? <div className="chico">{dolares(a.costo.dolares)}</div> : null}
+                  </td>
+                  <td className="der num">
                     {fmt(a.valor_estimado, a.moneda)}
                     {a.moneda === 'USD' && a.valor != null && dolar ? <div className="chico">{pesos(a.valor, 0)}</div> : null}
                   </td>
@@ -142,7 +148,7 @@ export default async function Activos({ searchParams }: { searchParams: Promise<
                   </td>
                 </tr>
               ))}
-              {!lista.length && <tr><td colSpan={5} className="vacio">{todos.length ? 'No hay activos con esos filtros.' : 'Todavía no hay activos. Cargalos uno por uno o importá un Excel.'}</td></tr>}
+              {!lista.length && <tr><td colSpan={6} className="vacio">{todos.length ? 'No hay activos con esos filtros.' : 'Todavía no hay activos. Cargalos uno por uno o importá un Excel.'}</td></tr>}
             </tbody>
           </table>
         </div>

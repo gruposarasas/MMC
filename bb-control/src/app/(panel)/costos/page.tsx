@@ -53,7 +53,7 @@ export default async function Costos({ searchParams }: { searchParams: Promise<P
       <div className="grilla2" style={{ marginBottom: 18 }}>
         <div className="caja">
           <h2>Dólar</h2>
-          <p className="sub">Los insumos en dólares se pasan a pesos con esta cotización. Cambiala y se recalcula todo.</p>
+          <p className="sub">Los insumos en dólares se pasan a pesos con el dólar BNA del día: los costos y precios sugeridos son de <b>reposición</b> y se actualizan solos.</p>
           <FormDolar dolar={dolar} />
           {hayUsd && !dolar && <div className="aviso mal" style={{ marginTop: 10 }}>Hay insumos en dólares: cargá la cotización para ver sus costos.</div>}
         </div>
@@ -119,7 +119,7 @@ export default async function Costos({ searchParams }: { searchParams: Promise<P
         <div className="tabla-env">
           <table className="t">
             <thead>
-              <tr><th>Insumo</th><th>Unidad</th><th className="der">Costo por unidad</th><th className="der">En pesos</th><th>Actualizado</th><th className="der">Usos</th><th /></tr>
+              <tr><th>Insumo</th><th>Unidad</th><th className="der">Costo por unidad</th><th className="der">Reposición hoy</th><th>Actualizado</th><th className="der">Usos</th><th /></tr>
             </thead>
             <tbody>
               {insumos.map((i) => {

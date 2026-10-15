@@ -85,6 +85,14 @@ En **Nueva compra** o **Nuevo gasto**, el botón **Leer foto o PDF** (en el celu
 - **Equipo:** ART o seguro de cada persona (lo elige administración; el contador lo ve) y las **novedades del mes** para liquidar sueldos: altas, bajas, vacaciones aprobadas y licencias médicas (días que caen en el mes) y adelantos a descontar. No muestra el motivo de los certificados.
 - **Razones sociales:** arranca con "Bruno Brown"; se pueden agregar otras con su CUIT en Accesos.
 
+## Dólar BNA y costo de reposición
+
+- La app trae sola el **dólar del Banco Nación** (billete, venta) al arrancar y cada 30 minutos, de dolarapi.com (que publica el oficial del BNA); si no responde, lo lee de la página del BNA. Queda como dólar de referencia y se guarda un historial por día (`dolar_historial`).
+- Arriba a la derecha de toda la administración se ve chiquito: **Dólar BNA $ 1.475 ▲ 1,7 %** (contra el día anterior; al pasar el mouse, compra, venta y hora). Lleva a Ajustes.
+- En **Ajustes → Dólar de referencia** (o en Costos) se puede pasar a un **dólar fijo** cargado a mano, o volver al automático con "Actualizar ahora".
+- **Costo de reposición:** todo lo cargado en dólares se pasa a pesos con el dólar del día, así que los costos se actualizan solos: insumos y productos de **Costos** (costo, margen y precio sugerido), **Activos** (columna "Reposición hoy": el costo en dólares, con los gastos de importación pasados a dólares al cambio de la importación, por el dólar de hoy) y las **importaciones** (costo por unidad hoy). El costo histórico (al dólar de la importación) se sigue viendo al lado.
+- Para pruebas, `DOLAR_URL` y `DOLAR_BNA_URL` cambian de dónde se trae.
+
 ## Banco (planificación de pagos)
 
 - **Qué entra en la planificación** (próximos 12 meses, desde el mes en curso):
@@ -131,7 +139,7 @@ En Compras, Gastos, Proveedores y Costos hay un botón **Importar** con una **pl
 ## Base de datos
 
 - Migraciones en `db/migraciones/*.sql`. **Se aplican solas al arrancar el contenedor** (`scripts/migrar.mjs`, que anota cada una en la tabla `_migraciones`); también con `npm run migrar`.
-- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `proveedores` (el nombre de cada comprobante se copia de acá con un trigger), `lecturas_factura` (lo leído de una foto hasta que se guarda; se limpia a los 7 días), `razones_sociales`, `contadores`, `contab_obligaciones`, `contab_archivos`, `contab_historial`, `cuentas_banco`, `echeqs`, `echeq_egresos`, `pasivos`, `pasivo_cuotas`, `fijos`, `activo_importaciones`, `activos`, `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
+- Tablas: `ventas`, `importaciones`, `egresos` (compras y gastos, columna `tipo`), `egreso_items` (renglones de cada factura), `proveedores` (el nombre de cada comprobante se copia de acá con un trigger), `lecturas_factura` (lo leído de una foto hasta que se guarda; se limpia a los 7 días), `razones_sociales`, `contadores`, `contab_obligaciones`, `contab_archivos`, `contab_historial`, `cuentas_banco`, `echeqs`, `echeq_egresos`, `pasivos`, `pasivo_cuotas`, `fijos`, `activo_importaciones`, `activos`, `dolar_historial`, `rubros`, `sueldos`, `empleados`, `vacaciones`, `certificados`, `archivos`, `uniformes`, `adelantos`, `insumos`, `productos`, `receta`, `ajustes`.
 - Todo el acceso es desde el servidor. En Supabase, RLS queda activado sin políticas y `anon`/`authenticated` no tienen permisos (`002_permisos_supabase.sql`): la API pública no ve nada. El aviso "RLS Enabled No Policy" del panel es esperado.
 - Los certificados médicos y las fotos de facturas se guardan en la base (fotos achicadas en el celular, PDF hasta 8 MB).
 

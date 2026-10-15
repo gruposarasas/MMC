@@ -3,25 +3,35 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { guardarAjuste } from '@/lib/ajustes';
 import { db } from '@/lib/db';
-import { hoy } from '@/lib/formato';
-import { type Estado, entero, falla, intentar, numero, texto, volver } from '@/lib/form';
+import { fecha, hoy, pesos } from '@/lib/formato';
+import { actualizarDolar } from '@/lib/dolar';
+import { type Estado, entero, falla, intentar, numero, texto, tilde, volver } from '@/lib/form';
 import { exigirAdmin } from '@/lib/sesion';
 
 const refrescar = () => {
   revalidatePath('/costos', 'layout');
 };
 
+/** Dólar de referencia: automático (el de venta del BNA, se actualiza solo) o manual. */
 export async function guardarDolar(_: Estado, f: FormData): Promise<Estado> {
   await exigirAdmin();
   return intentar(async () => {
+    if (tilde(f, 'auto')) {
+      const r = await actualizarDolar(true);
+      if (!r.ok) falla(`No se pudo traer el dólar del BNA (${r.error}). Probá en un rato o cargalo a mano.`);
+      revalidar();
+      return { ok: `Dólar BNA de venta: ${pesos(r.dolar!.valor)} (${fecha(r.dolar!.fecha)}). Se actualiza solo.` };
+    }
     const valor = numero(f, 'dolar', { requerido: 'Poné la cotización.', min: 1, dec: 2 });
-    await guardarAjuste('dolar', { valor, fecha: hoy() });
-    refrescar();
-    revalidatePath('/compras');
-    revalidatePath('/ajustes');
-    return { ok: 'Cotización guardada.' };
+    await guardarAjuste('dolar', { valor, fecha: hoy(), fuente: 'manual', actualizado: new Date().toISOString(), auto: false });
+    revalidar();
+    return { ok: 'Cotización guardada. Queda fija hasta que vuelvas a activar el dólar BNA automático.' };
   });
 }
+
+const revalidar = () => {
+  revalidatePath('/', 'layout');
+};
 
 export async function guardarInsumo(_: Estado, f: FormData): Promise<Estado> {
   await exigirAdmin();

@@ -27,7 +27,7 @@ type Historia = { id: number; obligacion_id: number; quien: string; que: string;
 
 const kb = (n: number) => (n > 1024 * 1024 ? `${numero(n / 1024 / 1024, 1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 const cuando = (ts: string) =>
-  new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Mendoza', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(ts));
+  new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Mendoza', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(ts));
 
 export default async function Contabilidad({ searchParams }: { searchParams: Promise<Params> }) {
   const q = await exigirContabilidad();

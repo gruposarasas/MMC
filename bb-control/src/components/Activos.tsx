@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { guardarActivo, guardarImportacionActivos } from '@/acciones/activos';
 import { FormAccion } from '@/components/FormAccion';
 import {
-  CATEGORIAS_ACTIVO, costoActivo, ESTADOS_ACTIVO, GASTOS_IMPORTACION, type GastoImportacion, gastosImportacion, type Importacion, type Moneda, SINGULAR,
+  CATEGORIAS_ACTIVO, costoActivo, ESTADOS_ACTIVO, GASTOS_IMPORTACION, type GastoImportacion, gastosImportacion, type Importacion, type Moneda, reposicionActivo, SINGULAR,
 } from '@/lib/activos';
 import { aNumero, aTexto, dolares, pesos } from '@/lib/formato';
 
@@ -27,7 +27,9 @@ export function FormActivo({ a, importaciones, clientes, dolar, volver, categori
   const [otros, setOtros] = useState(aTexto(a?.costo_otros));
   const lote = importaciones.find((l) => l.id === imp) ?? null;
   const mon = lote?.moneda ?? moneda;
-  const c = costoActivo({ moneda: mon, costo_mercaderia: num(merc), costo_otros: num(otros) ?? 0, importacion_id: imp || null }, lote, dolar);
+  const base = { moneda: mon, costo_mercaderia: num(merc), costo_otros: num(otros) ?? 0, importacion_id: imp || null };
+  const c = costoActivo(base, lote, dolar);
+  const rep = reposicionActivo(base, lote, dolar);
   const g = lote ? gastosImportacion(lote) : null;
 
   return (
@@ -101,6 +103,7 @@ export function FormActivo({ a, importaciones, clientes, dolar, volver, categori
               {lote && <span>Gastos de importación por unidad <b>{pesos(c.gastos)}</b></span>}
               {c.otros > 0 && <span>Otros <b>{pesos(c.otros)}</b></span>}
               <span>Costo <b>{pesos(c.total)}</b>{c.dolares != null && mon === 'USD' ? ` (${dolares(c.dolares)})` : ''}</span>
+              {rep != null && lote && mon === 'USD' && <span>Reposición hoy <b>{pesos(rep)}</b></span>}
             </>
           ) : (
             <span>{mon === 'USD' && !dolar && !lote ? 'Cargá el dólar de referencia (en Costos) para pasar el costo a pesos.' : 'Cargá el costo de la mercadería o elegí la importación.'}</span>

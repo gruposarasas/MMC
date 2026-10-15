@@ -81,3 +81,15 @@ export function costoActivo(a: ActivoCosto, l: Importacion | null | undefined, d
     dolares: a.moneda === 'USD' ? base : dolarHoy ? (base * cot) / dolarHoy : null, completo: true,
   };
 }
+
+/**
+ * Costo de reposición: lo que costaría hoy. Lo que se compró en dólares (la mercadería y también los gastos en pesos,
+ * pasados a dólares al cambio de la importación) se vuelve a pesos con el dólar de hoy. Lo comprado en pesos queda igual.
+ */
+export function reposicionActivo(a: ActivoCosto, l: Importacion | null | undefined, dolarHoy: number | null) {
+  const c = costoActivo(a, l, dolarHoy);
+  if (!c.completo) return null;
+  const enDolares = l ? l.moneda === 'USD' : a.moneda === 'USD';
+  if (!enDolares) return c.total;
+  return dolarHoy && c.dolares != null ? c.dolares * dolarHoy : null;
+}

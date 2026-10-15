@@ -83,9 +83,9 @@ export default async function Ajustes() {
           <p className="sub">Cada persona entra con su DNI y la clave que le generás en su ficha de Equipo. Se puede agregar a la pantalla de inicio del celular.</p>
           <p style={{ fontSize: 18, fontWeight: 700, margin: 0, overflowWrap: 'anywhere' }}>{linkEquipo}</p>
         </div>
-        <div className="caja">
+        <div className="caja" id="dolar">
           <h2>Dólar de referencia</h2>
-          <p className="sub">Se usa para los costos de insumos en dólares y como sugerencia al cargar compras en dólares.</p>
+          <p className="sub">El del BNA del día. Pasa a pesos todo lo que está en dólares (costo de reposición de insumos, productos y activos, deudas y echeqs en dólares) y se sugiere al cargar compras en dólares.</p>
           <FormDolar dolar={dolar} />
         </div>
       </div>
