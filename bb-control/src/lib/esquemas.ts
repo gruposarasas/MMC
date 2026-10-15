@@ -3,7 +3,7 @@
 import { aNumero, redondear } from './formato';
 import { aFecha, type Celda, esNotaCredito, normalizar } from './importar';
 
-export type TipoImportacion = 'compra' | 'gasto' | 'producto' | 'insumo' | 'proveedor' | 'echeq' | 'activo';
+export type TipoImportacion = 'compra' | 'gasto' | 'producto' | 'insumo' | 'proveedor' | 'echeq' | 'activo' | 'cliente';
 type Def = { id: string; nombre: string; re: RegExp; suma?: boolean };
 export type Esquema = { campos: Def[]; requiere: string[][]; modelo: string[][]; ayuda: string };
 
@@ -150,8 +150,31 @@ const ACTIVO: Esquema = {
   ],
 };
 
+const CLIENTE: Esquema = {
+  ayuda: 'Una fila por cliente. Si ya existe uno con el mismo nombre, se actualizan sus datos.',
+  campos: [
+    { id: 'nombre', nombre: 'Cliente', re: /^(cliente|nombre|nombre fantasia|fantasia|marca)$/ },
+    { id: 'alias', nombre: 'Razón social u otros nombres', re: /^(razon social|alias|otros nombres|denominacion)$/ },
+    { id: 'cuit', nombre: 'CUIT', re: /^(cuit|cuil|cuit cuil)$/ },
+    { id: 'locales', nombre: 'Locales', re: /^(locales|sucursales|cantidad( de)? locales)$/ },
+    { id: 'kilos', nombre: 'Kilos por mes', re: /^(kilos?( por mes| mes| mensuales)?|kg( por mes| mes)?|consumo( mensual)?( kg)?)$/ },
+    { id: 'descuento', nombre: 'Descuento %', re: /^(descuento|desc|bonificacion)( %)?$/ },
+    { id: 'forma', nombre: 'Forma de pago', re: /^(forma( de)? pago|medio( de)? pago|condicion( de)? (pago|venta))$/ },
+    { id: 'plazo', nombre: 'Plazo de pago (días)', re: /^(plazo( de)?( pago)?( dias)?|dias( de)? pago|dias)$/ },
+    { id: 'comision', nombre: 'Comisión del cobro %', re: /^(comision|costo( del)? cobro)( %)?$/ },
+    { id: 'precio', nombre: 'Precio especial por kg', re: /^(precio( especial)?( por)? kg|precio)$/ },
+    { id: 'notas', nombre: 'Notas', re: /^(notas?|observaciones?)$/ },
+  ],
+  requiere: [['nombre']],
+  modelo: [
+    ['Cliente', 'Razón social', 'CUIT', 'Locales', 'Kilos por mes', 'Descuento %', 'Forma de pago', 'Plazo de pago (días)'],
+    ['Entre Dos', 'Entre Dos SRL', '30-71111111-1', '6', '180', '15', 'Echeq', '30'],
+    ['Café Central', '', '', '1', '25', '5', 'Transferencia', '0'],
+  ],
+};
+
 export const ESQUEMAS: Record<TipoImportacion, Esquema> = {
-  compra: EGRESO, gasto: EGRESO, producto: PRODUCTO, insumo: INSUMO, proveedor: PROVEEDOR, echeq: ECHEQ, activo: ACTIVO,
+  compra: EGRESO, gasto: EGRESO, producto: PRODUCTO, insumo: INSUMO, proveedor: PROVEEDOR, echeq: ECHEQ, activo: ACTIVO, cliente: CLIENTE,
 };
 
 export const adivinarCon = (e: Esquema, titulo: unknown) => {
@@ -510,6 +533,40 @@ export function convertirActivos(filas: Celda[][], titulos: number, mapa: string
       estado: estadoActivoDe(L.uno(f, 'estado'), cliente), instalada: aFecha(L.uno(f, 'instalada') as Celda),
       valor: num(L.uno(f, 'valor') as Celda), costo: num(L.uno(f, 'costo') as Celda),
       moneda: !m ? '' : /^(usd|us|u ?s ?s?|dol|dolar(es)?)$/.test(m) || m.includes('dolar') ? 'USD' : 'ARS', notas: txt(L.uno(f, 'notas'), 500),
+    });
+  }
+  return { filas: out, errores };
+}
+
+// ---------- clientes ----------
+export type ClienteImport = {
+  fila: number; nombre: string; alias: string; cuit: string; locales: number | null; kilos: number | null; descuento: number | null;
+  forma: string; plazo: number | null; comision: number | null; precio: number | null; notas: string;
+};
+export function convertirClientes(filas: Celda[][], titulos: number, mapa: string[]) {
+  const L = lector(filas, titulos, mapa);
+  const out: ClienteImport[] = [];
+  const errores: Aviso[] = [];
+  for (let r = titulos + 1; r < filas.length; r++) {
+    const f = filas[r] || [];
+    if (vacia(f)) continue;
+    const nombre = txt(L.uno(f, 'nombre'), 120);
+    if (!nombre) {
+      errores.push({ fila: r + 1, motivo: 'Sin nombre' });
+      continue;
+    }
+    let forma = txt(L.uno(f, 'forma'), 60);
+    // "Echeq 30 días", "Cta. cte. 15" → el plazo sale de la forma de pago si no hay columna de plazo.
+    const enForma = forma.match(/(\d{1,3})/);
+    let plazo = num(L.uno(f, 'plazo') as Celda);
+    if (plazo == null && enForma) {
+      plazo = Number(enForma[1]);
+      forma = forma.replace(/(?:^|[\s,-]+)(?:a\s+)?\d{1,3}\s*(?:d[ií]as?|d)?\.?\s*$/i, '').trim() || forma;
+    }
+    out.push({
+      fila: r + 1, nombre, alias: txt(L.uno(f, 'alias'), 200), cuit: txt(L.uno(f, 'cuit'), 20).replace(/\D/g, ''),
+      locales: num(L.uno(f, 'locales') as Celda), kilos: num(L.uno(f, 'kilos') as Celda), descuento: alicuotaDe(L.uno(f, 'descuento') as Celda),
+      forma, plazo, comision: alicuotaDe(L.uno(f, 'comision') as Celda), precio: num(L.uno(f, 'precio') as Celda), notas: txt(L.uno(f, 'notas'), 500),
     });
   }
   return { filas: out, errores };

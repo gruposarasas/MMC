@@ -2,6 +2,7 @@
 export const FIGURAS = {
   kpi: '/img/estrellaSola.png',
   ventas: '/img/ic_taza.png',
+  clientes: '/img/ic_semaforo.png',
   compras: '/img/ic_grano.png',
   gastos: '/img/ic_ondas.png',
   proveedores: '/img/ic_planta.png',

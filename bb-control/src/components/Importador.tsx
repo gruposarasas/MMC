@@ -1,16 +1,16 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { importarActivos, importarEcheqs, importarEgresos, importarInsumos, importarProductos, importarProveedores, type Resultado } from '@/acciones/importar';
+import { importarActivos, importarClientes, importarEcheqs, importarEgresos, importarInsumos, importarProductos, importarProveedores, type Resultado } from '@/acciones/importar';
 import { dolares, fecha, numero, pesos } from '@/lib/formato';
 import {
-  adivinarCon, convertirActivos, convertirEcheqs, convertirEgresos, convertirInsumos, convertirProductos, convertirProveedores, ESQUEMAS, filaTitulosCon, planillaModelo, totalesComprobante, type TipoImportacion,
+  adivinarCon, convertirActivos, convertirClientes, convertirEcheqs, convertirEgresos, convertirInsumos, convertirProductos, convertirProveedores, ESQUEMAS, filaTitulosCon, planillaModelo, totalesComprobante, type TipoImportacion,
 } from '@/lib/esquemas';
 import type { Celda } from '@/lib/importar';
 import { leerArchivo } from '@/lib/leerArchivo';
 import { formatoCuit } from '@/lib/proveedores';
 
-const NOMBRES: Record<TipoImportacion, string> = { compra: 'compras', gasto: 'gastos', producto: 'productos', insumo: 'insumos', proveedor: 'proveedores', echeq: 'echeqs', activo: 'activos' };
+const NOMBRES: Record<TipoImportacion, string> = { compra: 'compras', gasto: 'gastos', producto: 'productos', insumo: 'insumos', proveedor: 'proveedores', echeq: 'echeqs', activo: 'activos', cliente: 'clientes' };
 
 export function Importador({ tipo, rubros = [], dolar = null, destino, cuentas = [] }: { tipo: TipoImportacion; rubros?: { id: number; nombre: string }[]; dolar?: number | null; destino: string; cuentas?: { id: number; nombre: string }[] }) {
   const router = useRouter();
@@ -61,6 +61,7 @@ export function Importador({ tipo, rubros = [], dolar = null, destino, cuentas =
     if (tipo === 'proveedor') return { tipo: 'proveedor' as const, ...convertirProveedores(filas, titulos, mapa), salteadas: [] };
     if (tipo === 'echeq') return { tipo: 'echeq' as const, ...convertirEcheqs(filas, titulos, mapa), salteadas: [] };
     if (tipo === 'activo') return { tipo: 'activo' as const, ...convertirActivos(filas, titulos, mapa), salteadas: [] };
+    if (tipo === 'cliente') return { tipo: 'cliente' as const, ...convertirClientes(filas, titulos, mapa), salteadas: [] };
     return { tipo: 'insumo' as const, ...convertirInsumos(filas, titulos, mapa), salteadas: [] };
   }, [filas, titulos, mapa, alicuota, dolar, esEgreso, tipo]);
 
@@ -78,6 +79,7 @@ export function Importador({ tipo, rubros = [], dolar = null, destino, cuentas =
       else if (res.tipo === 'proveedor') r = await importarProveedores({ archivo, filas: res.filas });
       else if (res.tipo === 'echeq') r = await importarEcheqs({ archivo, sentido, cuenta, filas: res.filas });
       else if (res.tipo === 'activo') r = await importarActivos({ archivo, categoria, moneda: monedaActivo, filas: res.filas });
+      else if (res.tipo === 'cliente') r = await importarClientes({ archivo, filas: res.filas });
       else r = await importarInsumos({ archivo, filas: res.filas });
       if (r.error) setError(r.error);
       else {
@@ -274,6 +276,12 @@ export function Importador({ tipo, rubros = [], dolar = null, destino, cuentas =
                 <Vista
                   titulos={['Equipo', 'Serie', 'Tipo', 'Cliente', 'Valor']}
                   filas={res.filas.map((a) => [`${a.descripcion}${a.marca ? ` · ${a.marca}` : ''}`, a.numero || '—', a.categoria || categoria, a.cliente || '—', a.valor != null ? `${a.moneda || monedaActivo} ${a.valor}` : '—'])}
+                />
+              )}
+              {res.tipo === 'cliente' && (
+                <Vista
+                  titulos={['Cliente', 'Locales', 'Descuento', 'Pago', 'Kilos por mes']}
+                  filas={res.filas.map((c) => [c.nombre, c.locales != null ? String(c.locales) : '—', c.descuento != null ? `${c.descuento} %` : '—', [c.forma, c.plazo != null ? `${c.plazo} días` : ''].filter(Boolean).join(' · ') || '—', c.kilos != null ? String(c.kilos) : '—'])}
                 />
               )}
               {res.tipo === 'insumo' && (

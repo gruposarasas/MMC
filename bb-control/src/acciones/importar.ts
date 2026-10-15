@@ -372,6 +372,46 @@ export async function importarActivos(datos: { archivo: string; categoria: strin
   return { nuevos: r.nuevos, actualizados: r.vistos - r.nuevos };
 }
 
+export async function importarClientes(datos: { archivo: string; filas: Record<string, unknown>[] }): Promise<Resultado> {
+  await exigirAdmin();
+  const lista = Array.isArray(datos?.filas) ? datos.filas.slice(0, 5000) : [];
+  if (!lista.length) return { error: 'No hay clientes para importar.' };
+  const sql = db();
+  const r = await sql.begin(async (tx) => {
+    let nuevos = 0;
+    let vistos = 0;
+    for (const c of lista) {
+      const nombre = s(c.nombre, 120).replace(/\s+/g, ' ');
+      if (!nombre) continue;
+      vistos++;
+      const cuit = limpiarCuit(c.cuit);
+      const pct = (x: unknown) => { const v = n(x); return v == null ? null : Math.min(Math.max(v, 0), 99); };
+      const fila: Record<string, unknown> = {
+        nombre, cuit: cuit.length === 11 ? cuit : '', alias: s(c.alias, 200).split(/[,;]/).map((x) => x.trim()).filter(Boolean),
+        locales: n(c.locales) ? Math.max(1, Math.round(n(c.locales)!)) : null, kilos_mes: n(c.kilos) != null && n(c.kilos)! >= 0 ? n(c.kilos) : null,
+        descuento_pct: pct(c.descuento), forma_pago: s(c.forma, 60), plazo_dias: n(c.plazo) != null ? Math.min(Math.max(Math.round(n(c.plazo)!), 0), 365) : null,
+        comision_pct: pct(c.comision), precio_kg: n(c.precio) && n(c.precio)! > 0 ? n(c.precio) : null, notas: s(c.notas, 1000),
+      };
+      // Lo que no vino en el Excel no se pisa.
+      const datosC = Object.fromEntries(Object.entries(fila).filter(([k, v]) => k === 'nombre' || (v !== null && v !== '' && !(Array.isArray(v) && !v.length))));
+      const [existe] = await tx`select id, alias from clientes where lower(nombre) = lower(${nombre})`;
+      if (existe) {
+        const { nombre: _n, ...cambios } = datosC;
+        void _n;
+        if (Array.isArray(cambios.alias)) cambios.alias = [...new Set([...(existe.alias as string[]), ...(cambios.alias as string[])])];
+        if (Object.keys(cambios).length) await tx`update clientes set ${tx(cambios)} where id = ${existe.id as number}`;
+      } else {
+        await tx`insert into clientes ${tx({ locales: 1, descuento_pct: 0, forma_pago: 'Transferencia', plazo_dias: 0, comision_pct: 0, ...datosC })}`;
+        nuevos++;
+      }
+    }
+    await tx`insert into importaciones (tipo, archivo, filas, nuevas, actualizadas) values ('cliente', ${s(datos.archivo, 160) || 'archivo'}, ${lista.length}, ${nuevos}, ${vistos - nuevos})`;
+    return { nuevos, vistos };
+  });
+  revalidatePath('/clientes', 'layout');
+  return { nuevos: r.nuevos, actualizados: r.vistos - r.nuevos };
+}
+
 /** Deshace una importación de compras o gastos: borra los comprobantes que vinieron con ella. */
 export async function deshacerImportacionEgresos(f: FormData) {
   await exigirAdmin();

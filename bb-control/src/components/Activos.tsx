@@ -17,8 +17,8 @@ const num = (s: string) => (s.trim() ? aNumero(s) : null);
 const fmt = (n: number, m: Moneda) => (m === 'USD' ? dolares(n) : pesos(n));
 
 /** Alta o edición de un activo, con su costo calculado en vivo. */
-export function FormActivo({ a, importaciones, clientes, dolar, volver, categoriaInicial }: {
-  a: ActivoForm | null; importaciones: Importacion[]; clientes: string[]; dolar: number | null; volver: string; categoriaInicial: string;
+export function FormActivo({ a, importaciones, clientes, dolar, volver, categoriaInicial, clienteInicial = '' }: {
+  a: ActivoForm | null; importaciones: Importacion[]; clientes: string[]; dolar: number | null; volver: string; categoriaInicial: string; clienteInicial?: string;
 }) {
   const [estado, setEstado] = useState<string>(a?.estado ?? 'cliente');
   const [imp, setImp] = useState<number>(a?.importacion_id ?? 0);
@@ -61,7 +61,7 @@ export function FormActivo({ a, importaciones, clientes, dolar, volver, categori
       </label>
       <label className="campo">
         <span>Cliente {estado !== 'cliente' && <em>(opcional)</em>}</span>
-        <input name="cliente" defaultValue={a?.cliente} list="clientes-activos" required={estado === 'cliente'} autoComplete="off" />
+        <input name="cliente" defaultValue={a?.cliente ?? clienteInicial} list="clientes-activos" required={estado === 'cliente'} autoComplete="off" />
         <datalist id="clientes-activos">{clientes.map((x) => <option key={x} value={x} />)}</datalist>
       </label>
       <label className="campo"><span>Dirección <em>(opcional)</em></span><input name="ubicacion" defaultValue={a?.ubicacion} /></label>

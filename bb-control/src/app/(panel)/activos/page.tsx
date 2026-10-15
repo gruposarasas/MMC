@@ -177,7 +177,7 @@ export default async function Activos({ searchParams }: { searchParams: Promise<
       )}
       {(param(sp, 'nuevo') || editando) && (
         <Ventana titulo={editando ? `Editar ${editando.descripcion}` : 'Nuevo activo'} cerrar={cerrar} ancha>
-          <FormActivo key={editando?.id ?? 'nuevo'} a={editando} importaciones={importaciones} clientes={clientes} dolar={dolar} volver={cerrar} categoriaInicial={cat} />
+          <FormActivo key={editando?.id ?? 'nuevo'} a={editando} importaciones={importaciones} clientes={clientes} dolar={dolar} volver={cerrar} categoriaInicial={cat} clienteInicial={cliente} />
         </Ventana>
       )}
     </>

@@ -6,6 +6,7 @@ import { FIGURAS } from '@/lib/marca';
 const ITEMS = [
   { href: '/kpi', nombre: 'KPI', fig: FIGURAS.kpi },
   { href: '/ventas', nombre: 'Ventas', fig: FIGURAS.ventas },
+  { href: '/clientes', nombre: 'Clientes', fig: FIGURAS.clientes },
   { href: '/compras', nombre: 'Compras', fig: FIGURAS.compras },
   { href: '/gastos', nombre: 'Gastos', fig: FIGURAS.gastos },
   { href: '/proveedores', nombre: 'Proveedores', fig: FIGURAS.proveedores },
