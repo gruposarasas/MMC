@@ -187,19 +187,26 @@ export default async function Cliente({ params, searchParams }: { params: Promis
           <h2>Lo que compra</h2>
           <p className="sub">Facturado en Ventas de {mesCorto(desde.slice(0, 7))} a {mesCorto(sumarMeses(hasta.slice(0, 7), -1))}, sin IVA.</p>
           <div className="lista-mi">
-            <div><span>Kilos por mes que se usan<small>{c.kilos_desde_ventas ? 'Estimados con lo facturado' : 'Cargados a mano'}</small></span><b className="num">{r.kilos ? `${numero(r.kilos, 1)} kg` : '—'}</b></div>
+            <div><span>Kilos por mes que se usan<small>{!c.kilos_desde_ventas ? 'Cargados a mano' : r.kilosFacturados ? 'Café facturado (productos de Contabilium)' : 'Estimados con lo facturado'}</small></span><b className="num">{r.kilos ? `${numero(r.kilos, 1)} kg` : '—'}</b></div>
+            {r.kilosFacturados != null && (
+              <div><span>Kilos de café facturados<small>Promedio de {MESES_VENTAS} meses, de los productos de cada venta</small></span><b className="num">{numero(r.kilosFacturados, 1)} kg</b></div>
+            )}
             <div><span>Facturado por mes<small>Promedio de {MESES_VENTAS} meses</small></span><b className="num">{facturadoMes != null ? pesos(facturadoMes, 0) : 'Sin ventas'}</b></div>
             {r.kilosVentas != null && (
               <div><span>Kilos según lo facturado<small>Facturado ÷ precio con descuento</small></span><b className="num">{numero(r.kilosVentas, 1)} kg</b></div>
             )}
             <div><span>Precio del kilo<small>{c.precio_kg != null ? 'Especial de este cliente' : origen ? `General: ${origen}` : 'General (Criterios)'}</small></span><b className="num">{r.precio ? pesos(r.precio, 0) : '—'}</b></div>
-            {c.kilos_mes != null && Number(c.kilos_mes) > 0 && r.kilosVentas != null && !c.kilos_desde_ventas && Math.abs(r.kilosVentas - Number(c.kilos_mes)) / Number(c.kilos_mes) > 0.25 && (
-              <div><span className="chico">Ojo: según lo facturado compra {numero(r.kilosVentas, 1)} kg por mes y tiene cargados {numero(Number(c.kilos_mes), 1)} kg.</span></div>
+            {c.kilos_mes != null && Number(c.kilos_mes) > 0 && (r.kilosFacturados ?? r.kilosVentas) != null && !c.kilos_desde_ventas
+              && Math.abs((r.kilosFacturados ?? r.kilosVentas)! - Number(c.kilos_mes)) / Number(c.kilos_mes) > 0.25 && (
+              <div><span className="chico">Ojo: según lo facturado compra {numero((r.kilosFacturados ?? r.kilosVentas)!, 1)} kg por mes y tiene cargados {numero(Number(c.kilos_mes), 1)} kg.</span></div>
             )}
           </div>
           {c.notas && <p className="chico" style={{ marginTop: 10 }}>{c.notas}</p>}
           {(c.alias.length > 0 || c.cuit) && (
             <p className="chico" style={{ marginTop: 10 }}>{c.alias.length ? `También figura como: ${c.alias.join(', ')}.` : ''} {c.cuit ? `CUIT ${c.cuit}.` : ''}</p>
+          )}
+          {(c.email || c.telefono || c.direccion) && (
+            <p className="chico" style={{ marginTop: 6 }}>{[c.direccion, c.telefono, c.email].filter(Boolean).join(' · ')}</p>
           )}
         </div>
       </div>

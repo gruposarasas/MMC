@@ -1,10 +1,13 @@
 import Link from 'next/link';
+import { traerProveedoresContabilium } from '@/acciones/contabilium';
 import { borrarProveedor, guardarProveedor, unirProveedores } from '@/acciones/proveedores';
+import { BotonContabilium } from '@/components/Contabilium';
 import { BotonAccion, FormAccion } from '@/components/FormAccion';
 import { Importador } from '@/components/Importador';
 import { Tile } from '@/components/Tile';
 import { Titulo } from '@/components/Titulo';
 import { Ventana } from '@/components/Ventana';
+import { credenciales } from '@/lib/contabilium';
 import { db } from '@/lib/db';
 import { fecha, hoy, numero, pesos } from '@/lib/formato';
 import { claveNombre, formatoCuit } from '@/lib/proveedores';
@@ -63,6 +66,7 @@ export default async function Proveedores({ searchParams }: { searchParams: Prom
           La lista de proveedores de compras y gastos. Corregí un nombre acá y cambia en todos sus comprobantes.
         </Titulo>
         <div className="acciones">
+          {(await credenciales()) && <BotonContabilium accion={traerProveedoresContabilium} texto="Traer de Contabilium" cargando="Trayendo proveedores…" />}
           <Link className="btn claro" href={url('/proveedores', sp, { importar: 1, nuevo: null, editar: null })} scroll={false}>Importar Excel</Link>
           <Link className="btn vino" href={url('/proveedores', sp, { nuevo: 1, editar: null, importar: null })} scroll={false}>+ Nuevo proveedor</Link>
         </div>

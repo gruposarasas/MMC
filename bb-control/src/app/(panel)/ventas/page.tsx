@@ -12,6 +12,7 @@ import { fecha, fechaCorta, hoy, periodo, pesos, numero, sumarDias } from '@/lib
 import { type Params, param, url } from '@/lib/url';
 import { ImportarVentas } from './ImportarVentas';
 import { traerVentasContabilium } from '@/acciones/contabilium';
+import { AvanceContabilium } from '@/components/AvanceContabilium';
 import { BotonContabilium } from '@/components/Contabilium';
 import { credenciales, leerEstado } from '@/lib/contabilium';
 
@@ -25,6 +26,8 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
   const q = param(sp, 'q');
   const comp = param(sp, 'comp');
   const conIva = param(sp, 'iva'); // 'si' | 'no'
+  const verProductos = param(sp, 'ver') === 'productos';
+  const rubro = param(sp, 'rubro');
   const sql = db();
   const filtro = sql`
     fecha >= ${p.desde} and fecha < ${p.hasta}
@@ -47,11 +50,35 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
     sql`select * from importaciones where tipo = 'venta' order by id desc limit 8`,
   ]);
 
-  const [cred, estadoSync] = await Promise.all([credenciales(), leerEstado()]);
+  const [cred, estadoSync, [detalle]] = await Promise.all([
+    credenciales(),
+    leerEstado(),
+    sql`select count(*) filter (where detalle_el is not null)::int con, count(*) filter (where detalle_el is null and coalesce(datos->>'contabilium_id', '') <> '')::int faltan,
+               count(*) filter (where coalesce(datos->>'contabilium_id', '') = '')::int sin_api from ventas where ${filtro}`,
+  ]);
+  type FilaProducto = { producto: string; rubro: string; unidades: number; kilos: number | null; neto: number; clientes: number; ventas: number };
+  const [productos, rubros] = verProductos
+    ? await Promise.all([
+        sql<FilaProducto[]>`
+          select max(i.concepto) producto, max(i.rubro) rubro, sum(i.cantidad) unidades, sum(i.kilos) kilos, sum(i.neto) neto,
+                 count(distinct coalesce(nullif(v.cuit, ''), v.cliente))::int clientes, count(distinct v.id)::int ventas
+          from venta_items i join (select id, cuit, cliente from ventas where ${filtro}) v on v.id = i.venta_id
+          ${rubro ? sql`where i.rubro = ${rubro}` : sql``}
+          group by lower(i.concepto) order by 5 desc, 1`,
+        sql<{ rubro: string; neto: number }[]>`
+          select i.rubro, sum(i.neto) neto from venta_items i join (select id from ventas where ${filtro}) v on v.id = i.venta_id
+          group by 1 order by 2 desc`,
+      ])
+    : [[], []];
+  const netoProductos = productos.reduce((a, x) => a + Number(x.neto), 0);
   const base = '/ventas';
   const cerrar = url(base, sp, { editar: null, nuevo: null, importar: null });
   const editar = param(sp, 'editar');
   const enEdicion = editar ? (await sql<Venta[]>`select * from ventas where id = ${Number(editar) || 0}`)[0] : null;
+  const itemsEdicion = enEdicion
+    ? await sql<{ concepto: string; codigo: string; cantidad: number; kilos: number | null; neto: number }[]>`
+        select concepto, codigo, cantidad, kilos, neto from venta_items where venta_id = ${enEdicion.id} order by orden`
+    : [];
   const comprobantes = porComp.map((c) => c.comprobante as string).filter(Boolean);
 
   // Serie para el gráfico: todos los días del mes (o los 12 meses del año).
@@ -75,7 +102,7 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
     <>
       <div className="cabeza">
         <Titulo modulo="ventas" titulo="Ventas">
-          Importadas del Excel de Contabilium (un archivo por mes) o cargadas a mano.
+          Traídas de Contabilium (con la API o el Excel de cada mes) o cargadas a mano.
         </Titulo>
         <div className="acciones">
           <SelectorPeriodo base={base} params={sp} p={p} />
@@ -90,6 +117,7 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
           Contabilium: {estadoSync.mensaje} ({new Date(estadoSync.fecha).toLocaleString('es-AR', { timeZone: 'America/Argentina/Mendoza', dateStyle: 'short', timeStyle: 'short' })})
         </p>
       )}
+      {cred && <AvanceContabilium compacto />}
       {!cred && (
         <p className="sub" style={{ margin: '-8px 0 14px', fontSize: 13 }}>
           ¿Querés que las ventas se carguen solas? <Link href="/ajustes" className="link">Conectá Contabilium</Link>.
@@ -113,9 +141,15 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
         </div>
       )}
 
+      <nav className="pildoras" aria-label="Ver" style={{ marginBottom: 12 }}>
+        <Link className={!verProductos ? 'on' : ''} aria-current={!verProductos ? 'page' : undefined} href={url(base, sp, { ver: null, rubro: null })}>Comprobantes</Link>
+        <Link className={verProductos ? 'on' : ''} aria-current={verProductos ? 'page' : undefined} href={url(base, sp, { ver: 'productos' })}>Productos vendidos</Link>
+      </nav>
+
       <div className="filtros">
         <form className="filtros" style={{ margin: 0 }} action={base}>
           <input type="hidden" name="p" value={p.valor} />
+          {verProductos && <input type="hidden" name="ver" value="productos" />}
           {comp && <input type="hidden" name="comp" value={comp} />}
           {conIva && <input type="hidden" name="iva" value={conIva} />}
           <input type="search" name="q" defaultValue={q} placeholder="Buscar cliente, CUIT o número" aria-label="Buscar" />
@@ -137,6 +171,69 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
         )}
       </div>
 
+      {verProductos && (
+        <>
+          {rubros.length > 1 && (
+            <div className="pildoras" style={{ marginBottom: 12 }}>
+              <Link className={!rubro ? 'on' : ''} href={url(base, sp, { rubro: null })}>Todos los rubros</Link>
+              {rubros.map((r) => (
+                <Link key={r.rubro || '-'} className={rubro === r.rubro ? 'on' : ''} href={url(base, sp, { rubro: r.rubro || null })}>{r.rubro || 'Sin rubro'}</Link>
+              ))}
+            </div>
+          )}
+          {(detalle.faltan > 0 || detalle.sin_api > 0) && (
+            <p className="sub" style={{ fontSize: 13 }}>
+              {detalle.faltan > 0 && <>{numero(detalle.faltan)} ventas de este período todavía no tienen sus productos{cred ? ': tocá "Traer de Contabilium" (se traen en segundo plano)' : ''}. </>}
+              {detalle.sin_api > 0 && <>{numero(detalle.sin_api)} vinieron del Excel o se cargaron a mano y no tienen el detalle de productos.</>}
+            </p>
+          )}
+          <div className="tabla-env">
+            <table className="t">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th className="der">Unidades</th>
+                  <th className="der">Kilos</th>
+                  <th className="der">Neto</th>
+                  <th className="der">% del neto</th>
+                  <th className="der">Precio prom.</th>
+                  <th className="der">Clientes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productos.map((x) => (
+                  <tr key={x.producto.toLowerCase()}>
+                    <td className="corta">{x.producto || '(sin nombre)'}{x.rubro && <div className="chico">{x.rubro}</div>}</td>
+                    <td className="der num">{numero(x.unidades, 1)}</td>
+                    <td className="der num">{x.kilos == null ? '—' : numero(x.kilos, 1)}</td>
+                    <td className={`der num principal${x.neto < 0 ? ' neg' : ''}`}>{pesos(x.neto, 0)}</td>
+                    <td className="der num">{netoProductos ? `${numero((Number(x.neto) / netoProductos) * 100, 1)} %` : '—'}</td>
+                    <td className="der num">{Number(x.unidades) ? pesos(Number(x.neto) / Number(x.unidades), 0) : '—'}</td>
+                    <td className="der num">{x.clientes}</td>
+                  </tr>
+                ))}
+                {!productos.length && (
+                  <tr><td colSpan={7} className="vacio">No hay productos vendidos en {p.etiqueta.toLowerCase()}{cred ? '. Traelos con "Traer de Contabilium".' : '. Conectá Contabilium para ver el detalle de cada venta.'}</td></tr>
+                )}
+              </tbody>
+              {productos.length > 0 && (
+                <tfoot>
+                  <tr>
+                    <td>Total ({productos.length} productos)</td>
+                    <td className="der num">{numero(productos.reduce((a, x) => a + Number(x.unidades), 0), 1)}</td>
+                    <td className="der num">{numero(productos.reduce((a, x) => a + Number(x.kilos ?? 0), 0), 1)}</td>
+                    <td className="der num">{pesos(netoProductos, 0)}</td>
+                    <td colSpan={3} />
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
+          <p className="mas">Neto sin IVA de los productos de las ventas con detalle. Los kilos salen del nombre del producto ("1 kg", "250 g").</p>
+        </>
+      )}
+
+      {!verProductos && (
       <div className="tabla-env">
         <table className="t">
           <thead>
@@ -194,9 +291,10 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
           )}
         </table>
       </div>
-      {tot.n > ventas.length && <p className="mas">Se muestran las últimas {ventas.length} de {numero(tot.n)}. Los totales incluyen todas.</p>}
+      )}
+      {!verProductos && tot.n > ventas.length && <p className="mas">Se muestran las últimas {ventas.length} de {numero(tot.n)}. Los totales incluyen todas.</p>}
 
-      {importaciones.length > 0 && (
+      {!verProductos && importaciones.length > 0 && (
         <details className="caja" style={{ marginTop: 18 }}>
           <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Importaciones anteriores</summary>
           <div className="tabla-env" style={{ marginTop: 12 }}>
@@ -272,6 +370,26 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<P
               Las notas de crédito van con importes negativos.
             </p>
           </FormAccion>
+          {itemsEdicion.length > 0 && (
+            <div style={{ marginTop: 18 }}>
+              <h3 style={{ fontSize: 15, marginBottom: 8 }}>Productos (de Contabilium)</h3>
+              <div className="tabla-env">
+                <table className="t">
+                  <thead><tr><th>Producto</th><th className="der">Cant.</th><th className="der">Kilos</th><th className="der">Neto</th></tr></thead>
+                  <tbody>
+                    {itemsEdicion.map((x, i) => (
+                      <tr key={i}>
+                        <td className="corta">{x.concepto}{x.codigo && <div className="chico">{x.codigo}</div>}</td>
+                        <td className="der num">{numero(x.cantidad, 2)}</td>
+                        <td className="der num">{x.kilos == null ? '—' : numero(x.kilos, 2)}</td>
+                        <td className="der num">{pesos(x.neto)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </Ventana>
       )}
     </>

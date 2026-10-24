@@ -4,6 +4,7 @@ import { leerAjuste, leerDolar } from './ajustes';
 import { calcular } from './costos';
 import { datosCostos } from './datosCostos';
 import { db } from './db';
+import { esCafe } from './kilos';
 import { mesActual, sumarMeses } from './formato';
 import { asignador, calcularCliente, type ClienteBase, type Criterios, criteriosCon, type Maquina } from './semaforo';
 
@@ -41,7 +42,7 @@ export async function datosSemaforo() {
   const sql = db();
   const hasta = `${mesActual()}-01`;
   const desde = `${sumarMeses(mesActual(), -MESES_VENTAS)}-01`;
-  const [{ cr, origen, dolar }, clientes, activos, importaciones, ventas] = await Promise.all([
+  const [{ cr, origen, dolar }, clientes, activos, importaciones, ventas, items] = await Promise.all([
     criterios(),
     sql<ClienteBase[]>`select * from clientes order by lower(nombre)`,
     sql<Activo[]>`select id, categoria, descripcion, marca, numero, cliente, moneda, costo_mercaderia, costo_otros, importacion_id, valor_estimado
@@ -49,6 +50,10 @@ export async function datosSemaforo() {
     sql<Importacion[]>`select * from activo_importaciones`,
     sql<{ cliente: string; cuit: string; neto: number }[]>`
       select cliente, cuit, coalesce(sum(neto), 0) neto from ventas where fecha >= ${desde} and fecha < ${hasta} group by 1, 2`,
+    sql<{ cliente: string; cuit: string; rubro: string; concepto: string; kilos: number }[]>`
+      select v.cliente, v.cuit, i.rubro, lower(i.concepto) concepto, sum(i.kilos) kilos
+      from venta_items i join ventas v on v.id = i.venta_id
+      where v.fecha >= ${desde} and v.fecha < ${hasta} and i.kilos is not null group by 1, 2, 3, 4`,
   ]);
   const lotes = new Map(importaciones.map((l) => [l.id, l]));
   const activosDe = (c: ClienteBase) => c.activo;
@@ -70,10 +75,18 @@ export async function datosSemaforo() {
     const id = asignar(v.cliente, v.cuit);
     if (id != null) facturado.set(id, (facturado.get(id) ?? 0) + Number(v.neto));
   }
+  // Kilos de café facturados (de los productos de cada venta de Contabilium).
+  const kilosCafe = new Map<number, number>();
+  for (const x of items) {
+    if (!esCafe(x.rubro, x.concepto, cr.rubrosCafe)) continue;
+    const id = asignar(x.cliente, x.cuit);
+    if (id != null) kilosCafe.set(id, (kilosCafe.get(id) ?? 0) + Number(x.kilos));
+  }
   const filas = clientes.map((c) => {
     const maquinas = maquinasPor.get(c.id) ?? [];
     const fact = facturado.has(c.id) ? facturado.get(c.id)! / MESES_VENTAS : null;
-    return { c, maquinas, facturadoMes: fact, r: calcularCliente(c, maquinas, fact, cr) };
+    const kg = kilosCafe.has(c.id) ? kilosCafe.get(c.id)! / MESES_VENTAS : null;
+    return { c, maquinas, facturadoMes: fact, r: calcularCliente(c, maquinas, fact, cr, kg) };
   });
   return { cr, origen, dolar, filas, sinCliente, desde, hasta };
 }

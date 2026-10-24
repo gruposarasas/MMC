@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { crearClienteDesde } from '@/acciones/clientes';
+import { traerClientesContabilium } from '@/acciones/contabilium';
+import { BotonContabilium } from '@/components/Contabilium';
 import { FormCliente } from '@/components/FormCliente';
 import { BotonAccion } from '@/components/FormAccion';
 import { Importador } from '@/components/Importador';
@@ -9,6 +11,7 @@ import { Tile } from '@/components/Tile';
 import { Titulo } from '@/components/Titulo';
 import { Ventana } from '@/components/Ventana';
 import { datosSemaforo } from '@/lib/clientes';
+import { credenciales } from '@/lib/contabilium';
 import { numero, pesos, porcentaje } from '@/lib/formato';
 import { type Color, colorDe, INDICADORES, type Indicador, meses } from '@/lib/semaforo';
 import { type Params, param, url } from '@/lib/url';
@@ -21,7 +24,7 @@ export default async function Clientes({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const luz = param(sp, 'luz') as Color | '';
   const q = param(sp, 'q').toLowerCase();
-  const { cr, origen, filas, sinCliente } = await datosSemaforo();
+  const [{ cr, origen, filas, sinCliente }, cred] = await Promise.all([datosSemaforo(), credenciales()]);
   const activos = filas.filter((f) => f.c.activo);
   const cuenta = (c: Color) => activos.filter((f) => f.r.color === c);
   const lista = (param(sp, 'ver') === 'inactivos' ? filas.filter((f) => !f.c.activo) : activos)
@@ -40,6 +43,7 @@ export default async function Clientes({ searchParams }: { searchParams: Promise
           Lo que deja cada cliente por mes: lo que compra, con su descuento y su plazo de pago, menos el café y las máquinas que tiene instaladas.
         </Titulo>
         <div className="acciones">
+          {cred && <BotonContabilium accion={traerClientesContabilium} texto="Traer de Contabilium" cargando="Trayendo clientes…" />}
           <Link className="btn claro" href={url('/clientes', sp, { importar: 1, nuevo: null })} scroll={false}>Importar Excel</Link>
           <Link className="btn vino" href={url('/clientes', sp, { nuevo: 1, importar: null })} scroll={false}>+ Nuevo cliente</Link>
         </div>
@@ -97,7 +101,7 @@ export default async function Clientes({ searchParams }: { searchParams: Promise
                 <td><Luz color={r.color} puntos={r.score} titulo={r.faltan.length ? `Falta ${r.faltan.join(' y ')}` : r.pierde ? 'Pierde plata: rojo aunque el promedio dé más' : undefined} /></td>
                 <td className="corta">
                   <Link className="principal" href={`/clientes/${c.id}`} style={{ textDecoration: 'none' }}>{c.nombre}</Link>
-                  <div className="chico">{c.locales > 1 ? `${c.locales} locales` : '1 local'}{c.kilos_desde_ventas ? ' · kilos según ventas' : ''}</div>
+                  <div className="chico">{c.locales > 1 ? `${c.locales} locales` : '1 local'}{c.kilos_desde_ventas ? (r.kilosFacturados ? ' · café facturado' : ' · kilos según ventas') : ''}</div>
                   {!r.faltan.length && (
                     <div className={`celu-resumen${r.resultado < 0 ? ' negativo' : ''}`}>
                       {pesos(r.resultado, 0)}/mes · {numero(r.kilos, r.kilos < 10 ? 1 : 0)} kg{maquinas.length ? ` · ${maquinas.length} ${maquinas.length === 1 ? 'equipo' : 'equipos'}` : ''}

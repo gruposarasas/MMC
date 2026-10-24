@@ -2,7 +2,10 @@
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { guardarAjuste } from '@/lib/ajustes';
-import { credenciales, guardarCredenciales, probarConexion, sincronizarVentas, traerProductos } from '@/lib/contabilium';
+import {
+  credenciales, desdeTresMeses, guardarCredenciales, iniciarCarga, probarConexion, sincronizarCatalogo, sincronizarClientes,
+  sincronizarProveedores, sincronizarVentas,
+} from '@/lib/contabilium';
 import { hoy, periodo, sumarDias } from '@/lib/formato';
 import { type Estado, intentar, falla, texto, tilde } from '@/lib/form';
 import { exigirAdmin } from '@/lib/sesion';
@@ -56,36 +59,42 @@ export async function traerVentasContabilium(_: Estado, f: FormData): Promise<Es
   revalidatePath('/ventas');
   revalidatePath('/kpi');
   revalidatePath('/ajustes');
-  return r.ok ? { ok: r.mensaje } : { error: r.error };
+  if (!r.ok) return { error: r.error };
+  // Los productos de cada venta se piden uno por uno: van en segundo plano.
+  const c = await iniciarCarga(p.desde, fin, {});
+  return { ok: `${r.mensaje}${c.ok ? ' Los productos de cada venta se traen en segundo plano.' : ''}` };
+}
+
+/** Trae todo de los últimos 3 meses en segundo plano: catálogo, ventas con sus productos, clientes y proveedores. */
+export async function traerTodoContabilium(_: Estado): Promise<Estado> {
+  await exigirAdmin();
+  const r = await iniciarCarga(desdeTresMeses(), hoy(), { catalogo: true, ventas: true, clientes: true, proveedores: true });
+  revalidatePath('/ajustes');
+  return r.ok ? { ok: 'Empezó. Podés seguir usando la app: el avance se ve acá.' } : { error: r.error };
+}
+
+const conError = async (f: () => Promise<{ mensaje: string }>, rutas: string[]): Promise<Estado> => {
+  try {
+    const r = await f();
+    for (const ruta of rutas) revalidatePath(ruta, 'layout');
+    return { ok: `Listo: ${r.mensaje}.` };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'No se pudo traer la información de Contabilium.' };
+  }
+};
+
+export async function traerClientesContabilium(_: Estado): Promise<Estado> {
+  await exigirAdmin();
+  return conError(sincronizarClientes, ['/clientes']);
+}
+
+export async function traerProveedoresContabilium(_: Estado): Promise<Estado> {
+  await exigirAdmin();
+  return conError(sincronizarProveedores, ['/proveedores']);
 }
 
 /** Crea o actualiza los productos de Costos con los de Contabilium (nombre, rubro, precio e IVA). */
 export async function traerProductosContabilium(_: Estado): Promise<Estado> {
   await exigirAdmin();
-  let lista: Awaited<ReturnType<typeof traerProductos>>;
-  try {
-    lista = await traerProductos();
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : 'No se pudieron traer los productos.' };
-  }
-  if (!lista.length) return { error: 'Contabilium no devolvió productos.' };
-  const sql = db();
-  const nuevos = await sql.begin(async (tx) => {
-    let n = 0;
-    for (const p of lista) {
-      const [existe] = await tx`select id from productos where lower(nombre) = lower(${p.nombre}) and presentacion = '' limit 1`;
-      if (existe) {
-        await tx`update productos set precio = ${p.precio}, iva_alicuota = ${p.iva},
-                   categoria = case when ${p.categoria} <> '' then ${p.categoria} else categoria end
-                 where id = ${existe.id as number}`;
-      } else {
-        await tx`insert into productos (nombre, categoria, precio, iva_alicuota, notas)
-                 values (${p.nombre}, ${p.categoria}, ${p.precio}, ${p.iva}, ${p.codigo ? `Código Contabilium: ${p.codigo}` : ''})`;
-        n++;
-      }
-    }
-    return n;
-  });
-  revalidatePath('/costos', 'layout');
-  return { ok: `Listo: ${nuevos} productos nuevos y ${lista.length - nuevos} actualizados desde Contabilium.` };
+  return conError(sincronizarCatalogo, ['/costos']);
 }

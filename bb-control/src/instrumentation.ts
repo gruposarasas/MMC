@@ -1,17 +1,23 @@
 // Al arrancar el servidor:
 // - si Contabilium está conectado y la sincronización automática activada, trae las ventas de los últimos 35 días
-//   cada 6 horas (la primera vez, 2 minutos después de arrancar);
+//   (con los productos de cada una) cada 6 horas (la primera vez, 2 minutos después de arrancar);
 // - el dólar BNA (si está en automático), al arrancar y cada 30 minutos.
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs' || !process.env.DATABASE_URL) return;
   const SEIS_HORAS = 6 * 60 * 60 * 1000;
   const correr = async () => {
     try {
-      const { credenciales, leerConfig, rangoAutomatico, sincronizarVentas } = await import('./lib/contabilium');
+      const { cargaViva, completarProductos, credenciales, leerCarga, leerConfig, rangoAutomatico, sincronizarVentas } = await import('./lib/contabilium');
       if (!(await credenciales()) || !(await leerConfig()).auto) return;
+      if (cargaViva(await leerCarga())) return; // hay una carga grande corriendo
       const { desde, hasta } = rangoAutomatico();
       const r = await sincronizarVentas(desde, hasta);
       console.log(`[contabilium] ${r.ok ? r.mensaje : `error: ${r.error}`}`);
+      if (r.ok) {
+        // Los productos de las ventas nuevas (de a 300 por vez: se piden uno por uno).
+        const p = await completarProductos(desde, hasta, { limite: 300 });
+        if (p.total) console.log(`[contabilium] ${p.mensaje}`);
+      }
     } catch (e) {
       console.error('[contabilium] no se pudo sincronizar', e);
     }

@@ -22,6 +22,7 @@ export type Criterios = {
   tasaMaquinasAnual: number; // % por año en dólares: costo del capital puesto en máquinas (su valor ya sigue al dólar)
   vidaUtilMeses: number; // amortización de las máquinas
   serviceMaquinaMes: number; // $ por equipo por mes (mantenimiento)
+  rubrosCafe: string[] | null; // rubros de Contabilium que cuentan como café para los kilos (vacío = los que dicen "café")
   umbrales: Record<Indicador, [number, number]>; // [verde, rojo]
   pesos: Record<Indicador, number>;
 };
@@ -35,6 +36,7 @@ export const CRITERIOS_DEFECTO: Criterios = {
   tasaMaquinasAnual: 10,
   vidaUtilMeses: 60,
   serviceMaquinaMes: 0,
+  rubrosCafe: null,
   umbrales: { margen: [20, 5], recupero: [18, 36], kgMaquina: [40, 15], plazo: [7, 45], descuento: [5, 20] },
   pesos: { margen: 35, recupero: 25, kgMaquina: 20, plazo: 10, descuento: 10 },
 };
@@ -66,6 +68,7 @@ export function puntaje(valor: number | null, [verde, rojo]: [number, number], m
 export type ClienteBase = {
   id: number; nombre: string; alias: string[]; cuit: string; locales: number; kilos_mes: number | null; kilos_desde_ventas: boolean;
   descuento_pct: number; forma_pago: string; plazo_dias: number; comision_pct: number; precio_kg: number | null; notas: string; activo: boolean;
+  email?: string; telefono?: string; direccion?: string; contabilium_id?: string;
 };
 export type Maquina = { id: number; categoria: string; descripcion: string; marca: string; numero: string; cliente: string; inversion: number | null };
 
@@ -86,7 +89,7 @@ export function asignador(clientes: Pick<ClienteBase, 'id' | 'nombre' | 'alias' 
 
 export type Resultado = ReturnType<typeof calcularCliente>;
 
-export function calcularCliente(c: ClienteBase, maquinas: Maquina[], facturadoMes: number | null, cr: Criterios) {
+export function calcularCliente(c: ClienteBase, maquinas: Maquina[], facturadoMes: number | null, cr: Criterios, kilosFacturados: number | null = null) {
   const precio = Number(c.precio_kg ?? cr.precioKg ?? 0);
   const costoKg = Number(cr.costoKg ?? 0);
   const desc = Number(c.descuento_pct) / 100;
@@ -97,7 +100,8 @@ export function calcularCliente(c: ClienteBase, maquinas: Maquina[], facturadoMe
   if (!precio) faltan.push('el precio del kilo');
   if (!costoKg) faltan.push('el costo del kilo');
   const kilosVentas = facturadoMes != null && precio ? facturadoMes / (precio * (1 - desc)) : null;
-  const kilos = c.kilos_desde_ventas ? (kilosVentas ?? 0) : Number(c.kilos_mes ?? 0);
+  // Con los productos de cada venta (Contabilium), los kilos de café facturados; si no, estimados con lo facturado.
+  const kilos = c.kilos_desde_ventas ? (kilosFacturados || kilosVentas || 0) : Number(c.kilos_mes ?? 0);
   if (!kilos) faltan.push(c.kilos_desde_ventas ? 'ventas de los últimos meses' : 'los kilos por mes');
 
   const bruto = kilos * precio;
@@ -141,7 +145,7 @@ export function calcularCliente(c: ClienteBase, maquinas: Maquina[], facturadoMe
   const porKilo = precio * (1 - desc) * (1 - tasa * (plazo / 30) - comision) - costoKg;
   const kilosEquilibrio = costoMaquinas > 0 && porKilo > 0 ? costoMaquinas / porKilo : costoMaquinas > 0 ? null : 0;
   return {
-    precio, costoKg, kilos, kilosVentas, bruto, descuento, neto, costoCafe, margenBruto, financiero, cobro, inversion, sinValor,
+    precio, costoKg, kilos, kilosVentas, kilosFacturados, bruto, descuento, neto, costoCafe, margenBruto, financiero, cobro, inversion, sinValor,
     amortizacion, capital, service, costoMaquinas, resultado, aporte, cafeteras, valores, puntos, score, color, pierde, faltan,
     porKilo, kilosEquilibrio,
   };

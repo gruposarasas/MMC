@@ -1,10 +1,12 @@
 import { Titulo } from '@/components/Titulo';
 import { headers } from 'next/headers';
 import { guardarRubro } from '@/acciones/ajustes';
-import { configurarContabilium, desconectarContabilium } from '@/acciones/contabilium';
-import { ConectarContabilium } from '@/components/Contabilium';
+import { configurarContabilium, desconectarContabilium, traerTodoContabilium } from '@/acciones/contabilium';
+import { AvanceContabilium } from '@/components/AvanceContabilium';
+import { BotonContabilium, ConectarContabilium } from '@/components/Contabilium';
 import { BotonAccion } from '@/components/FormAccion';
-import { credenciales, leerConfig, leerEstado } from '@/lib/contabilium';
+import { credenciales, desdeTresMeses, leerConfig, leerEstado } from '@/lib/contabilium';
+import { fecha } from '@/lib/formato';
 import { FormAccion } from '@/components/FormAccion';
 import { FormDolar } from '@/components/FormDolar';
 import { leerDolar } from '@/lib/ajustes';
@@ -94,7 +96,7 @@ export default async function Ajustes() {
           <div>
             <h2>Contabilium</h2>
             <p className="sub" style={{ margin: 0 }}>
-              Conecta la API para traer las ventas solas. Los datos están en Contabilium → Mi cuenta → Configuración → API → Credenciales (plan Full o superior).
+              Conecta la API para traer las ventas (con los productos de cada una), el catálogo, los clientes y los proveedores. Los datos están en Contabilium → Mi cuenta → Configuración → API → Credenciales (plan Full o superior).
             </p>
           </div>
           {cred ? <span className="chip bien">Conectado</span> : <span className="chip">Sin conectar</span>}
@@ -112,12 +114,24 @@ export default async function Ajustes() {
         {cred && (
           <div className="acciones" style={{ marginTop: 12, justifyContent: 'space-between' }}>
             <form action={configurarContabilium} className="acciones">
-              <label className="casilla"><input type="checkbox" name="auto" defaultChecked={config.auto} /> Traer las ventas solas cada 6 horas (últimos 35 días)</label>
+              <label className="casilla"><input type="checkbox" name="auto" defaultChecked={config.auto} /> Traer las ventas (con sus productos) solas cada 6 horas: últimos 35 días</label>
               <button className="btn chico claro">Guardar</button>
             </form>
             {cred.origen === 'ajustes' && (
               <BotonAccion accion={desconectarContabilium} campos={{}} className="btn chico claro" confirmar="¿Desconectar Contabilium? Las ventas ya traídas quedan.">Desconectar</BotonAccion>
             )}
+          </div>
+        )}
+        {cred && (
+          <div id="traer-todo" style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--linea2)' }}>
+            <h3 style={{ fontSize: 15, marginBottom: 4 }}>Traer todo de los últimos 3 meses</h3>
+            <p className="sub">
+              Ventas desde el {fecha(desdeTresMeses())} con los productos de cada una, el catálogo de productos (a Costos), los clientes con CUIT
+              (los que compraron entran al semáforo) y los proveedores. Se puede repetir: no duplica nada y lo que ya cargaste a mano no se pisa.
+              Tarda unos minutos porque Contabilium da los productos venta por venta.
+            </p>
+            <AvanceContabilium />
+            <BotonContabilium accion={traerTodoContabilium} texto="Traer todo de Contabilium" cargando="Empezando…" clase="btn vino" />
           </div>
         )}
       </div>

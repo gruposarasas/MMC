@@ -25,7 +25,7 @@ export function FormCliente({ c, volver }: { c: ClienteBase | null; volver?: str
       <label className="campo"><span>Locales</span><input name="locales" type="number" min={1} defaultValue={c?.locales ?? 1} /></label>
       <label className="campo"><span>Kilos de café por mes</span><input name="kilos_mes" inputMode="decimal" defaultValue={aTexto(c?.kilos_mes)} placeholder="Ej.: 60" /></label>
       <label className="casilla" style={{ alignSelf: 'end', paddingBottom: 10 }}>
-        <input type="checkbox" name="kilos_desde_ventas" defaultChecked={c?.kilos_desde_ventas} /> Estimar los kilos con lo facturado en Ventas
+        <input type="checkbox" name="kilos_desde_ventas" defaultChecked={c?.kilos_desde_ventas} /> Kilos según sus ventas (café facturado o, si no hay detalle, lo facturado)
       </label>
       <label className="campo"><span>Descuento %</span><input name="descuento_pct" inputMode="decimal" defaultValue={aTexto(c?.descuento_pct) || '0'} /></label>
       <label className="campo">
@@ -36,6 +36,9 @@ export function FormCliente({ c, volver }: { c: ClienteBase | null; volver?: str
       <label className="campo"><span>Plazo de pago (días)</span><input name="plazo_dias" type="number" min={0} max={365} defaultValue={c?.plazo_dias ?? 0} /></label>
       <label className="campo"><span>Comisión del cobro % <em>(tarjeta, Mercado Pago)</em></span><input name="comision_pct" inputMode="decimal" defaultValue={aTexto(c?.comision_pct) || '0'} /></label>
       <label className="campo"><span>Precio especial por kg <em>(sin IVA, opcional)</em></span><input name="precio_kg" inputMode="decimal" defaultValue={aTexto(c?.precio_kg)} placeholder="Vacío = el general" /></label>
+      <label className="campo"><span>Mail <em>(opcional)</em></span><input name="email" type="email" defaultValue={c?.email} /></label>
+      <label className="campo"><span>Teléfono <em>(opcional)</em></span><input name="telefono" defaultValue={c?.telefono} /></label>
+      <label className="campo ancho"><span>Dirección <em>(opcional)</em></span><input name="direccion" defaultValue={c?.direccion} /></label>
       <label className="campo ancho"><span>Notas</span><input name="notas" defaultValue={c?.notas} /></label>
       {c && <label className="casilla ancho"><input type="checkbox" name="activo" defaultChecked={c.activo} /> Activo (entra en el semáforo)</label>}
     </FormAccion>

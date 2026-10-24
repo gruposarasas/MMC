@@ -46,6 +46,7 @@ export async function guardarVentas(lista: VentaNueva[], opc: { archivo: string 
         on conflict (clave) do update set
           fecha = excluded.fecha, comprobante = excluded.comprobante, numero = excluded.numero,
           cliente = excluded.cliente, cuit = case when excluded.cuit <> '' then excluded.cuit else ventas.cuit end,
+          detalle_el = case when ventas.neto = excluded.neto then ventas.detalle_el end,
           neto = excluded.neto, iva = excluded.iva, otros = excluded.otros, total = excluded.total, datos = excluded.datos,
           origen = excluded.origen, importacion_id = coalesce(excluded.importacion_id, ventas.importacion_id)
         returning (xmax = 0) as nueva`;

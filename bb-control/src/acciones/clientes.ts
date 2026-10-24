@@ -27,8 +27,9 @@ export async function guardarCliente(_: Estado, f: FormData): Promise<Estado> {
       descuento_pct: numero(f, 'descuento_pct', { min: 0, max: 99 }), forma_pago: texto(f, 'forma_pago', 60) || 'Transferencia',
       plazo_dias: Math.min(entero(f, 'plazo_dias') ?? 0, 365), comision_pct: numero(f, 'comision_pct', { min: 0, max: 99 }),
       precio_kg: opcional(f, 'precio_kg'), notas: texto(f, 'notas', 1000), activo: id ? tilde(f, 'activo') : true,
+      email: texto(f, 'email', 120), telefono: texto(f, 'telefono', 60), direccion: texto(f, 'direccion', 200),
     };
-    if (!c.kilos_desde_ventas && c.kilos_mes == null) falla('Poné los kilos que compra por mes (o tildá "estimar con las ventas").');
+    if (!c.kilos_desde_ventas && c.kilos_mes == null) falla('Poné los kilos que compra por mes (o tildá "kilos según sus ventas").');
     const sql = db();
     const [otro] = await sql`select id from clientes where lower(nombre) = lower(${nombre}) and id <> ${id ?? 0}`;
     if (otro) falla(`Ya hay un cliente que se llama ${nombre}.`);
@@ -72,6 +73,7 @@ export async function guardarCriterios(_: Estado, f: FormData): Promise<Estado> 
       tasaMaquinasAnual: numero(f, 'tasaMaquinasAnual', { min: 0, max: 100 }),
       vidaUtilMeses: Math.max(1, entero(f, 'vidaUtilMeses') ?? CRITERIOS_DEFECTO.vidaUtilMeses),
       serviceMaquinaMes: numero(f, 'serviceMaquinaMes', { min: 0 }),
+      rubrosCafe: f.getAll('rubro_cafe').map((x) => String(x).trim()).filter(Boolean).slice(0, 50),
       umbrales: { ...CRITERIOS_DEFECTO.umbrales },
       pesos: { ...CRITERIOS_DEFECTO.pesos },
     };

@@ -458,3 +458,10 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 .celu-resumen{display:none;font-size:13px;font-weight:600;margin-top:3px}
 @media (max-width:720px){.celu-resumen{display:block}}
 @media (max-width:720px){.celu-no{display:none}}
+
+/* ---------- Contabilium ---------- */
+.avance-carga .barra{display:block;height:6px;border-radius:4px;background:rgba(0,0,0,.08);margin:8px 0 2px;overflow:hidden}
+.avance-carga .barra i{display:block;height:100%;background:var(--vino);transition:width .4s}
+.avance-carga .chico{font-size:12.5px;color:inherit;opacity:.8}
+.lista-rubros{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:6px 18px}
+.lista-rubros small{display:block;font-size:12px;color:var(--tinta3);font-weight:400}

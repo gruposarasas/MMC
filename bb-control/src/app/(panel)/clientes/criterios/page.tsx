@@ -3,9 +3,10 @@ import { guardarCriterios } from '@/acciones/clientes';
 import { FormAccion } from '@/components/FormAccion';
 import { TabsClientes } from '@/components/TabsClientes';
 import { Titulo } from '@/components/Titulo';
-import { criterios } from '@/lib/clientes';
+import { criterios, MESES_VENTAS } from '@/lib/clientes';
 import { db } from '@/lib/db';
-import { aTexto, pesos } from '@/lib/formato';
+import { aTexto, mesActual, numero, pesos, sumarMeses } from '@/lib/formato';
+import { esCafe } from '@/lib/kilos';
 import { CRITERIOS_DEFECTO, INDICADORES, type Indicador } from '@/lib/semaforo';
 
 export const metadata = { title: 'Criterios del semáforo · BB-CONTROL' };
@@ -13,10 +14,16 @@ export const metadata = { title: 'Criterios del semáforo · BB-CONTROL' };
 const UNIDAD: Record<Indicador, string> = { margen: '%', recupero: 'meses', kgMaquina: 'kg', plazo: 'días', descuento: '%' };
 
 export default async function Criterios() {
-  const [{ cr, origen }, productos] = await Promise.all([
+  const [{ cr, origen }, productos, rubros] = await Promise.all([
     criterios(),
     db()<{ id: number; nombre: string; presentacion: string; precio: number }[]>`
       select id, nombre, presentacion, precio from productos where activo order by lower(nombre), presentacion`,
+    // Rubros de los productos vendidos en los últimos meses (de Contabilium), para elegir cuáles son café.
+    db()<{ rubro: string; kilos: number; neto: number; ejemplo: string }[]>`
+      select i.rubro, sum(i.kilos) kilos, sum(i.neto) neto, max(i.concepto) ejemplo
+      from venta_items i join ventas v on v.id = i.venta_id
+      where v.fecha >= ${`${sumarMeses(mesActual(), -MESES_VENTAS)}-01`} and i.rubro <> ''
+      group by 1 order by 3 desc`,
   ]);
   const d = CRITERIOS_DEFECTO;
 
@@ -63,6 +70,24 @@ export default async function Criterios() {
               <>Hoy: <b>{pesos(cr.precioKg, 0)}</b> el kilo de lista y <b>{pesos(cr.costoKg, 0)}</b> de costo ({Math.round((1 - cr.costoKg / cr.precioKg) * 100)} % de margen del café){origen ? `, según ${origen}` : ', cargados a mano'}.</>
             ) : 'Todavía no hay precio y costo del kilo: sin eso el semáforo no se puede calcular.'}
           </p>
+
+          {rubros.length > 0 && (
+            <div className="ancho" style={{ marginTop: 10 }}>
+              <h2>Qué es café</h2>
+              <p className="sub">
+                Para los clientes con "kilos según ventas", se suman los kilos de los productos de estos rubros que les facturaste
+                (los kilos salen del nombre: "1 kg", "250 g"). Si no tildás ninguno, cuentan los rubros que dicen "café".
+              </p>
+              <div className="lista-rubros">
+                {rubros.map((r) => (
+                  <label key={r.rubro} className="casilla">
+                    <input type="checkbox" name="rubro_cafe" value={r.rubro} defaultChecked={cr.rubrosCafe?.length ? cr.rubrosCafe.includes(r.rubro) : esCafe(r.rubro, '', null)} />
+                    <span>{r.rubro}<small> · {r.kilos ? `${numero(r.kilos)} kg` : 'sin kilos en el nombre'} · {pesos(r.neto, 0)} · ej.: {r.ejemplo}</small></span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="ancho" style={{ marginTop: 10 }}>
             <h2>Lo que cuesta tener al cliente</h2>
