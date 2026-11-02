@@ -1,11 +1,15 @@
 import Link from 'next/link';
+import { pedirSalida } from '@/acciones/fichaje';
 import { actualizarMisDatos, cancelarVacaciones, pedirAdelanto, pedirUniforme, pedirVacaciones, subirCertificado } from '@/acciones/mi';
 import { salirEquipo } from '@/acciones/sesion';
 import { ArchivoInput } from '@/components/ArchivoInput';
 import { BotonAccion, FormAccion } from '@/components/FormAccion';
 import type { Empleado } from '@/components/FormEmpleado';
+import { Fichar } from '@/components/Fichar';
 import { db } from '@/lib/db';
 import { cumpleanos } from '@/lib/equipo';
+import { estadoFichaje, horasDelEquipo } from '@/lib/fichaje';
+import { diaSemana, DIAS_SEMANA, formatoHoras, horaDe } from '@/lib/horas';
 import { fecha, hoy, MESES, nombreMes, pesos } from '@/lib/formato';
 import { empleadoSesion } from '@/lib/sesion';
 import { type Params, param } from '@/lib/url';
@@ -16,6 +20,8 @@ export const metadata = { title: 'Mi app · Bruno Brown' };
 export const dynamic = 'force-dynamic';
 
 const SECCIONES = [
+  { id: 'fichar', nombre: 'Fichar', bajada: 'Entrada y salida' },
+  { id: 'horas', nombre: 'Mis horas', bajada: 'Lo que trabajé' },
   { id: 'vacaciones', nombre: 'Vacaciones', bajada: 'Pedir días' },
   { id: 'adelanto', nombre: 'Adelanto', bajada: 'Pedir plata a cuenta' },
   { id: 'certificado', nombre: 'Certificado', bajada: 'Mandar el médico' },
@@ -51,6 +57,12 @@ export default async function Mi({ searchParams }: { searchParams: Promise<Param
   const s = SECCIONES.some((x) => x.id === param(sp, 's')) ? param(sp, 's') : '';
   const h = hoy();
   const anio = Number(h.slice(0, 4));
+  const mesHoras = /^\d{4}-\d{2}$/.test(param(sp, 'm')) && param(sp, 'm') <= h.slice(0, 7) ? param(sp, 'm') : h.slice(0, 7);
+  const mesAnterior = (() => { const [a, m] = h.slice(0, 7).split('-').map(Number); return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`; })();
+  const [fichaje, misHoras] = await Promise.all([
+    estadoFichaje(e.id),
+    s === 'horas' ? horasDelEquipo(mesHoras, e.id).then((x) => x.filas[0]?.r ?? null) : Promise.resolve(null),
+  ]);
   const [vacaciones, adelantos, certificados, uniformes, sueldos, cumples] = await Promise.all([
     sql`select * from vacaciones where empleado_id = ${e.id} order by desde desc limit 20`,
     sql`select * from adelantos where empleado_id = ${e.id} order by creado desc limit 20`,
@@ -76,6 +88,19 @@ export default async function Mi({ searchParams }: { searchParams: Promise<Param
         <p>{e.puesto || 'Equipo Bruno Brown'}</p>
       </header>
       <div className="mi-in">
+        {!s && fichaje.hayLugares && (
+          <div className="caja fichar-card">
+            <span className="estado">
+              {fichaje.enCurso ? <><b>Trabajando desde las {fichaje.enCurso.entrada}</b>{fichaje.enCurso.lugar}</> : <><b>{fichaje.hoy.length ? 'Fuera de horario' : 'Todavía no fichaste hoy'}</b>{fichaje.horarioHoy ? `Tu horario de hoy: ${fichaje.horarioHoy}` : 'Hoy no tenés horario'}</>}
+            </span>
+            <Link className="btn vino" href="/mi?s=fichar">{fichaje.tipo === 'salida' ? 'Marcar salida' : 'Marcar entrada'}</Link>
+            {fichaje.sinSalida.length > 0 && (
+              <p className="chico" style={{ width: '100%', margin: 0, color: 'var(--mal)' }}>
+                Te faltó marcar la salida {fichaje.sinSalida.length === 1 ? 'de un día' : `de ${fichaje.sinSalida.length} días`}. <Link className="link" href="/mi?s=horas">Avisá a qué hora saliste</Link>.
+              </p>
+            )}
+          </div>
+        )}
         {!s && (
           <>
             <div className="mi-tiles">
@@ -234,6 +259,79 @@ export default async function Mi({ searchParams }: { searchParams: Promise<Param
               {!sueldos.length && <p className="vacio">Todavía no hay sueldos cargados.</p>}
             </div>
           </div>
+        )}
+
+        {s === 'fichar' && (
+          <>
+            <div className="caja">
+              <h2>{fichaje.tipo === 'salida' ? 'Marcar la salida' : 'Marcar la entrada'}</h2>
+              <p className="sub">
+                {fichaje.enCurso ? `Entraste a las ${fichaje.enCurso.entrada}${fichaje.enCurso.lugar ? ` en ${fichaje.enCurso.lugar}` : ''}. Podés marcar la salida hasta ${fichaje.enCurso.corte}.`
+                  : fichaje.horarioHoy ? `Tu horario de hoy: ${fichaje.horarioHoy}.` : 'Hoy no tenés horario cargado.'}
+                {' '}Necesitás estar en el lugar, con el GPS prendido, y escanear el QR de la pantalla.
+              </p>
+              {fichaje.hoy.length > 0 && (
+                <p className="chico" style={{ margin: 0 }}>Hoy: {fichaje.hoy.map((x) => `${x.entrada} a ${x.salida ?? '…'}`).join(' · ')}</p>
+              )}
+            </div>
+            {fichaje.sinSalida.some((x) => x.fecha === h) && (
+              <div className="aviso mal">
+                Ya pasó el horario para marcar la salida de tu entrada de hoy ({fichaje.sinSalida.filter((x) => x.fecha === h).map((x) => `${x.entrada}`).join(', ')}).
+                Si ya te fuiste, <Link href="/mi?s=horas">avisá a qué hora saliste</Link>. Si volvés a entrar, marcá la entrada.
+              </div>
+            )}
+            {fichaje.lugares.length ? <Fichar tipo={fichaje.tipo} lugares={fichaje.lugares} /> : <p className="vacio">Todavía no hay lugares para fichar. Avisale a administración.</p>}
+          </>
+        )}
+
+        {s === 'horas' && (
+          <>
+            <div className="pildoras" style={{ marginBottom: 12 }}>
+              <Link className={mesHoras === mesAnterior ? 'on' : ''} href={`/mi?s=horas&m=${mesAnterior}`}>{nombreMes(mesAnterior)}</Link>
+              <Link className={mesHoras === h.slice(0, 7) ? 'on' : ''} href="/mi?s=horas">{nombreMes(h.slice(0, 7))}</Link>
+            </div>
+            {misHoras && (
+              <>
+                <div className="mi-tiles">
+                  <div className="tile"><div className="t">Horas trabajadas</div><div className="v">{formatoHoras(misHoras.trabajadas)}</div><div className="s">{misHoras.dias} días{misHoras.feriado ? ` · ${formatoHoras(misHoras.feriado)} en feriados` : ''}</div></div>
+                  <div className="tile"><div className="t">Llegadas tarde</div><div className="v">{misHoras.tardes}</div><div className="s">{misHoras.ausencias.length ? `${misHoras.ausencias.length} ausencias` : 'Sin ausencias'}</div></div>
+                </div>
+                <div className="caja">
+                  <h2>Día por día</h2>
+                  <div className="lista-mi">
+                    {misHoras.jornadas.map((j) => (
+                      <div key={j.id} style={{ flexWrap: 'wrap' }}>
+                        <span>
+                          {DIAS_SEMANA[diaSemana(j.fecha)]} {fecha(j.fecha).slice(0, 5)}
+                          <small>{horaDe(j.entradaMs)} a {j.salidaMs ? horaDe(j.salidaMs) : j.pedidoMs ? `${horaDe(j.pedidoMs)} (pedida)` : '…'}{j.tarde ? ` · tarde ${j.minutosTarde} min` : ''}{j.feriado ? ` · feriado` : ''}</small>
+                        </span>
+                        <span className="acciones">
+                          {j.estado === 'ok' && <b className="num">{formatoHoras(j.horas)} h</b>}
+                          {j.estado === 'en_curso' && <span className="chip bien">Trabajando</span>}
+                          {j.estado === 'pedida' && <span className="chip alerta">Esperando a administración</span>}
+                          {j.estado === 'rechazada' && <span className="chip mal">No se aceptó</span>}
+                          {j.estado === 'sin_salida' && <span className="chip mal">Sin salida</span>}
+                        </span>
+                        {j.estado === 'sin_salida' && (
+                          <FormAccion accion={pedirSalida} boton="Avisar" className="form form-salida" claseBoton="btn vino chico">
+                            <input type="hidden" name="id" value={j.id} />
+                            <label className="campo"><span>¿A qué hora saliste?</span><input type="time" name="hora" required /></label>
+                            <label className="campo"><span>Comentario <em>(opcional)</em></span><input name="nota" /></label>
+                          </FormAccion>
+                        )}
+                      </div>
+                    ))}
+                    {!misHoras.jornadas.length && <p className="vacio">No hay fichajes en {nombreMes(mesHoras).toLowerCase()}.</p>}
+                  </div>
+                </div>
+                {misHoras.ausencias.length > 0 && (
+                  <p className="chico" style={{ margin: '0 4px 16px' }}>
+                    Días de tu horario sin fichar: {misHoras.ausencias.map((f) => fecha(f).slice(0, 5)).join(', ')}. Si estuviste de licencia, mandá el certificado.
+                  </p>
+                )}
+              </>
+            )}
+          </>
         )}
 
         {s === 'datos' && (

@@ -465,3 +465,43 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 .avance-carga .chico{font-size:12.5px;color:inherit;opacity:.8}
 .lista-rubros{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:6px 18px}
 .lista-rubros small{display:block;font-size:12px;color:var(--tinta3);font-weight:400}
+
+/* ---------- fichaje ---------- */
+.kiosco{min-height:100dvh;background:var(--ciruela,#281722);color:var(--crema,#F3E9DC);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 16px;position:relative}
+.kiosco h1{font-size:clamp(24px,4vw,40px);font-weight:800}
+.kiosco .qrbig{background:#fff;border-radius:22px;padding:22px;margin-top:22px;width:min(78vw,420px);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.kiosco .qr-svg,.kiosco .qr-svg svg{width:100%;height:100%;display:block}
+.kiosco .qr-espera{color:var(--ciruela,#281722);font-weight:600}
+.kiosco .barra-qr{width:min(78vw,420px);height:6px;background:rgba(243,233,220,.18);border-radius:4px;margin-top:12px;overflow:hidden}
+.kiosco .barra-qr i{display:block;height:100%;background:var(--arena,#C2A27B);transition:width .1s linear}
+.kiosco .fichados{position:absolute;top:18px;left:18px;display:flex;flex-direction:column;gap:10px;text-align:left}
+.kiosco .fichado{display:flex;gap:10px;align-items:center;background:rgba(243,233,220,.1);border-radius:14px;padding:10px 14px;min-width:220px}
+.kiosco .fichado .sin-foto{width:38px;height:38px;border-radius:50%;background:var(--vino,#8E3949);display:flex;align-items:center;justify-content:center;font-weight:700}
+.kiosco .fichado span{display:block;font-size:13px}
+.kiosco .fichado .entrada{color:#9BD3A9}.kiosco .fichado .salida{color:#F0B7A4}
+.kiosco .activar-pantalla{display:block}
+.kiosco .activar-pantalla .form-pie{justify-content:center}
+@media (max-width:700px){.kiosco .fichados{position:static;margin-bottom:16px}}
+.pasos-fichar{display:flex;flex-direction:column;gap:12px}
+.paso{display:flex;gap:12px;align-items:flex-start}
+.paso .c{width:30px;height:30px;flex:none;border-radius:50%;background:var(--linea2);color:var(--tinta2);display:flex;align-items:center;justify-content:center;font-weight:700}
+.paso.ok .c{background:var(--bien,#2F8F4E);color:#fff}.paso.mal .c{background:var(--mal,#C23B4B);color:#fff}
+.paso .chico{font-size:13px;color:var(--tinta2);margin-top:2px}
+.fichado-ok{text-align:center}.fichado-ok .paso{justify-content:center;margin-bottom:8px}.fichado-ok h2{font-size:18px}
+.escaner{position:fixed;inset:0;z-index:60;background:rgba(20,10,16,.94);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.escaner .visor{position:relative;width:min(86vw,380px);aspect-ratio:1;border-radius:20px;overflow:hidden;background:#000;margin-top:12px}
+.escaner video{width:100%;height:100%;object-fit:cover}
+.escaner .marco{position:absolute;inset:14%;border:3px solid rgba(255,255,255,.85);border-radius:16px}
+.escaner-aviso{color:#F5DEDA;margin-top:10px;font-size:14px}
+.fichar-card{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.fichar-card .estado{font-size:14px;color:var(--tinta2)}
+.fichar-card .estado b{color:var(--tinta);font-size:16px;display:block}
+.form-salida{width:100%;margin-top:8px;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.resolver-salida{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.resolver-salida .err{width:100%;margin:0;font-size:13px}
+.hora-chica{background:#fff;border:1.5px solid var(--linea);border-radius:9px;padding:5px 8px;font-size:14px}
+.horario-semana{display:grid;gap:8px}
+.horario-semana .dia{display:grid;grid-template-columns:120px repeat(2,minmax(0,1fr));gap:8px;align-items:center}
+.horario-semana .dia .tramo{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--tinta2)}
+.horario-semana input[type=time]{background:#fff;border:1.5px solid var(--linea);border-radius:9px;padding:6px 8px;font-size:14px;min-width:0;width:100%}
+@media (max-width:600px){.horario-semana .dia{grid-template-columns:1fr 1fr}.horario-semana .dia .casilla{grid-column:1/-1}}

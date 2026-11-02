@@ -6,7 +6,9 @@ import { SelectorPeriodo } from '@/components/Periodo';
 import { Delta, Tile } from '@/components/Tile';
 import { Ventana } from '@/components/Ventana';
 import { db } from '@/lib/db';
+import { horasDelEquipo } from '@/lib/fichaje';
 import { aTexto, fecha, hoy, nombreCompleto, periodo, pesos } from '@/lib/formato';
+import { formatoHoras } from '@/lib/horas';
 import { type Params, param, url } from '@/lib/url';
 
 export const metadata = { title: 'Sueldos · BB-CONTROL' };
@@ -23,7 +25,7 @@ export default async function Sueldos({ searchParams }: { searchParams: Promise<
   const ant = periodo(p.anterior);
   const mes = p.valor;
   const sql = db();
-  const [filas, [antTot], [cargas], adelantos, sinSueldo] = await Promise.all([
+  const [filas, [antTot], [cargas], adelantos, sinSueldo, horas] = await Promise.all([
     sql<Fila[]>`select s.*, e.nombre, e.apellido, e.puesto from sueldos s join empleados e on e.id = s.empleado_id
                 where s.periodo = ${p.desde} order by e.nombre, e.apellido`,
     sql`select coalesce(sum(neto + extras), 0) costo from sueldos where periodo = ${ant.desde}`,
@@ -33,6 +35,8 @@ export default async function Sueldos({ searchParams }: { searchParams: Promise<
         where a.estado = 'aprobado' and a.descontar_en = ${p.desde} order by a.fecha_pago`,
     sql<{ id: number; nombre: string; apellido: string }[]>`select id, nombre, apellido from empleados e where activo
         and not exists (select 1 from sueldos s where s.empleado_id = e.id and s.periodo = ${p.desde}) order by nombre`,
+    // Horas fichadas del mes (para liquidar extras y presentismo).
+    p.tipo === 'mes' ? horasDelEquipo(mes).then((x) => new Map(x.filas.map((f) => [f.e.id, f]))) : Promise.resolve(null),
   ]);
 
   const t = filas.reduce(
@@ -114,6 +118,18 @@ export default async function Sueldos({ searchParams }: { searchParams: Promise<
                     <td>
                       <Link href={`/equipo/${f.empleado_id}?tab=sueldos`} className="principal" style={{ textDecoration: 'none' }}>{nombreCompleto(f)}</Link>
                       <div className="chico">{f.puesto}{f.notas ? ` · ${f.notas}` : ''}</div>
+                      {(() => {
+                        const hs = horas?.get(f.empleado_id);
+                        if (!hs || (!hs.r.dias && !hs.r.ausencias.length)) return null;
+                        const r = hs.r;
+                        return (
+                          <Link className="chico link" href={`/equipo/horas/${f.empleado_id}?p=${mes}`}>
+                            {formatoHoras(r.trabajadas)} h{r.extra ? ` · ${formatoHoras(r.extra)} extra` : ''}{r.feriado ? ` · ${formatoHoras(r.feriado)} feriado` : ''}
+                            {r.tardes ? ` · ${r.tardes} tarde` : ''}{r.ausencias.length ? ` · ${r.ausencias.length} ausencia${r.ausencias.length === 1 ? '' : 's'}` : ''}
+                            {hs.horario ? (r.presentismo ? ' · con presentismo' : ' · sin presentismo') : ''}{r.sinResolver ? ` · ${r.sinResolver} sin salida` : ''}
+                          </Link>
+                        );
+                      })()}
                     </td>
                     <td className="der num chico">{f.bruto ? pesos(f.bruto, 0) : '—'}</td>
                     <td className="der num">{pesos(f.neto, 0)}</td>

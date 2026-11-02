@@ -2,10 +2,12 @@ import Link from 'next/link';
 import { Titulo } from '@/components/Titulo';
 import { FormEmpleado, type Empleado } from '@/components/FormEmpleado';
 import { Pedidos } from '@/components/Pedidos';
+import { TabsEquipo } from '@/components/TabsEquipo';
 import { Tile } from '@/components/Tile';
 import { Ventana } from '@/components/Ventana';
 import { db } from '@/lib/db';
 import { cumpleanos, pedidosPendientes } from '@/lib/equipo';
+import { salidasPendientes } from '@/lib/fichaje';
 import { diaSemana, fecha, hoy, linkWhatsapp, MESES, nombreCompleto } from '@/lib/formato';
 import { type Params, param, url } from '@/lib/url';
 import { antiguedad, proximoCumple } from '@/lib/vacaciones';
@@ -19,12 +21,13 @@ export default async function Equipo({ searchParams }: { searchParams: Promise<P
   const bajas = param(sp, 'ver') === 'bajas';
   const h = hoy();
   const sql = db();
-  const [gente, pedidos, cumples, vacaciones] = await Promise.all([
+  const [gente, pedidos, cumples, vacaciones, salidas] = await Promise.all([
     sql<Empleado[]>`select * from empleados where activo = ${!bajas} order by nombre, apellido`,
     pedidosPendientes(),
     cumpleanos(60),
     sql`select v.*, e.nombre, e.apellido from vacaciones v join empleados e on e.id = v.empleado_id
         where v.estado = 'aprobada' and v.hasta >= ${h} order by v.desde limit 12`,
+    salidasPendientes(),
   ]);
   const deVacaciones = vacaciones.filter((v) => (v.desde as string) <= h);
   const cumplesMes = gente.filter((e) => e.nacimiento?.slice(5, 7) === h.slice(5, 7)).length;
@@ -42,13 +45,19 @@ export default async function Equipo({ searchParams }: { searchParams: Promise<P
     <>
       <div className="cabeza">
         <Titulo modulo="equipo" titulo="Equipo">
-          Datos de cada persona, cumpleaños, vacaciones, certificados, uniforme y adelantos. Cada uno pide desde su app en <b>/mi</b>.
+          Datos de cada persona, cumpleaños, vacaciones, certificados, uniforme y adelantos. Cada uno ficha y pide desde su app en <b>/mi</b>.
         </Titulo>
         <div className="acciones">
           <Link className="btn vino" href={url('/equipo', sp, { nuevo: 1 })} scroll={false}>+ Nueva persona</Link>
         </div>
       </div>
 
+      <TabsEquipo actual="/equipo" />
+      {salidas.length > 0 && (
+        <div className="aviso">
+          {salidas.length === 1 ? 'Hay una salida sin marcar' : `Hay ${salidas.length} salidas sin marcar`} para resolver. <Link href="/equipo/horas">Ver en Horas</Link>.
+        </div>
+      )}
       {!bajas && (
         <div className="tiles">
           <Tile titulo="Personas en el equipo" valor={gente.length} oscuro />

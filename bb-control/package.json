@@ -11,15 +11,18 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.0",
-    "next": "15.5.27",
+    "jsqr": "^1.4.0",
+    "next": "15.5.28",
     "postgres": "^3.4.9",
+    "qrcode": "^1.5.4",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "read-excel-file": "^9.3.10",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "typescript": "^5.6"

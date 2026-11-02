@@ -7,10 +7,12 @@ import { ArchivoInput } from '@/components/ArchivoInput';
 import { BotonAccion, FormAccion } from '@/components/FormAccion';
 import { FormEmpleado, type Empleado } from '@/components/FormEmpleado';
 import { GenerarClave } from '@/components/GenerarClave';
+import { guardarHorario, habilitarOtroTelefono } from '@/acciones/fichaje';
 import { Pedidos } from '@/components/Pedidos';
 import { Tile } from '@/components/Tile';
 import { Ventana } from '@/components/Ventana';
 import { db } from '@/lib/db';
+import { DIAS_SEMANA, limpiarHorario } from '@/lib/horas';
 import { pedidosPendientes } from '@/lib/equipo';
 import { fecha, hoy, linkWhatsapp, nombreCompleto, nombreMes, pesos } from '@/lib/formato';
 import { type Params, param, url } from '@/lib/url';
@@ -25,6 +27,7 @@ const PESTANAS = [
   { id: 'uniforme', nombre: 'Uniforme' },
   { id: 'adelantos', nombre: 'Adelantos' },
   { id: 'sueldos', nombre: 'Sueldos' },
+  { id: 'horario', nombre: 'Horario y fichaje' },
 ];
 
 const ESTADO_CHIP: Record<string, string> = {
@@ -44,6 +47,12 @@ export default async function Ficha({ params, searchParams }: { params: Promise<
   const anio = Number(h.slice(0, 4));
   const base = `/equipo/${id}`;
 
+  const [[fichajeE], lugares, [ultimo]] = await Promise.all([
+    sql<{ horario: unknown; lugar_id: number | null; telefono_ficha: string | null }[]>`select horario, lugar_id, telefono_ficha from empleados where id = ${id}`,
+    sql<{ id: number; nombre: string }[]>`select id, nombre from lugares where activo order by nombre`,
+    sql<{ entrada: Date }[]>`select entrada from fichajes where empleado_id = ${id} and not manual order by entrada desc limit 1`,
+  ]);
+  const horario = limpiarHorario(fichajeE?.horario);
   const [vacaciones, certificados, uniformes, adelantos, sueldos, pedidos] = await Promise.all([
     sql`select * from vacaciones where empleado_id = ${id} order by desde desc`,
     sql`select * from certificados where empleado_id = ${id} order by desde desc`,
@@ -286,6 +295,57 @@ export default async function Ficha({ params, searchParams }: { params: Promise<
               <label className="campo"><span>Se descuenta en</span><input type="month" name="descontar_en" defaultValue={h.slice(0, 7)} /></label>
               <label className="campo"><span>Motivo</span><input name="motivo" /></label>
             </FormAccion>
+          </div>
+        </div>
+      )}
+
+      {tab === 'horario' && (
+        <div className="grilla2">
+          <div className="caja">
+            <h2>Horario de trabajo</h2>
+            <p className="sub">Con el horario se calculan las llegadas tarde, las ausencias y las horas extra. Si hace horario cortado, cargá los dos tramos.</p>
+            <FormAccion accion={guardarHorario} boton="Guardar horario">
+              <input type="hidden" name="empleado_id" value={id} />
+              <div className="ancho horario-semana">
+                {[1, 2, 3, 4, 5, 6, 0].map((d) => {
+                  const t = horario?.[String(d)] ?? [];
+                  return (
+                    <div className="dia" key={d}>
+                      <label className="casilla"><input type="checkbox" name={`d${d}`} defaultChecked={t.length > 0} /> {DIAS_SEMANA[d]}</label>
+                      <span className="tramo">
+                        <input type="time" name={`d${d}_desde`} defaultValue={t[0]?.[0] ?? ''} aria-label={`${DIAS_SEMANA[d]}: desde`} />a
+                        <input type="time" name={`d${d}_hasta`} defaultValue={t[0]?.[1] ?? ''} aria-label={`${DIAS_SEMANA[d]}: hasta`} />
+                      </span>
+                      <span className="tramo">
+                        <input type="time" name={`d${d}_desde2`} defaultValue={t[1]?.[0] ?? ''} aria-label={`${DIAS_SEMANA[d]}: desde (2.º tramo)`} />a
+                        <input type="time" name={`d${d}_hasta2`} defaultValue={t[1]?.[1] ?? ''} aria-label={`${DIAS_SEMANA[d]}: hasta (2.º tramo)`} />
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <label className="campo ancho">
+                <span>Dónde ficha habitualmente</span>
+                <select name="lugar_id" defaultValue={fichajeE?.lugar_id ?? ''}>
+                  <option value="">En cualquier lugar</option>
+                  {lugares.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}
+                </select>
+              </label>
+            </FormAccion>
+          </div>
+          <div className="caja">
+            <h2>Fichaje</h2>
+            <p className="sub">Ficha desde su app ({'/mi'}), parado en el lugar y escaneando el QR de la pantalla.</p>
+            <div className="lista-mi">
+              <div>
+                <span>Teléfono para fichar<small>{fichajeE?.telefono_ficha ? 'El primero con el que fichó queda como el suyo.' : 'Queda el primero con el que fiche.'}</small></span>
+                {fichajeE?.telefono_ficha
+                  ? <BotonAccion accion={habilitarOtroTelefono} campos={{ empleado_id: id }} className="btn chico claro" confirmar="¿Habilitar otro teléfono? El próximo con el que fiche queda como el suyo.">Habilitar otro teléfono</BotonAccion>
+                  : <span className="chip">Sin teléfono todavía</span>}
+              </div>
+              <div><span>Último fichaje</span><b>{ultimo ? new Date(ultimo.entrada).toLocaleString('es-AR', { timeZone: 'America/Argentina/Mendoza', dateStyle: 'short', timeStyle: 'short' }) : '—'}</b></div>
+            </div>
+            <p style={{ marginTop: 12 }}><Link className="link" href={`/equipo/horas/${id}`}>Ver sus horas del mes →</Link></p>
           </div>
         </div>
       )}
