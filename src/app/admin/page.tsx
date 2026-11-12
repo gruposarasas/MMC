@@ -12,11 +12,14 @@ import { Emb } from '@/components/Emb';
 import { FotoBarista } from '@/components/Secciones';
 import { rankingStand, rankingBarista, mensajes } from '@/lib/votos';
 import { votosAbiertos } from '@/lib/config';
+import { resumenTrabajo, listasAdminTrabajo } from '@/lib/trabajo-servidor';
+import { nombrePuesto, nombreTipo } from '@/lib/trabajo';
+import { OcultarAdmin } from '@/components/trabajo/Vacantes';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Back office · Mundial de Café' };
 
-const TABS = [['resumen', 'Resumen'], ['marcas', 'Beneficios'], ['visitantes', 'Visitantes'], ['canjes', 'Canjes'], ['votos', 'Votaciones']] as const;
+const TABS = [['resumen', 'Resumen'], ['marcas', 'Beneficios'], ['visitantes', 'Visitantes'], ['canjes', 'Canjes'], ['votos', 'Votaciones'], ['trabajo', 'Banco de trabajo']] as const;
 type Tab = (typeof TABS)[number][0];
 
 export default async function Admin({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -150,6 +153,58 @@ async function Seccion({ tab }: { tab: Tab }) {
           </div>
         </div>
         <MensajesAdmin inicial={msj.map((m) => ({ ...m, cuando: diaHora(m.cuando) }))} />
+      </>
+    );
+  }
+
+  if (tab === 'trabajo') {
+    const [r, l] = await Promise.all([resumenTrabajo(), listasAdminTrabajo()]);
+    return (
+      <>
+        <h1>Banco de trabajo AEHGA</h1>
+        <p className="sub">
+          Página pública: <a className="link" href="/trabajo" target="_blank" rel="noopener noreferrer">/trabajo</a>. Postulantes y empresas se registran solos; desde acá podés ocultar a quien no corresponda.
+        </p>
+        <div className="stats">
+          <div className="tarj stat"><b>{r.postulantes}</b><span>postulantes ({r.conCv} con CV)</span></div>
+          <div className="tarj stat"><b>{r.empresas}</b><span>empresas registradas</span></div>
+          <div className="tarj stat"><b>{r.abiertas}</b><span>vacantes abiertas (de {r.vacantes})</span></div>
+          <div className="tarj stat"><b>{r.postulaciones}</b><span>postulaciones · {r.vistas} CV abiertos por empresas</span></div>
+        </div>
+        <h2 style={{ fontSize: 17, color: 'var(--arena)', marginTop: 22 }}>Empresas</h2>
+        <div className="tabla"><table>
+          <thead><tr><th>Empresa</th><th>Tipo</th><th>Contacto</th><th>Mail · WhatsApp</th><th>Alta</th><th /></tr></thead>
+          <tbody>{l.empresas.map((e) => (
+            <tr key={e.id} style={{ opacity: e.oculta ? 0.5 : 1 }}>
+              <td><b>{e.nombre}</b>{e.cuit ? <><br /><small>CUIT {e.cuit}</small></> : null}</td><td>{nombreTipo(e.tipo)} · {e.departamento}</td><td>{e.contacto}</td>
+              <td>{e.mail}<br /><small>{e.whatsapp}</small></td><td>{diaHora(e.created_at)}</td>
+              <td><OcultarAdmin tipo="empresa" id={e.id} oculto={e.oculta} /></td>
+            </tr>
+          ))}</tbody>
+        </table></div>
+        <h2 style={{ fontSize: 17, color: 'var(--arena)', marginTop: 22 }}>Vacantes</h2>
+        <div className="tabla"><table>
+          <thead><tr><th>Vacante</th><th>Empresa</th><th>Estado</th><th>Publicada</th><th /></tr></thead>
+          <tbody>{l.vacantes.map((v) => (
+            <tr key={v.id} style={{ opacity: v.oculta ? 0.5 : 1 }}>
+              <td><a className="link" href={`/trabajo/vacantes/${v.id}`} target="_blank" rel="noopener noreferrer">{v.titulo}</a><br /><small>{nombrePuesto(v.puesto)} · {v.departamento}</small></td>
+              <td>{v.empresa?.nombre}</td><td>{v.abierta ? 'Abierta' : 'Cerrada'}</td><td>{diaHora(v.created_at)}</td>
+              <td><OcultarAdmin tipo="vacante" id={v.id} oculto={v.oculta} /></td>
+            </tr>
+          ))}</tbody>
+        </table></div>
+        <h2 style={{ fontSize: 17, color: 'var(--arena)', marginTop: 22 }}>Postulantes</h2>
+        <div className="tabla"><table>
+          <thead><tr><th>Nombre</th><th>Puesto</th><th>Contacto</th><th>Alta</th><th>CV</th><th /></tr></thead>
+          <tbody>{l.postulantes.map((p) => (
+            <tr key={p.id} style={{ opacity: p.oculto ? 0.5 : 1 }}>
+              <td><b>{p.nombre}</b>{p.visible ? null : <><br /><small>pausado por el postulante</small></>}</td><td>{nombrePuesto(p.puesto)} · {p.departamento}</td>
+              <td>{p.mail}<br /><small>{p.whatsapp}</small></td><td>{diaHora(p.created_at)}</td>
+              <td>{p.cv_path ? <a className="link" href={`/api/trabajo/cv/${p.id}`} target="_blank" rel="noopener noreferrer">Ver</a> : '—'}</td>
+              <td><OcultarAdmin tipo="postulante" id={p.id} oculto={p.oculto} /></td>
+            </tr>
+          ))}</tbody>
+        </table></div>
       </>
     );
   }

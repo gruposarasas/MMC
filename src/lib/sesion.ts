@@ -7,9 +7,11 @@ export const COOKIE_MARCA = 'mc_m';
 export const COOKIE_ADMIN = 'mc_a';
 export const COOKIE_BARISTA = 'mc_b';
 export const COOKIE_JURADO = 'mc_j';
+export const COOKIE_POSTULANTE = 'mc_tp';
+export const COOKIE_EMPRESA = 'mc_te';
 
 const DIA = 24 * 60 * 60;
-export const DURACION = { [COOKIE_VISITANTE]: 365 * DIA, [COOKIE_MARCA]: 30 * DIA, [COOKIE_ADMIN]: DIA / 2, [COOKIE_BARISTA]: 30 * DIA, [COOKIE_JURADO]: 4 * DIA } as const;
+export const DURACION = { [COOKIE_VISITANTE]: 365 * DIA, [COOKIE_MARCA]: 30 * DIA, [COOKIE_ADMIN]: DIA / 2, [COOKIE_BARISTA]: 30 * DIA, [COOKIE_JURADO]: 4 * DIA, [COOKIE_POSTULANTE]: 180 * DIA, [COOKIE_EMPRESA]: 60 * DIA } as const;
 type Nombre = keyof typeof DURACION;
 
 function secreto() {

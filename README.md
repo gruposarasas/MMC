@@ -26,6 +26,7 @@ Los visitantes escanean un QR, se registran y reciben una billetera con cupones 
 | `/mapa` | Público | Mapa del evento con zoom (`public/img/mapa.jpg`, sale de `docs/mapa/mapa-stands.pdf`). |
 | `/baristas` | Barista | Ingreso con su clave: foto, historia, experiencia, hobby y por qué merece ganar; mensajes recibidos y la devolución del jurado. |
 | `/jurado` | Jurados | Jurado 1, 2 y 3 entran con su clave y cargan su planilla de cada barista en la ronda en curso. |
+| `/trabajo` | Público | **Banco de Trabajo AEHGA** (gastronomía y hotelería): portada, `/trabajo/vacantes`, `/trabajo/postulante` (carga y edición del CV, postulaciones) y `/trabajo/empresa` (registro, buscador de CVs por puesto, departamento, edad, experiencia, disponibilidad e idiomas; vacantes y postulantes). Administración lo ve en `/admin?tab=trabajo`. |
 | `/api/salud` | — | Healthcheck. |
 
 ## Variables de entorno
@@ -62,6 +63,7 @@ Las migraciones están en `supabase/migrations/` y **ya están aplicadas** en el
 - `jurados` (3 filas, con su clave) y `evaluaciones` (planilla de cada jurado por barista y ronda). Los ítems de la planilla están en `src/lib/planilla.ts`. Cuando los 3 completan la planilla de un barista, el puntaje de la ronda se calcula solo: promedio de los 3 menos `puntajes.descuento` (jueces fiscales), nunca menos de 1.
 - `sortear()`: elige al azar entre todos los visitantes presentes (aunque hayan salido antes) y guarda el resultado en `ganadores`, como historial. El estado del sorteo (abierto o cerrado) está en la tabla `sorteo`, y la presencia en `visitantes.presente_at`.
 - **Seguridad:** RLS activado en todas las tablas y sin políticas; permisos revocados a `anon` y `authenticated`, incluidas las funciones. Todo pasa por el servidor con la service role. El código de caja y la clave nunca llegan a las pantallas del visitante.
+- Banco de trabajo (`20261112000001_banco_de_trabajo.sql`): `tb_postulantes`, `tb_empresas`, `tb_vacantes`, `tb_postulaciones` y `tb_vistas_cv` (qué empresa abrió qué CV). Postulantes y empresas entran con mail y clave (scrypt; no hay recuperación de clave por ahora). Los CV van al bucket **privado** `cvs` (PDF, JPG o PNG, hasta 5 MB) y se abren con links firmados de 2 minutos desde `/api/trabajo/cv/[id]`. Listas fijas (departamentos, puestos, disponibilidad, idiomas) en `src/lib/trabajo.ts`.
 - Bucket público `logos` (hasta 1 MB, PNG/JPG/WebP). Solo sube el servidor.
 
 ### Regenerar la semilla
