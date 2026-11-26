@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { pesos, fechaLarga, ESTADOS, type EstadoTarjeta } from '@/lib/vistapueblo';
@@ -97,38 +97,79 @@ export function AnularConsumo({ id }: { id: string }) {
 
 type L = { id: string; nombre: string; porcentaje: number; pin: string; activo: boolean };
 
+const aNumero = (v: string) => Number(v.replace(',', '.'));
+const valido = (v: string) => v.trim() !== '' && Number.isFinite(aNumero(v)) && aNumero(v) >= 0 && aNumero(v) <= 100;
+
+/** Locales: se cambian los % de todos y se guardan juntos con un solo botón. */
 export function EditorLocales({ locales }: { locales: L[] }) {
+  const router = useRouter();
+  const [pcts, setPcts] = useState<Record<string, string>>(() => Object.fromEntries(locales.map((l) => [l.id, String(l.porcentaje)])));
+  const [guardando, setGuardando] = useState(false);
+  const cambiados = locales.filter((l) => pcts[l.id] !== undefined && aNumero(pcts[l.id]) !== l.porcentaje);
+  const hayError = cambiados.some((l) => !valido(pcts[l.id]));
+
+  useEffect(() => {
+    if (!cambiados.length) return;
+    const avisar = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener('beforeunload', avisar);
+    return () => window.removeEventListener('beforeunload', avisar);
+  }, [cambiados.length]);
+
+  const guardar = async () => {
+    if (!cambiados.length) return;
+    if (hayError) return toast('El porcentaje va de 0 a 100.');
+    setGuardando(true);
+    const res = await Promise.all(cambiados.map((l) => enviar('/api/vp/admin/local', { id: l.id, porcentaje: pcts[l.id] })));
+    setGuardando(false);
+    const ok = res.filter(Boolean).length;
+    if (ok) toast(ok === 1 ? 'Porcentaje guardado.' : `${ok} porcentajes guardados.`);
+    router.refresh();
+  };
+
   return (
-    <div className="vp-tabla">
-      <table>
-        <thead><tr><th>Local</th><th>% que absorbe el local</th><th>Ejemplo con {pesos(100000)}</th><th>PIN de la caja</th><th>Activo</th></tr></thead>
-        <tbody>{locales.map((l) => <FilaLocal key={l.id} l={l} />)}</tbody>
-      </table>
-    </div>
+    <form onSubmit={(e) => { e.preventDefault(); guardar(); }}>
+      <div className="vp-tabla vp-locales">
+        <table>
+          <thead><tr><th>Local</th><th>% que absorbe el local</th><th>Ejemplo con {pesos(100000)}</th><th>PIN de la caja</th><th>Activo</th></tr></thead>
+          <tbody>{locales.map((l) => (
+            <FilaLocal key={l.id} l={l} valor={pcts[l.id] ?? ''} cambiado={cambiados.includes(l)} onCambio={(v) => setPcts((x) => ({ ...x, [l.id]: v }))} />
+          ))}</tbody>
+        </table>
+      </div>
+      <div className={`vp-guardar${cambiados.length ? ' on' : ''}`}>
+        <span>{cambiados.length
+          ? (hayError ? <span className="vp-error">Revisá los porcentajes: van de 0 a 100.</span> : <>Tenés <b>{cambiados.length}</b> {cambiados.length === 1 ? 'cambio' : 'cambios'} sin guardar.</>)
+          : 'Cambiá los porcentajes y tocá Guardar.'}</span>
+        <span className="vp-inline">
+          {cambiados.length > 0 && <button type="button" className="vp-link" onClick={() => setPcts(Object.fromEntries(locales.map((l) => [l.id, String(l.porcentaje)])))}>Deshacer</button>}
+          <button type="submit" className="vp-btn" disabled={!cambiados.length || guardando || hayError}>{guardando ? 'Guardando…' : 'Guardar cambios'}</button>
+        </span>
+      </div>
+    </form>
   );
 }
 
-function FilaLocal({ l }: { l: L }) {
+function FilaLocal({ l, valor, cambiado, onCambio }: { l: L; valor: string; cambiado: boolean; onCambio: (v: string) => void }) {
   const router = useRouter();
-  const [p, setP] = useState(String(l.porcentaje));
-  const n = Math.min(100, Math.max(0, Number(p.replace(',', '.')) || 0));
-  const guardar = async (cuerpo: object, msj: string) => { const r = await enviar('/api/vp/admin/local', { id: l.id, ...cuerpo }); if (r) { toast(msj); router.refresh(); } return r; };
+  const n = valido(valor) ? aNumero(valor) : l.porcentaje;
+  const local = Math.round(100000 * n / 100);
+  const accion = async (cuerpo: object, msj: string) => { const r = await enviar('/api/vp/admin/local', { id: l.id, ...cuerpo }); if (r) { toast(msj); router.refresh(); } };
   return (
-    <tr style={{ opacity: l.activo ? 1 : 0.5 }}>
-      <td><b>{l.nombre}</b></td>
-      <td>
+    <tr className={cambiado ? 'sel' : ''} style={{ opacity: l.activo ? 1 : 0.5 }}>
+      <td data-t="Local"><b>{l.nombre}</b></td>
+      <td data-t="% que absorbe">
         <span className="vp-inline">
-          <input className="vp-pct" inputMode="decimal" value={p} onChange={(e) => setP(e.target.value)} aria-label={`% que absorbe ${l.nombre}`} /> %
-          {Number(p.replace(',', '.')) !== l.porcentaje && <button type="button" className="vp-btn chico" onClick={() => guardar({ porcentaje: p }, `${l.nombre}: ahora absorbe ${n}%.`)}>Guardar</button>}
+          <input className="vp-pct" inputMode="decimal" value={valor} onChange={(e) => onCambio(e.target.value.replace(/[^0-9.,]/g, ''))} aria-label={`% que absorbe ${l.nombre}`} /> %
+          {cambiado && <small className="vp-pend">antes {l.porcentaje}%</small>}
         </span>
       </td>
-      <td><small>Local {pesos(Math.round(100000 * n / 100))} · Vistapueblo {pesos(100000 - Math.round(100000 * n / 100))}</small></td>
-      <td>
+      <td data-t={`Con ${pesos(100000)}`}><small>Local {pesos(local)} · Vistapueblo {pesos(100000 - local)}</small></td>
+      <td data-t="PIN de la caja">
         <span className="vp-inline"><code className="vp-pin">{l.pin}</code>
-          <button type="button" className="vp-link" onClick={async () => { if (confirm(`¿Darle un PIN nuevo a ${l.nombre}? Las cajas abiertas de ese local van a tener que volver a entrar.`)) await guardar({ nuevoPin: true }, 'PIN nuevo generado.'); }}>Nuevo PIN</button>
+          <button type="button" className="vp-link" onClick={() => { if (confirm(`¿Darle un PIN nuevo a ${l.nombre}? Las cajas abiertas de ese local van a tener que volver a entrar.`)) accion({ nuevoPin: true }, 'PIN nuevo generado.'); }}>Nuevo PIN</button>
         </span>
       </td>
-      <td><input type="checkbox" checked={l.activo} onChange={(e) => guardar({ activo: e.target.checked }, e.target.checked ? 'Local activado.' : 'Local desactivado.')} aria-label={`${l.nombre} activo`} /></td>
+      <td data-t="Activo"><input type="checkbox" checked={l.activo} onChange={(e) => accion({ activo: e.target.checked }, e.target.checked ? 'Local activado.' : 'Local desactivado.')} aria-label={`${l.nombre} activo`} /></td>
     </tr>
   );
 }
