@@ -1,9 +1,9 @@
 import { randomInt } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
-import { esAdminVP } from '@/lib/vistapueblo-servidor';
+import { esAdminVP, nuevaClaveLocal } from '@/lib/vistapueblo-servidor';
 
-/** Cambia el % que absorbe un local, lo activa o desactiva, o le da un PIN nuevo (cierra sus cajas abiertas). */
+/** Cambia el % que absorbe un local, lo activa o desactiva, le da un PIN nuevo (cierra sus cajas abiertas) o una clave nueva para su panel. */
 export async function POST(req: Request) {
   if (!(await esAdminVP())) return NextResponse.json({ error: 'Tu sesión venció. Volvé a entrar.' }, { status: 401 });
   const j = await req.json().catch(() => ({}));
@@ -24,8 +24,14 @@ export async function POST(req: Request) {
     cambios.pin = pin;
     cambios.pin_version = (data?.pin_version ?? 1) + 1;
   }
+  if (j.nuevaClave) {
+    const { data } = await db().from('vp_locales').select('clave_version').eq('id', j.id).single();
+    cambios.clave = nuevaClaveLocal();
+    cambios.clave_version = (data?.clave_version ?? 1) + 1;   // cierra los paneles abiertos con la clave anterior
+  }
   if (!Object.keys(cambios).length) return NextResponse.json({ error: 'Nada para cambiar.' }, { status: 400 });
-  const { error } = await db().from('vp_locales').update(cambios).eq('id', j.id);
+  let { error } = await db().from('vp_locales').update(cambios).eq('id', j.id);
+  if (error?.code === '23505' && cambios.clave) ({ error } = await db().from('vp_locales').update({ ...cambios, clave: nuevaClaveLocal() }).eq('id', j.id));
   if (error) return NextResponse.json({ error: 'No se pudo guardar.' }, { status: 500 });
   return NextResponse.json({ ok: true, pin: cambios.pin });
 }

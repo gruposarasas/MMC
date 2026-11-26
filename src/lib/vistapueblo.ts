@@ -90,3 +90,50 @@ export function validarFila(f: Partial<Record<'nombre' | 'mail' | 'whatsapp' | '
   if (!monto || !(MONTOS as readonly number[]).includes(monto)) return { error: `El monto tiene que ser ${MONTOS.map(pesos).join(', ')}.` };
   return { fila: { nombre, mail, whatsapp, monto } };
 }
+
+// ------------------------------------------------------------ modo de uso e impresas
+export type Modo = 'saldo' | 'unico';
+export const MODOS: Record<Modo, { titulo: string; ayuda: string; enTarjeta: string }> = {
+  saldo: { titulo: 'Billetera', ayuda: 'Usa el saldo en una o varias visitas.', enTarjeta: 'Podés usarla en una o varias visitas hasta agotar el saldo.' },
+  unico: { titulo: 'Consumo total', ayuda: 'Se usa una sola vez; si se consume menos, la diferencia se pierde.', enTarjeta: 'Se usa en un solo consumo: aprovechala completa.' },
+};
+export const esModo = (m: unknown): m is Modo => m === 'saldo' || m === 'unico';
+
+/** El nombre de la tarjeta, o "Al portador" si es un voucher impreso sin nombre. */
+export const nombreDe = (n: string | null | undefined) => (n && n.trim()) || 'Al portador';
+
+// ------------------------------------------------------------ rangos de fechas para métricas
+export const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Primer día del mes 'aaaa-mm' y último. */
+export function limitesMes(mes: string) {
+  const [a, m] = mes.split('-').map(Number);
+  const ultimo = new Date(Date.UTC(a, m, 0)).getUTCDate();
+  return { desde: `${mes}-01`, hasta: `${mes}-${String(ultimo).padStart(2, '0')}` };
+}
+
+export function mesAnterior(mes: string) {
+  const [a, m] = mes.split('-').map(Number);
+  return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, '0')}`;
+}
+
+export const PRESETS = [
+  ['hoy', 'Hoy'], ['7d', 'Últimos 7 días'], ['30d', 'Últimos 30 días'], ['mes', 'Este mes'], ['mes_pasado', 'Mes pasado'], ['90d', 'Últimos 90 días'], ['todo', 'Desde el inicio'],
+] as const;
+export type Preset = (typeof PRESETS)[number][0];
+
+export function rangoPreset(p: string, inicio = '2026-11-01'): { desde: string; hasta: string } {
+  const hoy = hoyMendoza();
+  if (p === 'hoy') return { desde: hoy, hasta: hoy };
+  if (p === '7d') return { desde: sumarDias(hoy, -6), hasta: hoy };
+  if (p === '30d') return { desde: sumarDias(hoy, -29), hasta: hoy };
+  if (p === '90d') return { desde: sumarDias(hoy, -89), hasta: hoy };
+  if (p === 'mes_pasado') return limitesMes(mesAnterior(mesActual()));
+  if (p === 'todo') return { desde: inicio, hasta: hoy };
+  return { desde: `${mesActual()}-01`, hasta: hoy };
+}
+
+/** Cantidad de días entre dos fechas 'aaaa-mm-dd', inclusive. */
+export const diasEntre = (desde: string, hasta: string) => Math.round((Date.parse(`${hasta}T12:00:00Z`) - Date.parse(`${desde}T12:00:00Z`)) / 86400000) + 1;
+
+export const porcentaje = (parte: number, total: number) => (total ? Math.round((parte / total) * 1000) / 10 : 0);

@@ -11,9 +11,10 @@ export const COOKIE_POSTULANTE = 'mc_tp';
 export const COOKIE_EMPRESA = 'mc_te';
 export const COOKIE_VP_ADMIN = 'mc_vpa';
 export const COOKIE_VP_CAJA = 'mc_vpc';
+export const COOKIE_VP_LOCAL = 'mc_vpl';
 
 const DIA = 24 * 60 * 60;
-export const DURACION = { [COOKIE_VISITANTE]: 365 * DIA, [COOKIE_MARCA]: 30 * DIA, [COOKIE_ADMIN]: DIA / 2, [COOKIE_BARISTA]: 30 * DIA, [COOKIE_JURADO]: 4 * DIA, [COOKIE_POSTULANTE]: 180 * DIA, [COOKIE_EMPRESA]: 60 * DIA, [COOKIE_VP_ADMIN]: DIA / 2, [COOKIE_VP_CAJA]: 365 * DIA } as const;
+export const DURACION = { [COOKIE_VISITANTE]: 365 * DIA, [COOKIE_MARCA]: 30 * DIA, [COOKIE_ADMIN]: DIA / 2, [COOKIE_BARISTA]: 30 * DIA, [COOKIE_JURADO]: 4 * DIA, [COOKIE_POSTULANTE]: 180 * DIA, [COOKIE_EMPRESA]: 60 * DIA, [COOKIE_VP_ADMIN]: DIA / 2, [COOKIE_VP_CAJA]: 365 * DIA, [COOKIE_VP_LOCAL]: 30 * DIA } as const;
 type Nombre = keyof typeof DURACION;
 
 function secreto() {
@@ -23,6 +24,9 @@ function secreto() {
 }
 
 const firma = (datos: string) => createHmac('sha256', secreto()).update(datos).digest('base64url');
+
+/** HMAC con SESSION_SECRET, para firmas que no son cookies (QR que cambian, permisos de cobro). */
+export const hmac = (datos: string, formato: 'base64url' | 'hex' = 'base64url') => createHmac('sha256', secreto()).update(datos).digest(formato);
 
 export function firmar(nombre: Nombre, valor: string) {
   const exp = Math.floor(Date.now() / 1000) + DURACION[nombre];

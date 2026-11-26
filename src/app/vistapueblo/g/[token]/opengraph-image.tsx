@@ -28,7 +28,7 @@ export default async function Imagen({ params }: { params: Promise<{ token: stri
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ color: beige, fontSize: 112, fontWeight: 700, lineHeight: 1 }}>{t ? pesos(t.monto) : 'Gift card'}</div>
-            {t && <div style={{ color: '#efeadb', fontSize: 38, marginTop: 14 }}>{`Para ${t.nombre}`}</div>}
+            {t && t.nombre && <div style={{ color: "#efeadb", fontSize: 38, marginTop: 14 }}>{`Para ${t.nombre}`}</div>}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(239,234,219,.75)', fontSize: 26, borderTop: '2px solid #8B7851', paddingTop: 18 }}>
             <span>{t ? `Válida hasta ${fechaLarga(t.vence)}` : 'Restaurantes de Vistapueblo'}</span>

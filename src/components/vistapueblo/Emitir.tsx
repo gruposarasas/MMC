@@ -1,17 +1,18 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MONTOS, pesos, fechaLarga, sumarDias, hoyMendoza, dondeVale, textoWhatsapp, numeroWhatsapp, validarFila } from '@/lib/vistapueblo';
+import { MONTOS, MODOS, pesos, fechaLarga, sumarDias, hoyMendoza, dondeVale, textoWhatsapp, numeroWhatsapp, validarFila, type Modo } from '@/lib/vistapueblo';
 import { leerXlsx, leerCsv } from '@/lib/planilla-excel';
 import { toast } from '../Toast';
 import { enviar } from './Comun';
 import { TarjetaVP } from './Tarjeta';
+import { Voucher } from './Voucher';
 
 type Local = { id: string; nombre: string };
 type Creada = { id: string; numero: number; nombre: string; mail: string; whatsapp: string; monto: number; vence: string; codigo: string; link: string };
-type Opc = { monto: number; vence: string; todos: boolean; locales: string[]; mensaje: string; lote: string };
+type Opc = { monto: number; vence: string; todos: boolean; locales: string[]; mensaje: string; lote: string; modo: Modo };
 
-const opcionesIniciales = (): Opc => ({ monto: 50000, vence: sumarDias(hoyMendoza(), 90), todos: true, locales: [], mensaje: '', lote: '' });
+const opcionesIniciales = (): Opc => ({ monto: 50000, vence: sumarDias(hoyMendoza(), 90), todos: true, locales: [], mensaje: '', lote: '', modo: 'saldo' });
 
 // ------------------------------------------------------------ envío por WhatsApp y mail
 export function linkWhatsapp(t: { nombre: string; monto: number; vence: string; whatsapp: string }, donde: string, link: string) {
@@ -74,6 +75,16 @@ function Opciones({ o, set, locales, conMonto, textoMonto }: { o: Opc; set: (x: 
         </div>
       </div>
       <div className="vp-campo">
+        <span className="vp-label">Cómo se usa</span>
+        <div className="vp-modos" role="radiogroup" aria-label="Cómo se usa">
+          {(Object.keys(MODOS) as Modo[]).map((m) => (
+            <button key={m} type="button" role="radio" aria-checked={o.modo === m} className={o.modo === m ? 'on' : ''} onClick={() => set({ modo: m })}>
+              <b>{MODOS[m].titulo}</b><span>{MODOS[m].ayuda}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="vp-campo">
         <label htmlFor="vpMsj">Mensaje en la tarjeta (opcional)</label>
         <input id="vpMsj" maxLength={300} placeholder="Ej.: ¡Gracias por ser parte de Vistapueblo!" value={o.mensaje} onChange={(e) => set({ mensaje: e.target.value })} />
       </div>
@@ -132,7 +143,7 @@ export function NuevaTarjeta({ locales }: { locales: Local[] }) {
         const v = validarFila({ ...c, monto: o.monto });
         if (v.error) return toast(v.error);
         setEnviando(true);
-        const r = await enviar('/api/vp/admin/tarjetas', { filas: [v.fila], vence: o.vence, todos: o.todos, locales: o.locales, mensaje: o.mensaje, lote: 'Individual' });
+        const r = await enviar('/api/vp/admin/tarjetas', { filas: [v.fila], vence: o.vence, todos: o.todos, locales: o.locales, mensaje: o.mensaje, modo: o.modo, lote: 'Individual' });
         setEnviando(false);
         if (r) { setCreadas(r.tarjetas as Creada[]); router.refresh(); }
       }}>
@@ -251,12 +262,58 @@ export function ImportarExcel({ locales }: { locales: Local[] }) {
             <input id="vpLote" maxLength={80} value={o.lote} onChange={(e) => set({ lote: e.target.value })} placeholder="Ej.: Clientes VIP diciembre" /></div>
           <button className="vp-btn" type="button" disabled={enviando || !ok.length} onClick={async () => {
             setEnviando(true);
-            const r = await enviar('/api/vp/admin/tarjetas', { filas: ok.map((f) => ({ nombre: f.nombre, mail: f.mail, whatsapp: f.whatsapp, monto: f.monto })), monto: o.monto, vence: o.vence, todos: o.todos, locales: o.locales, mensaje: o.mensaje, lote: o.lote });
+            const r = await enviar('/api/vp/admin/tarjetas', { filas: ok.map((f) => ({ nombre: f.nombre, mail: f.mail, whatsapp: f.whatsapp, monto: f.monto })), monto: o.monto, vence: o.vence, todos: o.todos, locales: o.locales, mensaje: o.mensaje, modo: o.modo, lote: o.lote });
             setEnviando(false);
             if (r) { setCreadas(r.tarjetas as Creada[]); router.refresh(); }
           }}>{enviando ? 'Creando…' : `Crear ${ok.length} gift cards`}</button>
         </>
       )}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------ imprimir vouchers
+/** Vouchers en papel: se crean y se abre la impresión. El nombre es opcional (si no va, queda una línea para escribirlo a mano). */
+export function ImprimirVouchers({ locales }: { locales: Local[] }) {
+  const router = useRouter();
+  const [o, setO] = useState<Opc>(opcionesIniciales);
+  const [nombre, setNombre] = useState('');
+  const [cantidad, setCantidad] = useState(1);
+  const [formato, setFormato] = useState<'a4' | 'ticket'>('a4');
+  const [enviando, setEnviando] = useState(false);
+  const set = (x: Partial<Opc>) => setO((v) => ({ ...v, ...x }));
+  const donde = dondeVale(o.todos, o.locales, locales);
+  return (
+    <div className="vp-dos-col">
+      <form className="vp-panel" onSubmit={async (e) => {
+        e.preventDefault();
+        setEnviando(true);
+        const r = await enviar('/api/vp/admin/tarjetas', { impresa: true, nombre, cantidad, monto: o.monto, vence: o.vence, todos: o.todos, locales: o.locales, mensaje: o.mensaje, modo: o.modo, lote: `Impresas ${fechaLarga(hoyMendoza()).slice(0, 5)}` });
+        setEnviando(false);
+        if (r) router.push(`/vistapueblo/admin/imprimir?formato=${formato}&ids=${(r.tarjetas as Creada[]).map((t) => t.id).join(',')}`);
+      }}>
+        <h2>Imprimir vouchers</h2>
+        <p className="vp-ayuda">Cada voucher sale con su código y su QR únicos. La caja lo escanea igual que una gift card digital.</p>
+        <div className="vp-fila2">
+          <div className="vp-campo"><label htmlFor="vpINom">Nombre (opcional)</label>
+            <input id="vpINom" autoComplete="off" value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={120} placeholder="Queda una línea para escribirlo" /></div>
+          <div className="vp-campo"><label htmlFor="vpICant">Cantidad</label>
+            <input id="vpICant" type="number" min={1} max={60} value={cantidad} onChange={(e) => setCantidad(Math.max(1, Math.min(60, Number(e.target.value) || 1)))} /></div>
+        </div>
+        <Opciones o={o} set={set} locales={locales} conMonto />
+        <div className="vp-campo">
+          <span className="vp-label">Impresora</span>
+          <div className="vp-chips">
+            <button type="button" className={formato === 'a4' ? 'on' : ''} aria-pressed={formato === 'a4'} onClick={() => setFormato('a4')}>Hoja A4 (3 por hoja)</button>
+            <button type="button" className={formato === 'ticket' ? 'on' : ''} aria-pressed={formato === 'ticket'} onClick={() => setFormato('ticket')}>Ticketera 80 mm</button>
+          </div>
+        </div>
+        <button className="vp-btn" type="submit" disabled={enviando}>{enviando ? 'Preparando…' : `🖨 Imprimir ${cantidad === 1 ? 'voucher' : `${cantidad} vouchers`} de ${pesos(o.monto)}`}</button>
+      </form>
+      <div className="vp-previa">
+        <span className="vp-label">Así sale impreso</span>
+        <div className={`vp-voucher-previa ${formato}`}><Voucher v={{ nombre: nombre.trim(), monto: o.monto, vence: o.vence, donde, modo: o.modo, mensaje: o.mensaje }} formato={formato} muestra /></div>
+      </div>
     </div>
   );
 }

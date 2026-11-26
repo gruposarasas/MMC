@@ -59,3 +59,32 @@ export function EntrarAdmin() {
     </div>
   );
 }
+
+/** Ingreso al panel de un local con su clave. */
+export function EntrarLocal() {
+  const router = useRouter();
+  const [clave, setClave] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  return (
+    <div className="vp-entrar">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/vistapueblo/logo-beige.png" alt="Vistapueblo" />
+      <h1>Panel del local</h1>
+      <p>Gift cards de Vistapueblo: consumos, métricas y cuenta corriente de tu restaurante.</p>
+      <form onSubmit={async (e) => { e.preventDefault(); setEnviando(true); const r = await enviar('/api/vp/local/entrar', { clave }); setEnviando(false); if (r) router.refresh(); }}>
+        <label htmlFor="vpClave">Clave del local</label>
+        <input id="vpClave" autoCapitalize="characters" autoComplete="off" spellCheck={false} value={clave} onChange={(e) => setClave(e.target.value.toUpperCase())} maxLength={12} />
+        <button className="vp-btn" type="submit" disabled={enviando || clave.replace(/[^0-9A-Z]/g, '').length < 8}>{enviando ? 'Entrando…' : 'Entrar'}</button>
+      </form>
+    </div>
+  );
+}
+
+/** Abre el diálogo de impresión apenas carga la página (una sola vez). */
+export function AutoImprimir() {
+  useEffect(() => {
+    const t = setTimeout(() => window.print(), 600);
+    return () => clearTimeout(t);
+  }, []);
+  return <button type="button" className="vp-btn" onClick={() => window.print()}>🖨 Imprimir</button>;
+}

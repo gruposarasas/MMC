@@ -2,14 +2,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { pesos, fechaLarga, ESTADOS, type EstadoTarjeta } from '@/lib/vistapueblo';
+import { pesos, fechaLarga, ESTADOS, MODOS, type EstadoTarjeta, type Modo } from '@/lib/vistapueblo';
 import { toast } from '../Toast';
 import { enviar } from './Comun';
 import { BotonesEnvio } from './Emitir';
 
 export type FilaTarjeta = {
   id: string; numero: number; nombre: string; mail: string; whatsapp: string; monto: number; saldo: number; vence: string;
-  estado: EstadoTarjeta; donde: string; link: string; lote: string; enviada: boolean; vista: boolean; creada: string;
+  estado: EstadoTarjeta; donde: string; link: string; lote: string; enviada: boolean; vista: boolean; creada: string; impresa: boolean; modo: Modo;
 };
 
 export function ListaTarjetas({ filas }: { filas: FilaTarjeta[] }) {
@@ -48,15 +48,16 @@ export function ListaTarjetas({ filas }: { filas: FilaTarjeta[] }) {
             {vistas.slice(0, 500).map((f) => (
               <tr key={f.id}>
                 <td>{f.numero}</td>
-                <td><Link className="vp-link" href={`/vistapueblo/admin/tarjeta/${f.id}`}>{f.nombre}</Link><small>{f.whatsapp || f.mail}</small></td>
+                <td><Link className="vp-link" href={`/vistapueblo/admin/tarjeta/${f.id}`}>{f.nombre}</Link><small>{f.impresa ? 'Voucher impreso' : f.whatsapp || f.mail}{f.modo === 'unico' ? ` · ${MODOS.unico.titulo}` : ''}</small></td>
                 <td className="n">{pesos(f.monto)}</td>
                 <td className="n">{pesos(f.saldo)}</td>
                 <td>{fechaLarga(f.vence)}</td>
                 <td><span className={`vp-estado ${f.estado}`}>{ESTADOS[f.estado]}</span></td>
-                <td>{f.enviada ? 'Enviada' : <span className="vp-pend">Sin enviar</span>}{f.vista ? <small>Abierta por el cliente</small> : null}</td>
-                <td>{f.estado === 'sin_usar' || f.estado === 'parcial'
-                  ? <BotonesEnvio t={f} donde={f.donde} link={f.link} />
-                  : <Link className="vp-link" href={`/vistapueblo/admin/tarjeta/${f.id}`}>Ver detalle</Link>}</td>
+                <td>{f.impresa ? 'Impresa' : f.enviada ? 'Enviada' : <span className="vp-pend">Sin enviar</span>}{f.vista ? <small>Abierta por el cliente</small> : null}</td>
+                <td>{f.estado !== 'sin_usar' && f.estado !== 'parcial'
+                  ? <Link className="vp-link" href={`/vistapueblo/admin/tarjeta/${f.id}`}>Ver detalle</Link>
+                  : f.impresa ? <span className="vp-envio"><Link className="vp-btn chico linea" href={`/vistapueblo/admin/imprimir?ids=${f.id}`}>Imprimir de nuevo</Link><Link className="vp-link" href={`/vistapueblo/admin/tarjeta/${f.id}`}>Ver detalle</Link></span>
+                  : <BotonesEnvio t={f} donde={f.donde} link={f.link} />}</td>
               </tr>
             ))}
           </tbody>
@@ -95,13 +96,13 @@ export function AnularConsumo({ id }: { id: string }) {
   );
 }
 
-type L = { id: string; nombre: string; porcentaje: number; pin: string; activo: boolean };
+type L = { id: string; nombre: string; porcentaje: number; pin: string; activo: boolean; clave: string };
 
 const aNumero = (v: string) => Number(v.replace(',', '.'));
 const valido = (v: string) => v.trim() !== '' && Number.isFinite(aNumero(v)) && aNumero(v) >= 0 && aNumero(v) <= 100;
 
 /** Locales: se cambian los % de todos y se guardan juntos con un solo botón. */
-export function EditorLocales({ locales }: { locales: L[] }) {
+export function EditorLocales({ locales, url }: { locales: L[]; url: string }) {
   const router = useRouter();
   const [pcts, setPcts] = useState<Record<string, string>>(() => Object.fromEntries(locales.map((l) => [l.id, String(l.porcentaje)])));
   const [guardando, setGuardando] = useState(false);
@@ -130,9 +131,9 @@ export function EditorLocales({ locales }: { locales: L[] }) {
     <form onSubmit={(e) => { e.preventDefault(); guardar(); }}>
       <div className="vp-tabla vp-locales">
         <table>
-          <thead><tr><th>Local</th><th>% que absorbe el local</th><th>Ejemplo con {pesos(100000)}</th><th>PIN de la caja</th><th>Activo</th></tr></thead>
+          <thead><tr><th>Local</th><th>% que absorbe el local</th><th>Ejemplo con {pesos(100000)}</th><th>PIN de la caja</th><th>Panel del local</th><th>Activo</th></tr></thead>
           <tbody>{locales.map((l) => (
-            <FilaLocal key={l.id} l={l} valor={pcts[l.id] ?? ''} cambiado={cambiados.includes(l)} onCambio={(v) => setPcts((x) => ({ ...x, [l.id]: v }))} />
+            <FilaLocal key={l.id} l={l} url={url} valor={pcts[l.id] ?? ''} cambiado={cambiados.includes(l)} onCambio={(v) => setPcts((x) => ({ ...x, [l.id]: v }))} />
           ))}</tbody>
         </table>
       </div>
@@ -149,7 +150,7 @@ export function EditorLocales({ locales }: { locales: L[] }) {
   );
 }
 
-function FilaLocal({ l, valor, cambiado, onCambio }: { l: L; valor: string; cambiado: boolean; onCambio: (v: string) => void }) {
+function FilaLocal({ l, url, valor, cambiado, onCambio }: { l: L; url: string; valor: string; cambiado: boolean; onCambio: (v: string) => void }) {
   const router = useRouter();
   const n = valido(valor) ? aNumero(valor) : l.porcentaje;
   const local = Math.round(100000 * n / 100);
@@ -167,6 +168,15 @@ function FilaLocal({ l, valor, cambiado, onCambio }: { l: L; valor: string; camb
       <td data-t="PIN de la caja">
         <span className="vp-inline"><code className="vp-pin">{l.pin}</code>
           <button type="button" className="vp-link" onClick={() => { if (confirm(`¿Darle un PIN nuevo a ${l.nombre}? Las cajas abiertas de ese local van a tener que volver a entrar.`)) accion({ nuevoPin: true }, 'PIN nuevo generado.'); }}>Nuevo PIN</button>
+        </span>
+      </td>
+      <td data-t="Panel del local">
+        <span className="vp-inline"><code className="vp-pin">{l.clave}</code>
+          <button type="button" className="vp-link" onClick={async () => {
+            await navigator.clipboard.writeText(`Panel de gift cards de ${l.nombre} (Vistapueblo)\n${url}/vistapueblo/local\nClave: ${l.clave}`).catch(() => null);
+            toast('Acceso copiado: link y clave.');
+          }}>Copiar acceso</button>
+          <button type="button" className="vp-link tenue-oscuro" onClick={() => { if (confirm(`¿Darle una clave nueva al panel de ${l.nombre}? Quien esté adentro con la clave anterior va a tener que volver a entrar.`)) accion({ nuevaClave: true }, 'Clave nueva generada.'); }}>Nueva</button>
         </span>
       </td>
       <td data-t="Activo"><input type="checkbox" checked={l.activo} onChange={(e) => accion({ activo: e.target.checked }, e.target.checked ? 'Local activado.' : 'Local desactivado.')} aria-label={`${l.nombre} activo`} /></td>

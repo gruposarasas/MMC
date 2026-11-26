@@ -1,14 +1,16 @@
 import Link from 'next/link';
 import { esAdminVP, locales as todosLosLocales, todasLasTarjetas, cuentaCorriente, mesesConConsumos, linkTarjeta } from '@/lib/vistapueblo-servidor';
-import { pesos, diaHora, dondeVale, estadoTarjeta, mesActual, nombreMes, hoyMendoza } from '@/lib/vistapueblo';
+import { pesos, diaHora, dondeVale, estadoTarjeta, mesActual, nombreMes, hoyMendoza, nombreDe } from '@/lib/vistapueblo';
+import { URL_PUBLICA } from '@/lib/config';
 import { EntrarAdmin, Salir, AutoRecarga } from '@/components/vistapueblo/Comun';
-import { NuevaTarjeta, ImportarExcel } from '@/components/vistapueblo/Emitir';
+import { NuevaTarjeta, ImportarExcel, ImprimirVouchers } from '@/components/vistapueblo/Emitir';
 import { ListaTarjetas, EditorLocales, AnularConsumo } from '@/components/vistapueblo/Admin';
+import { Metricas, leerRango } from '@/components/vistapueblo/Metricas';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Backoffice · Gift cards Vistapueblo' };
+export const metadata = { title: 'Backoffice · Gift cards Vistapueblo', manifest: '/vistapueblo/app.webmanifest' };
 
-const TABS = [['resumen', 'Resumen'], ['nueva', 'Nueva gift card'], ['importar', 'Importar Excel'], ['tarjetas', 'Gift cards'], ['cuenta', 'Cuenta corriente'], ['locales', 'Locales']] as const;
+const TABS = [['resumen', 'Resumen'], ['metricas', 'Métricas'], ['nueva', 'Nueva'], ['importar', 'Importar Excel'], ['imprimir', 'Imprimir'], ['tarjetas', 'Gift cards'], ['cuenta', 'Cuenta corriente'], ['locales', 'Locales']] as const;
 type Tab = (typeof TABS)[number][0];
 
 export default async function Backoffice({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -39,13 +41,27 @@ async function Seccion({ tab, sp }: { tab: Tab; sp: Record<string, string | unde
 
   if (tab === 'nueva') return <NuevaTarjeta locales={activos} />;
   if (tab === 'importar') return <ImportarExcel locales={activos} />;
+  if (tab === 'imprimir') return <ImprimirVouchers locales={activos} />;
+
+  if (tab === 'metricas') {
+    const { desde, hasta } = leerRango(sp);
+    const local = sp.local && ls.some((l) => l.id === sp.local) ? sp.local : undefined;
+    return (
+      <>
+        <AutoRecarga />
+        <h1 className="vp-h1">Métricas</h1>
+        <Metricas desde={desde} hasta={hasta} localId={local} base="/vistapueblo/admin?tab=metricas" locales={ls.map(({ id, nombre }) => ({ id, nombre }))}
+          csv={`/api/vp/admin/csv?tipo=metricas&desde=${desde}&hasta=${hasta}${local ? `&local=${local}` : ''}`} detalle={!!local} />
+      </>
+    );
+  }
 
   if (tab === 'locales')
     return (
       <>
         <h1 className="vp-h1">Locales</h1>
-        <p className="vp-sub">El <b>%</b> es la parte de cada consumo que absorbe el local; el resto lo cubre Vistapueblo y se descuenta del alquiler. Si lo cambiás, vale para los consumos de ahí en adelante. El <b>PIN</b> es para configurar la caja de cada local (en <Link className="vp-link" href="/vistapueblo/caja">/vistapueblo/caja</Link> o escaneando cualquier gift card).</p>
-        <EditorLocales locales={ls} />
+        <p className="vp-sub">El <b>%</b> es la parte de cada consumo que absorbe el local; el resto lo cubre Vistapueblo y se descuenta del alquiler. Si lo cambiás, vale para los consumos de ahí en adelante. El <b>PIN</b> es para configurar la caja de cada local (en <Link className="vp-link" href="/vistapueblo/caja">/vistapueblo/caja</Link>). La <b>clave del panel</b> es para que el encargado de cada local vea sus consumos, métricas y cuenta corriente en <Link className="vp-link" href="/vistapueblo/local">/vistapueblo/local</Link>.</p>
+        <EditorLocales locales={ls} url={URL_PUBLICA} />
       </>
     );
 
@@ -55,7 +71,7 @@ async function Seccion({ tab, sp }: { tab: Tab; sp: Record<string, string | unde
       <>
         <h1 className="vp-h1">Gift cards</h1>
         <ListaTarjetas filas={ts.map((t) => ({
-          id: t.id, numero: t.numero, nombre: t.nombre, mail: t.mail, whatsapp: t.whatsapp, monto: t.monto, saldo: t.saldo, vence: t.vence,
+          id: t.id, numero: t.numero, nombre: nombreDe(t.nombre), mail: t.mail, impresa: t.impresa, modo: t.modo, whatsapp: t.whatsapp, monto: t.monto, saldo: t.saldo, vence: t.vence,
           estado: estadoTarjeta(t), donde: dondeVale(t.todos_los_locales, t.locales, ls), link: linkTarjeta(t.token), lote: t.lote,
           enviada: !!(t.enviada_wa_at || t.enviada_mail_at), vista: !!t.vista_at, creada: t.created_at,
         }))} />
@@ -83,17 +99,17 @@ async function Seccion({ tab, sp }: { tab: Tab; sp: Record<string, string | unde
         <p className="vp-sub">Lo que Vistapueblo cubre de cada consumo se descuenta del alquiler de ese local a fin de mes. Los consumos anulados no cuentan.</p>
         <div className="vp-tabla">
           <table>
-            <thead><tr><th>Local</th><th className="n">%</th><th className="n">Consumos</th><th className="n">Consumido</th><th className="n">Absorbe el local</th><th className="n">A cargo de Vistapueblo<br /><small>se descuenta del alquiler</small></th><th /></tr></thead>
+            <thead><tr><th>Local</th><th className="n">%</th><th className="n">Consumos</th><th className="n">Consumido</th><th className="n">Absorbe el local</th><th className="n">A cargo de Vistapueblo<br /><small>se descuenta del alquiler</small></th><th className="n">Venta total<br /><small>tickets</small></th><th /></tr></thead>
             <tbody>
               {cc.filas.map((f) => (
                 <tr key={f.id} className={local === f.id ? 'sel' : ''}>
                   <td><Link className="vp-link" href={`/vistapueblo/admin?tab=cuenta&mes=${mes}&local=${f.id}`}>{f.nombre}</Link></td>
                   <td className="n">{f.porcentaje}%</td><td className="n">{f.cantidad}</td><td className="n">{pesos(f.consumido)}</td>
-                  <td className="n">{pesos(f.local)}</td><td className="n"><b>{pesos(f.vp)}</b></td>
+                  <td className="n">{pesos(f.local)}</td><td className="n"><b>{pesos(f.vp)}</b></td><td className="n">{pesos(f.ventas)}</td>
                   <td><a className="vp-link" href={`/api/vp/admin/csv?mes=${mes}&local=${f.id}`}>Excel</a></td>
                 </tr>
               ))}
-              <tr className="tot"><td>Total</td><td /><td className="n">{cc.total.cantidad}</td><td className="n">{pesos(cc.total.consumido)}</td><td className="n">{pesos(cc.total.local)}</td><td className="n"><b>{pesos(cc.total.vp)}</b></td>
+              <tr className="tot"><td>Total</td><td /><td className="n">{cc.total.cantidad}</td><td className="n">{pesos(cc.total.consumido)}</td><td className="n">{pesos(cc.total.local)}</td><td className="n"><b>{pesos(cc.total.vp)}</b></td><td className="n">{pesos(cc.total.ventas)}</td>
                 <td><a className="vp-link" href={`/api/vp/admin/csv?mes=${mes}`}>Excel</a></td></tr>
             </tbody>
           </table>
@@ -119,12 +135,15 @@ async function Seccion({ tab, sp }: { tab: Tab; sp: Record<string, string | unde
     <>
       <AutoRecarga />
       <h1 className="vp-h1">Resumen</h1>
-      <div className="vp-stats">
+      <div className="vp-stats seis">
         <div><b>{vivas.length}</b><span>gift cards emitidas · {pesos(emitido)}</span></div>
         <div><b>{pesos(consumido)}</b><span>consumido en los restaurantes</span></div>
         <div><b>{pesos(disponible)}</b><span>saldo vigente sin usar</span></div>
         <div><b>{pesos(vencido)}</b><span>saldo vencido sin usar</span></div>
+        <div><b>{cc.consumos.filter((c) => !c.anulado).reduce((s, c) => s + (c.personas || 0), 0)}</b><span>personas vinieron este mes</span></div>
+        <div><b>{pesos(cc.total.ventas)}</b><span>venta total en los locales este mes</span></div>
       </div>
+      <p className="vp-ayuda"><Link className="vp-link" href="/vistapueblo/admin?tab=metricas">Ver todas las métricas →</Link></p>
       <div className="vp-titulo" style={{ marginTop: 22 }}>
         <h2>{nombreMes(mesActual())[0].toUpperCase() + nombreMes(mesActual()).slice(1)} por local</h2>
         <Link className="vp-link" href="/vistapueblo/admin?tab=cuenta">Cuenta corriente →</Link>
@@ -150,13 +169,13 @@ function TablaConsumos({ consumos }: { consumos: Awaited<ReturnType<typeof cuent
   return (
     <div className="vp-tabla">
       <table>
-        <thead><tr><th>N°</th><th>Día y hora</th><th>Local</th><th>Gift card</th><th className="n">Monto</th><th className="n">Local</th><th className="n">Vistapueblo</th><th /></tr></thead>
+        <thead><tr><th>N°</th><th>Día y hora</th><th>Local</th><th>Gift card</th><th className="n">Personas</th><th className="n">Ticket</th><th className="n">Gift card</th><th className="n">Local</th><th className="n">Vistapueblo</th><th /></tr></thead>
         <tbody>
           {consumos.map((c) => (
             <tr key={c.id} className={c.anulado ? 'anulado' : ''}>
               <td>{c.numero}</td><td>{diaHora(c.created_at)}</td><td>{c.local}{c.cajero ? <small>{c.cajero}</small> : null}</td>
               <td><Link className="vp-link" href={`/vistapueblo/admin/tarjeta/${c.tarjeta_id}`}>N° {c.tarjeta?.numero} · {c.tarjeta?.nombre}</Link></td>
-              <td className="n">{pesos(c.monto)}</td><td className="n">{pesos(c.a_cargo_local)} <small>{c.porcentaje}%</small></td><td className="n">{pesos(c.a_cargo_vp)}</td>
+              <td className="n">{c.personas ?? '—'}</td><td className="n">{pesos(c.ticket)}</td><td className="n">{pesos(c.monto)}</td><td className="n">{pesos(c.a_cargo_local)} <small>{c.porcentaje}%</small></td><td className="n">{pesos(c.a_cargo_vp)}</td>
               <td>{c.anulado ? <small title={c.anulado_motivo}>Anulado</small> : <AnularConsumo id={c.id} />}</td>
             </tr>
           ))}
