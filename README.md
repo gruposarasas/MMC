@@ -27,6 +27,7 @@ Los visitantes escanean un QR, se registran y reciben una billetera con cupones 
 | `/baristas` | Barista | Ingreso con su clave: foto, historia, experiencia, hobby y por qué merece ganar; mensajes recibidos y la devolución del jurado. |
 | `/jurado` | Jurados | Jurado 1, 2 y 3 entran con su clave y cargan su planilla de cada barista en la ronda en curso. |
 | `/trabajo` | Público | **Banco de Trabajo AEHGA** (gastronomía y hotelería): portada, `/trabajo/vacantes`, `/trabajo/postulante` (carga y edición del CV, postulaciones) y `/trabajo/empresa` (registro, buscador de CVs por puesto, departamento, edad, experiencia, disponibilidad e idiomas; vacantes y postulantes). Administración lo ve en `/admin?tab=trabajo`. |
+| `/vistapueblo` | Vistapueblo (demo) | **Gift cards de Vistapueblo**: backoffice en `/vistapueblo/admin` (resumen, nueva gift card, importar Excel, lista, cuenta corriente por local y locales con su % y PIN); la tarjeta del cliente en `/vistapueblo/g/[token]` (con QR) y la caja de cada restaurante en `/vistapueblo/caja`. |
 | `/api/salud` | — | Healthcheck. |
 
 ## Variables de entorno
@@ -38,6 +39,7 @@ Los visitantes escanean un QR, se registran y reciben una billetera con cupones 
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave secreta del servidor | Supabase → Project Settings → API Keys → `service_role` (o una `sb_secret_…`). **Nunca** en el cliente ni en el repo. |
 | `ADMIN_PASSWORD` | Contraseña de `/admin` | Elegila vos, larga. |
 | `SESSION_SECRET` | Firma de las cookies (mín. 32 caracteres) | `openssl rand -base64 48` |
+| `VISTAPUEBLO_PASSWORD` | (Opcional) contraseña de `/vistapueblo/admin` | Si no está, se usa `ADMIN_PASSWORD`. |
 
 Las variables se leen **al arrancar**, no en el build: cambiar una en Easypanel solo requiere reiniciar la app.
 
@@ -64,6 +66,7 @@ Las migraciones están en `supabase/migrations/` y **ya están aplicadas** en el
 - `sortear()`: elige al azar entre todos los visitantes presentes (aunque hayan salido antes) y guarda el resultado en `ganadores`, como historial. El estado del sorteo (abierto o cerrado) está en la tabla `sorteo`, y la presencia en `visitantes.presente_at`.
 - **Seguridad:** RLS activado en todas las tablas y sin políticas; permisos revocados a `anon` y `authenticated`, incluidas las funciones. Todo pasa por el servidor con la service role. El código de caja y la clave nunca llegan a las pantallas del visitante.
 - Banco de trabajo (`20261112000001_banco_de_trabajo.sql`): `tb_postulantes`, `tb_empresas`, `tb_vacantes`, `tb_postulaciones` y `tb_vistas_cv` (qué empresa abrió qué CV). Postulantes y empresas entran con mail y clave (scrypt; no hay recuperación de clave por ahora). Los CV van al bucket **privado** `cvs` (PDF, JPG o PNG, hasta 5 MB) y se abren con links firmados de 2 minutos desde `/api/trabajo/cv/[id]`. Listas fijas (departamentos, puestos, disponibilidad, idiomas) en `src/lib/trabajo.ts`.
+- Gift cards de Vistapueblo (`20261126000001_vistapueblo_giftcards.sql`): `vp_locales` (8 restaurantes, % que absorbe cada uno y PIN de 4 números para su caja, sorteado al crear la tabla: se ve en el backoffice, pestaña Locales), `vp_tarjetas` (monto, saldo, vencimiento, locales donde vale, token del QR y código `VP-XXXX-XXXX`) y `vp_consumos` (cada consumo con el % congelado y el reparto local / Vistapueblo). `vp_consumir()` valida y descuenta en una sola transacción con la fila bloqueada (consumo parcial, nunca más que el saldo); `vp_anular_consumo()` devuelve el monto. El envío es por links `wa.me` y `mailto:` (sin envío automático). La caja queda recordada en el celular con una cookie firmada (`local:versión del PIN`): un PIN nuevo cierra las cajas abiertas de ese local.
 - Bucket público `logos` (hasta 1 MB, PNG/JPG/WebP). Solo sube el servidor.
 
 ### Regenerar la semilla
